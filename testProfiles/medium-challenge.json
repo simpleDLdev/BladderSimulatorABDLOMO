@@ -1,0 +1,81 @@
+{
+  "id": "medium_challenge_v1",
+  "name": "⚡ Medium Challenge",
+  "description": "Balanced babysitter session. ~30-60 min intervals, 50% potty success, progression enabled. A realistic daily trainer.",
+  "createdAt": "2026-03-09T00:00:00.000Z",
+  "runtime": {
+    "baseProfile": "babysitter",
+    "mainMin": 30,
+    "mainMax": 60,
+    "microMin": 8,
+    "microMax": 18,
+    "pottySuccessRate": 50,
+    "microsPerCycle": 2,
+    "leakScalar": 1,
+    "pressureAcceleration": 1,
+    "sipMin": 2,
+    "sipMax": 5,
+    "hydrationMin": 20,
+    "hydrationMax": 40,
+    "startProtection": "diapers",
+    "progressionEnabled": true,
+    "successThreshold": 3,
+    "failureThreshold": 2,
+    "pushToLeak": "optional",
+    "mercyMode": "optional",
+    "preChime": true,
+    "customMicroEvents": [
+      {
+        "type": "micro",
+        "label": "Check-In Leak",
+        "flow": "A babysitter check makes you tense up, and that tension squeezes out a leak.",
+        "guide": [
+          { "text": "STAND STILL", "time": 3, "type": "stop" },
+          { "text": "SQUIRT", "time": 3, "type": "push" },
+          { "text": "COMPOSE", "time": 3, "type": "stop" }
+        ]
+      },
+      {
+        "type": "micro",
+        "label": "Hurry Wobble",
+        "flow": "You try to move fast, lose rhythm, and dribble before you recover.",
+        "guide": [
+          { "text": "QUICK STEPS", "time": 3, "type": "stop" },
+          { "text": "WOBBLE", "time": 2, "type": "push" },
+          { "text": "DRIP", "time": 4, "type": "relax" }
+        ]
+      },
+      {
+        "type": "micro",
+        "label": "Denied Potty Dribble",
+        "flow": "The moment you hear 'not yet,' a protesting leak slips out.",
+        "guide": [
+          { "text": "WAIT", "time": 4, "type": "stop" },
+          { "text": "PROTEST LEAK", "time": 4, "type": "relax" }
+        ]
+      }
+    ],
+    "customFullEvents": [
+      {
+        "type": "full",
+        "label": "Hallway Accident",
+        "flow": "You almost make it, then the last few steps trigger a full loss of control.",
+        "guide": [
+          { "text": "HURRY", "time": 4, "type": "stop" },
+          { "text": "SPURT", "time": 4, "type": "push" },
+          { "text": "CAN'T STOP", "time": 10, "type": "relax" }
+        ]
+      },
+      {
+        "type": "full",
+        "label": "Diaper Flood",
+        "flow": "A small failure snowballs into a full wetting before help arrives.",
+        "guide": [
+          { "text": "HOLD", "time": 5, "type": "stop" },
+          { "text": "LETTING GO", "time": 6, "type": "relax" },
+          { "text": "FULL FLOOD", "time": 10, "type": "push" }
+        ]
+      }
+    ]
+  }
+}

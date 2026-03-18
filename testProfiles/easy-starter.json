@@ -1,0 +1,81 @@
+{
+  "id": "easy_starter_v1",
+  "name": "🌱 Easy Starter",
+  "description": "Long intervals, high potty success, mercy on. A gentle intro with no pressure.",
+  "createdAt": "2026-03-09T00:00:00.000Z",
+  "runtime": {
+    "baseProfile": "train_rookie",
+    "mainMin": 60,
+    "mainMax": 120,
+    "microMin": 20,
+    "microMax": 40,
+    "pottySuccessRate": 85,
+    "microsPerCycle": 1,
+    "leakScalar": 0.5,
+    "pressureAcceleration": 0.5,
+    "sipMin": 2,
+    "sipMax": 4,
+    "hydrationMin": 30,
+    "hydrationMax": 60,
+    "startProtection": "pullups",
+    "progressionEnabled": false,
+    "successThreshold": 5,
+    "failureThreshold": 5,
+    "pushToLeak": "disabled",
+    "mercyMode": "forced",
+    "preChime": true,
+    "customMicroEvents": [
+      {
+        "type": "micro",
+        "label": "Gentle Reminder",
+        "flow": "A small warm dribble slips out before you fully notice the urge.",
+        "guide": [
+          { "text": "BREATHE", "time": 3, "type": "stop" },
+          { "text": "TINY DRIP", "time": 2, "type": "relax" },
+          { "text": "CLENCH", "time": 3, "type": "stop" }
+        ]
+      },
+      {
+        "type": "micro",
+        "label": "Seat Shift",
+        "flow": "Repositioning sends out a short leak, but you catch it quickly.",
+        "guide": [
+          { "text": "SHIFT", "time": 2, "type": "stop" },
+          { "text": "SMALL SQUIRT", "time": 2, "type": "push" },
+          { "text": "SETTLE", "time": 3, "type": "stop" }
+        ]
+      },
+      {
+        "type": "micro",
+        "label": "Doorstep Drip",
+        "flow": "Thinking about the bathroom makes a few drops escape early.",
+        "guide": [
+          { "text": "WAIT", "time": 4, "type": "stop" },
+          { "text": "DRIBBLE", "time": 3, "type": "relax" }
+        ]
+      }
+    ],
+    "customFullEvents": [
+      {
+        "type": "full",
+        "label": "Controlled Reset",
+        "flow": "You try to stay calm, but the release builds into a full accident anyway.",
+        "guide": [
+          { "text": "HOLD TIGHT", "time": 4, "type": "stop" },
+          { "text": "LEAK", "time": 5, "type": "relax" },
+          { "text": "FULL FLOW", "time": 8, "type": "relax" }
+        ]
+      },
+      {
+        "type": "full",
+        "label": "Calm Overflow",
+        "flow": "The pressure wins gradually and turns into a steady, complete soak.",
+        "guide": [
+          { "text": "STEADY BREATH", "time": 4, "type": "stop" },
+          { "text": "WARM STREAM", "time": 6, "type": "relax" },
+          { "text": "EMPTY", "time": 8, "type": "relax" }
+        ]
+      }
+    ]
+  }
+}

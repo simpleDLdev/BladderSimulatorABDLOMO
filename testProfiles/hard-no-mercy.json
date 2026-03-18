@@ -1,0 +1,81 @@
+{
+  "id": "hard_no_mercy_v1",
+  "name": "🔥 Hard — No Mercy",
+  "description": "Short windows, 20% potty success, mercy disabled, push-to-leak forced on. For experienced players only.",
+  "createdAt": "2026-03-09T00:00:00.000Z",
+  "runtime": {
+    "baseProfile": "train_pro",
+    "mainMin": 15,
+    "mainMax": 40,
+    "microMin": 4,
+    "microMax": 10,
+    "pottySuccessRate": 20,
+    "microsPerCycle": 4,
+    "leakScalar": 1.5,
+    "pressureAcceleration": 1.8,
+    "sipMin": 3,
+    "sipMax": 6,
+    "hydrationMin": 10,
+    "hydrationMax": 25,
+    "startProtection": "pad",
+    "progressionEnabled": true,
+    "successThreshold": 4,
+    "failureThreshold": 1,
+    "pushToLeak": "forced",
+    "mercyMode": "disabled",
+    "preChime": false,
+    "customMicroEvents": [
+      {
+        "type": "micro",
+        "label": "Brace Break",
+        "flow": "You lock down hard, but the strain turns into a sharp forced spurt.",
+        "guide": [
+          { "text": "BRACE", "time": 5, "type": "stop" },
+          { "text": "FORCED SPURT", "time": 3, "type": "push" },
+          { "text": "RECOVER", "time": 2, "type": "stop" }
+        ]
+      },
+      {
+        "type": "micro",
+        "label": "Cough Collapse",
+        "flow": "A sudden body jolt strips away your control for a hot second.",
+        "guide": [
+          { "text": "TENSE", "time": 3, "type": "stop" },
+          { "text": "BURST", "time": 4, "type": "push" },
+          { "text": "DRIP", "time": 2, "type": "relax" }
+        ]
+      },
+      {
+        "type": "micro",
+        "label": "Edge Failure",
+        "flow": "You ride the edge too long and a small but stubborn leak forces its way out.",
+        "guide": [
+          { "text": "HANG ON", "time": 4, "type": "stop" },
+          { "text": "PUSHING OUT", "time": 5, "type": "push" }
+        ]
+      }
+    ],
+    "customFullEvents": [
+      {
+        "type": "full",
+        "label": "No Mercy Surge",
+        "flow": "Once the surge starts, you are past the point of saving anything.",
+        "guide": [
+          { "text": "CLAMP", "time": 4, "type": "stop" },
+          { "text": "SURGE", "time": 12, "type": "push" },
+          { "text": "DRAINING", "time": 10, "type": "relax" }
+        ]
+      },
+      {
+        "type": "full",
+        "label": "Point Of No Return",
+        "flow": "A hard push becomes a complete emptying with no chance to stop.",
+        "guide": [
+          { "text": "LAST HOLD", "time": 5, "type": "stop" },
+          { "text": "BREAK", "time": 6, "type": "push" },
+          { "text": "EMPTY FAST", "time": 14, "type": "push" }
+        ]
+      }
+    ]
+  }
+}

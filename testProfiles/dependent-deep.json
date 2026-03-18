@@ -1,0 +1,79 @@
+{
+  "id": "dependent_deep_v1",
+  "name": "👶 Dependent Deep",
+  "description": "Full regression loop. Queue-style dependent base, thick diapers, no progression out. Great for a long passive wear session.",
+  "createdAt": "2026-03-09T00:00:00.000Z",
+  "runtime": {
+    "baseProfile": "dependent",
+    "mainMin": 10,
+    "mainMax": 25,
+    "microMin": 4,
+    "microMax": 12,
+    "pottySuccessRate": 0,
+    "microsPerCycle": 5,
+    "leakScalar": 1.2,
+    "pressureAcceleration": 1,
+    "sipMin": 2,
+    "sipMax": 4,
+    "hydrationMin": 15,
+    "hydrationMax": 30,
+    "startProtection": "thick_diapers",
+    "progressionEnabled": false,
+    "successThreshold": 99,
+    "failureThreshold": 99,
+    "pushToLeak": "disabled",
+    "mercyMode": "disabled",
+    "preChime": true,
+    "customMicroEvents": [
+      {
+        "type": "micro",
+        "label": "Warm Seep",
+        "flow": "Without much warning, warmth quietly spreads into the front of your diaper.",
+        "guide": [
+          { "text": "STILL", "time": 2, "type": "stop" },
+          { "text": "SEEP", "time": 5, "type": "relax" }
+        ]
+      },
+      {
+        "type": "micro",
+        "label": "Passive Drip",
+        "flow": "A few soft drips escape on their own while you barely react.",
+        "guide": [
+          { "text": "DRIP", "time": 3, "type": "relax" },
+          { "text": "MORE DRIPS", "time": 3, "type": "relax" }
+        ]
+      },
+      {
+        "type": "micro",
+        "label": "Blanket Melt",
+        "flow": "Relaxing too much turns into a slow leak that just keeps going for a moment.",
+        "guide": [
+          { "text": "RELAX", "time": 4, "type": "relax" },
+          { "text": "WARM LEAK", "time": 4, "type": "relax" }
+        ]
+      }
+    ],
+    "customFullEvents": [
+      {
+        "type": "full",
+        "label": "Automatic Emptying",
+        "flow": "Your bladder gives up in one passive, heavy emptying with no real fight.",
+        "guide": [
+          { "text": "NO WARNING", "time": 3, "type": "stop" },
+          { "text": "FULL RELEASE", "time": 14, "type": "relax" },
+          { "text": "STILL FLOWING", "time": 10, "type": "relax" }
+        ]
+      },
+      {
+        "type": "full",
+        "label": "Sleepy Flood",
+        "flow": "You go soft and hazy, and the rest of your bladder empties into padding all at once.",
+        "guide": [
+          { "text": "GO LIMP", "time": 4, "type": "relax" },
+          { "text": "FLOOD", "time": 12, "type": "relax" },
+          { "text": "EMPTY", "time": 10, "type": "relax" }
+        ]
+      }
+    ]
+  }
+}
