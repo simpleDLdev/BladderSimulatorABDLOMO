@@ -903,6 +903,10 @@ function stopAll() {
   const btnQ = $('btnQuickGo');
   if (btnQ) btnQ.style.display = 'none';
 
+  // Remove quick prefs panel
+  const qpp = $('quickPrefsPanel');
+  if (qpp) qpp.remove();
+
   // --- Session Summary ---
   const elapsed = Date.now() - sessionStartTime;
   const mins = Math.floor(elapsed / 60000);
@@ -1015,34 +1019,42 @@ function chooseFullSession() {
 // Step 1: Continence style → Step 2: Preferences → Step 3: Confirm & Start
 // Maps user-friendly choices to event table keys
 
-const QUICK_CONTINENCE_STYLES = [
+const QUICK_CONTROL_LEVELS = [
   {
-    key: 'holding',
+    key: 'strong',
     emoji: '💪',
-    label: 'Holding & Desperation',
-    desc: 'You\'re trying your best to hold it. Focus on endurance, urgency, and the struggle.',
+    label: 'Strong Control',
+    desc: 'You can usually hold it. Accidents are rare but the pressure builds.',
     color: '#55efc4',
+    holdChance: 70,
+    preSelect: ['omorashi'],
   },
   {
-    key: 'leaking',
-    emoji: '💧',
-    label: 'Leaking & Losing Control',
-    desc: 'You can\'t quite keep it together. Spurts, dribbles, and gradual loss of control.',
+    key: 'moderate',
+    emoji: '😬',
+    label: 'Moderate Control',
+    desc: 'You can hold it sometimes, but you leak under pressure. Close calls are common.',
     color: '#74b9ff',
+    holdChance: 45,
+    preSelect: ['training', 'protection'],
   },
   {
-    key: 'wetting',
+    key: 'weak',
+    emoji: '💧',
+    label: 'Weak Control',
+    desc: 'You struggle to hold it. Most urges end in a partial or full accident.',
+    color: '#fdcb6e',
+    holdChance: 25,
+    preSelect: ['training', 'protection', 'diapers'],
+  },
+  {
+    key: 'none',
     emoji: '💦',
-    label: 'Full Wetting & Accidents',
-    desc: 'Accidents happen. Full releases, floods, and the moment you realize it\'s too late.',
+    label: 'No Control',
+    desc: 'You can\'t hold it at all. Every urge is an accident waiting to happen.',
     color: '#ff7675',
-  },
-  {
-    key: 'everything',
-    emoji: '🎲',
-    label: 'Surprise Me (All of the Above)',
-    desc: 'A mix of everything — holding, leaking, and full accidents. Maximum variety.',
-    color: '#a29bfe',
+    holdChance: 10,
+    preSelect: ['diapers', 'training'],
   },
 ];
 
@@ -1050,40 +1062,40 @@ const QUICK_PREFERENCE_OPTIONS = [
   {
     key: 'omorashi',
     emoji: '💧',
-    label: 'Omorashi / Desperation',
-    desc: 'Holding challenges, breath torture, compression holds. No protection needed.',
+    label: 'Holding Challenges',
+    desc: 'Endurance exercises — squeezing, breath holds, compression. You try to hold it as long as possible.',
     color: '#81ecec',
     tables: ['OMORASHI_GAUNTLETS', 'MESSY_HOLDING_GAUNTLETS_D10'],
   },
   {
     key: 'training',
     emoji: '🚽',
-    label: 'Potty Training / Accidents',
-    desc: 'Trying to make it in time — panicked dashes, close calls, and "almost made it" moments.',
+    label: 'Potty Accidents',
+    desc: 'Leaks, spurts, and "I didn\'t make it" moments. Events describe losing control with guides to follow.',
     color: '#ff7675',
     tables: ['FULL_TRAINING_FAILURES', 'FULL_D20'],
   },
   {
     key: 'protection',
     emoji: '🩳',
-    label: 'Pads / Pullups / Protection',
-    desc: 'Wearing protection and dealing with leaks, saturation, and changes.',
+    label: 'Pad / Pullup Events',
+    desc: 'For when you\'re wearing light protection. Leaking into pads, pullup checks, saturation buildup.',
     color: '#fdcb6e',
     tables: ['FULL_D20'],
   },
   {
     key: 'diapers',
     emoji: '👶',
-    label: 'Diapers / Regression',
-    desc: 'Full diaper scenarios — helpless flooding, soggy padding, caregiver checks.',
+    label: 'Diaper Events',
+    desc: 'Full diaper floods, helpless filling, soggy padding. For when you\'re wearing full protection.',
     color: '#fab1a0',
     tables: ['MACRO_DEPENDENT_D20', 'FULL_D20'],
   },
   {
     key: 'messy',
     emoji: '😳',
-    label: 'Messy / #2 Accidents',
-    desc: 'Loss of bowel control — pushing, seated accidents, and the "uh oh" moments.',
+    label: 'Messy / #2',
+    desc: 'Loss of bowel control events. Pushing, seated accidents, and unexpected messes.',
     color: '#dfe6e9',
     tables: ['MESSY_PUSHING_ACCIDENTS_D10'],
   },
@@ -1104,21 +1116,25 @@ function showQuickModeSetup() {
 }
 
 function showQuickStep1() {
-  // Step 1: What kind of experience?
+  // Step 1: How much control do you have?
   let html = `
     <div id="quickModeSetup" style="text-align:left;">
       <button onclick="backToSessionType()" style="background:none; border:none; color:#7cc4ff; cursor:pointer; font-size:13px; margin-bottom:12px; padding:0;">&larr; Back</button>
-      <h2 style="color:#ff7675; margin:0 0 6px 0; text-align:center;">🚽 Quick Session</h2>
-      <p style="color:#cdd7e6; font-size:0.92em; margin:0 0 16px 0; text-align:center; line-height:1.5;">
-        What kind of experience are you looking for?
+      <h2 style="color:#ff7675; margin:0 0 6px 0; text-align:center;">🧠 How much control do you have?</h2>
+      <p style="color:#cdd7e6; font-size:0.88em; margin:0 0 14px 0; text-align:center; line-height:1.5;">
+        This decides how often you make it when you press the button.<br>
+        <span style="color:#888; font-size:0.9em;">Higher control = more holds. Lower control = more accidents.</span>
       </p>
       <div style="display:flex; flex-direction:column; gap:10px; margin-bottom:10px;">`;
 
-  for (const s of QUICK_CONTINENCE_STYLES) {
+  for (const s of QUICK_CONTROL_LEVELS) {
     html += `
-        <div onclick="quickSelectContinence('${s.key}')" style="background:#1b2030; padding:14px 16px; border-radius:12px; border:2px solid ${s.color}33; cursor:pointer; transition:transform 0.15s, border-color 0.15s;" onmouseover="this.style.borderColor='${s.color}';this.style.transform='scale(1.02)'" onmouseout="this.style.borderColor='${s.color}33';this.style.transform='scale(1)'">
-          <div style="font-size:1.1em; font-weight:bold; color:${s.color}; margin-bottom:4px;">${s.emoji} ${s.label}</div>
-          <div style="color:#999; font-size:0.82em; line-height:1.4;">${s.desc}</div>
+        <div onclick="quickSelectControl('${s.key}')" style="background:#1b2030; padding:14px 16px; border-radius:12px; border:2px solid ${s.color}33; cursor:pointer; transition:transform 0.15s, border-color 0.15s;" onmouseover="this.style.borderColor='${s.color}';this.style.transform='scale(1.02)'" onmouseout="this.style.borderColor='${s.color}33';this.style.transform='scale(1)'">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <span style="font-size:1.1em; font-weight:bold; color:${s.color};">${s.emoji} ${s.label}</span>
+            <span style="color:${s.color}; font-size:0.85em; opacity:0.8;">~${s.holdChance}% hold</span>
+          </div>
+          <div style="color:#999; font-size:0.82em; line-height:1.4; margin-top:4px;">${s.desc}</div>
         </div>`;
   }
 
@@ -1134,30 +1150,23 @@ function showQuickStep1() {
   }
 }
 
-function quickSelectContinence(styleKey) {
-  // Store the continence choice and move to preference step
-  window._quickContinenceStyle = styleKey;
-  showQuickStep2(styleKey);
+function quickSelectControl(controlKey) {
+  // Store the control choice and move to preference step
+  window._quickControlLevel = controlKey;
+  const level = QUICK_CONTROL_LEVELS.find(l => l.key === controlKey);
+  showQuickStep2(controlKey, level ? level.preSelect : []);
 }
 
-function showQuickStep2(styleKey) {
-  // Step 2: What are you into? (multi-select preferences)
-  // Pre-select based on continence style
-  const preSelects = {
-    holding: ['omorashi'],
-    leaking: ['training', 'protection'],
-    wetting: ['training', 'protection', 'diapers'],
-    everything: ['omorashi', 'training', 'protection', 'diapers'],
-  };
-  const preSelected = preSelects[styleKey] || [];
+function showQuickStep2(controlKey, preSelected) {
+  // Step 2: What events do you want?
 
   let html = `
     <div id="quickModeSetup" style="text-align:left;">
       <button onclick="showQuickStep1()" style="background:none; border:none; color:#7cc4ff; cursor:pointer; font-size:13px; margin-bottom:12px; padding:0;">&larr; Back</button>
-      <h2 style="color:#ff7675; margin:0 0 6px 0; text-align:center;">🎯 Your Preferences</h2>
+      <h2 style="color:#ff7675; margin:0 0 6px 0; text-align:center;">🎯 What events do you want?</h2>
       <p style="color:#cdd7e6; font-size:0.88em; margin:0 0 6px 0; text-align:center; line-height:1.5;">
-        Select what you're into — we'll only roll events that match.<br>
-        <span style="color:#888; font-size:0.9em;">Everyone's different, and that's totally fine!</span>
+        Pick the types of events you'll see when you press "I Need to Go!"<br>
+        <span style="color:#888; font-size:0.9em;">We pre-selected some based on your control level.</span>
       </p>
       <div style="display:flex; flex-direction:column; gap:8px; margin-bottom:16px;">`;
 
@@ -1192,7 +1201,7 @@ function quickConfirmPrefs() {
   const selectedPrefs = Array.from(checks).map(c => c.value);
 
   if (selectedPrefs.length === 0) {
-    toast('Pick at least one preference!');
+    toast('Pick at least one event type!');
     return;
   }
 
@@ -1204,7 +1213,10 @@ function quickConfirmPrefs() {
   }
   const selectedTables = Array.from(tableSet);
 
-  // Save and start (reuse existing startQuickSession logic)
+  // Save control level
+  const controlKey = window._quickControlLevel || 'moderate';
+  const controlLevel = QUICK_CONTROL_LEVELS.find(l => l.key === controlKey);
+  localStorage.setItem('quickControlLevel', controlKey);
   localStorage.setItem('quickModeTables', JSON.stringify(selectedTables));
   localStorage.setItem('quickModePrefs', JSON.stringify(selectedPrefs));
   window.quickModeTables = selectedTables;
@@ -1224,13 +1236,20 @@ function quickConfirmPrefs() {
   sessionStartedAt = Date.now();
 
   const prefLabels = selectedPrefs.map(k => QUICK_PREFERENCE_OPTIONS.find(p => p.key === k)?.label || k).join(', ');
+  const controlLabel = controlLevel ? controlLevel.label : 'Moderate';
+  const holdPct = controlLevel ? controlLevel.holdChance : 45;
+
   logToOutput(`<span style="color:#ff7675; font-size:1.1em;"><b>🚽 Quick Session Started</b></span>`);
-  logToOutput(`<span style="color:#cdd7e6;">Your vibe: ${prefLabels}</span>`);
+  logToOutput(`<span style="color:#cdd7e6;">Control: <b>${controlLabel}</b> (~${holdPct}% hold) | Events: ${prefLabels}</span>`);
   logToOutput(`<div style="border:1px solid #ff7675; padding:12px; border-radius:10px; background:#1b2030; margin:8px 0;">
     <span style="color:#ff7675; font-size:1em;"><b>How it works:</b></span><br>
     <span style="color:#cdd7e6; font-size:0.9em;">When you feel the urge, hit the <b style="color:#ff7675;">"I Need to Go!"</b> button.<br>
-    We'll roll the dice to see what happens. 🎲</span>
+    We'll roll the dice — sometimes you'll hold it, sometimes you won't! 🎲<br>
+    Higher pressure &amp; saturation make accidents more likely.</span>
   </div>`);
+
+  // Show collapsible quick session prefs in the sidebar
+  showQuickSessionPrefsPanel(controlLabel, holdPct, prefLabels);
 
   const btn = $('btnQuickGo');
   if (btn) btn.style.display = 'block';
@@ -1243,12 +1262,66 @@ function quickConfirmPrefs() {
   saveState();
 }
 
+function showQuickSessionPrefsPanel(controlLabel, holdPct, prefLabels) {
+  // Remove existing if present
+  const existing = $('quickPrefsPanel');
+  if (existing) existing.remove();
+
+  const panel = document.createElement('div');
+  panel.id = 'quickPrefsPanel';
+  panel.style.cssText = 'margin-top:12px;';
+  panel.innerHTML = `
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px; cursor:pointer;" onclick="toggleSidebarSection('quickPrefsContent')">
+      <h2 style="margin:0; font-size:14px; color:#ff7675;"><span id="quickPrefsContentArrow" class="collapse-arrow collapsed">▼</span> 🚽 Quick Session</h2>
+    </div>
+    <div id="quickPrefsContent" style="display:none; background:#1b2030; padding:10px 12px; border-radius:10px; border:1px solid #ff767544; margin-top:4px;">
+      <div style="margin-bottom:6px;">
+        <span style="color:#888; font-size:12px;">Control Level:</span>
+        <span style="color:#ff7675; font-weight:bold; font-size:13px;"> ${controlLabel} (~${holdPct}%)</span>
+      </div>
+      <div style="margin-bottom:8px;">
+        <span style="color:#888; font-size:12px;">Active Events:</span>
+        <span style="color:#cdd7e6; font-size:12px;"> ${prefLabels}</span>
+      </div>
+      <button onclick="showSessionSetupModal()" style="width:100%; padding:8px; background:#0f1115; border:1px solid #ff767544; color:#ff7675; border-radius:6px; cursor:pointer; font-size:12px;">⚙️ Change Settings</button>
+    </div>
+  `;
+
+  // Insert after the session control buttons
+  const sessionPanel = document.querySelector('.panel.stack');
+  const firstHr = sessionPanel?.querySelector('.hr');
+  if (firstHr) {
+    firstHr.insertAdjacentElement('afterend', panel);
+  } else if (sessionPanel) {
+    sessionPanel.appendChild(panel);
+  }
+}
+
 function backToSessionType() {
   const qm = $('quickModeSetup');
   if (qm) qm.remove();
   if ($('sessionTypeStep')) $('sessionTypeStep').style.display = '';
   if ($('sessionSetupSubtitle')) $('sessionSetupSubtitle').textContent = 'What kind of session?';
 }
+
+/* ---------- Quick-mode success messages ---------- */
+const QUICK_SUCCESS_MESSAGES = [
+  { msg: "You clench hard and the urge fades. Crisis averted!", emoji: "💪" },
+  { msg: "A close call — you squirm in your seat but manage to hold on.", emoji: "😰" },
+  { msg: "You cross your legs just in time. The wave passes.", emoji: "🌊" },
+  { msg: "Deep breath... squeeze... the pressure drops. You made it.", emoji: "🧘" },
+  { msg: "You grab yourself and hold tight. The spasm stops.", emoji: "✊" },
+  { msg: "You freeze, barely breathing — and the urge slowly fades.", emoji: "😮‍💨" },
+  { msg: "A desperate wiggle saves you. Not this time!", emoji: "🪑" },
+  { msg: "You feel it coming but squeeze with everything you've got. Safe... for now.", emoji: "⏳" },
+];
+
+const QUICK_CLOSE_CALL_MESSAGES = [
+  { msg: "You barely hold it — a tiny dribble escapes before you clamp down.", emoji: "😳", sat: 3 },
+  { msg: "A small spurt leaks out before you regain control. That was close.", emoji: "💧", sat: 5 },
+  { msg: "You almost lost it. A warm spot spreads before you manage to stop.", emoji: "😬", sat: 4 },
+  { msg: "Your body betrays you for a split second — a quick leak before you hold.", emoji: "😣", sat: 3 },
+];
 
 function quickModeRoll() {
   if (!sessionRunning) {
@@ -1258,7 +1331,7 @@ function quickModeRoll() {
 
   const tables = window.quickModeTables || JSON.parse(localStorage.getItem('quickModeTables') || '["FULL_D20"]');
 
-  // Build merged event pool from selected tables
+  // Build merged event pool from selected tables, tagging source
   const pool = [];
   const tableMap = {
     'FULL_D20': typeof FULL_D20 !== 'undefined' ? FULL_D20 : [],
@@ -1269,9 +1342,14 @@ function quickModeRoll() {
     'OMORASHI_GAUNTLETS': typeof OMORASHI_GAUNTLETS !== 'undefined' ? OMORASHI_GAUNTLETS : [],
   };
 
+  // Tables where events are always accidents (no hold chance)
+  const alwaysFailTables = new Set(['MACRO_DEPENDENT_D20']);
+
   for (const key of tables) {
     const tbl = tableMap[key];
-    if (tbl && tbl.length > 0) pool.push(...tbl);
+    if (tbl && tbl.length > 0) {
+      for (const evt of tbl) pool.push({ ...evt, _sourceTable: key });
+    }
   }
 
   if (pool.length === 0) {
@@ -1282,24 +1360,96 @@ function quickModeRoll() {
   // Pick a random event
   const evt = pool[Math.floor(Math.random() * pool.length)];
 
-  // Omorashi gauntlets have a different structure (name + guide)
-  if (evt.name && evt.guide && !evt.flow && !evt.desc) {
+  // --- CHANCE TO MAKE IT ---
+  const controlKey = window._quickControlLevel || localStorage.getItem('quickControlLevel') || 'moderate';
+  const controlLevel = QUICK_CONTROL_LEVELS.find(l => l.key === controlKey);
+
+  // Base success chance from control level
+  let successChance = controlLevel ? controlLevel.holdChance : 45;
+
+  // Dependent-type events are involuntary — no hold possible
+  const isAutoFail = alwaysFailTables.has(evt._sourceTable);
+
+  // Omorashi gauntlets are endurance challenges, not accidents — always run
+  const isGauntlet = evt._sourceTable === 'OMORASHI_GAUNTLETS' || evt._sourceTable === 'MESSY_HOLDING_GAUNTLETS_D10';
+
+  if (!isAutoFail && !isGauntlet) {
+    // Apply pressure/saturation modifiers (inspired by babysitter)
+    if (manualPressure > 80)      successChance -= 20;
+    else if (manualPressure > 60) successChance -= 10;
+
+    const capacity = (typeof getMainProtectionCapacity === 'function') ? getMainProtectionCapacity() : 100;
+    const fillPct = capacity > 0 ? (manualSaturation / capacity) * 100 : 0;
+    if (fillPct > 75)       successChance -= 15;
+    else if (fillPct > 50)  successChance -= 8;
+
+    // Clamp between 5% and 90%
+    successChance = Math.max(5, Math.min(90, successChance));
+
+    const roll = Math.random() * 100;
+
+    if (roll < successChance) {
+      // --- SUCCESS: You held it! ---
+      // Close call (small leak) if roll was within 10% of failing
+      const closeCall = roll > (successChance - 10);
+
+      if (closeCall) {
+        const cc = QUICK_CLOSE_CALL_MESSAGES[Math.floor(Math.random() * QUICK_CLOSE_CALL_MESSAGES.length)];
+        logToOutput(`<span style="color:#fdcb6e; font-size:1.05em;"><b>${cc.emoji} Close Call!</b></span>`);
+        logToOutput(`<span style="color:#ffeaa7;">${cc.msg}</span>`);
+        manualSaturation = Math.min(manualSaturation + cc.sat, capacity);
+        updateSaturationUI(manualSaturation);
+      } else {
+        const sm = QUICK_SUCCESS_MESSAGES[Math.floor(Math.random() * QUICK_SUCCESS_MESSAGES.length)];
+        logToOutput(`<span style="color:#55efc4; font-size:1.05em;"><b>${sm.emoji} You Made It!</b></span>`);
+        logToOutput(`<span style="color:#a8e6cf;">${sm.msg}</span>`);
+      }
+
+      // Slight pressure relief on success
+      if (manualPressure > 10) {
+        manualPressure = Math.max(0, manualPressure - 5);
+        updatePressureUI(manualPressure);
+      }
+      saveState();
+      return;
+    }
+
+    // --- FAILURE: You didn't make it ---
+    logToOutput(`<span style="color:#ff7675; font-size:1.05em;"><b>💦 You couldn't hold it...</b></span>`);
+  }
+
+  // Gauntlets: just announce and run
+  if (isGauntlet) {
+    const gName = evt.name || evt.label || 'Challenge';
     logToOutput(`<span style="color:#ff7675;">🎲 <b>You felt the urge...</b></span>`);
-    logToOutput(`<span style="color:#81ecec;"><b>Gauntlet: ${evt.name}</b></span>`);
-    startVoidGuide(evt.guide, `<b>🚽 Quick Roll:</b> ${evt.name}`, 'full');
+    logToOutput(`<span style="color:#81ecec;"><b>Gauntlet: ${gName}</b></span>`);
+    startVoidGuide(evt.guide, `<b>🚽 Quick Roll:</b> ${gName}`, 'full');
     return;
   }
 
-  // Standard event with guide
+  // Auto-fail events: just announce
+  if (isAutoFail) {
+    logToOutput(`<span style="color:#ff7675;">🎲 <b>You felt the urge... but it's already too late.</b></span>`);
+  }
+
+  // Standard event with description + guide
   const desc = evt.flow || evt.desc || evt.label || 'Something happened...';
-  logToOutput(`<span style="color:#ff7675;">🎲 <b>You felt the urge...</b></span>`);
   logToOutput(`<span style="color:#cdd7e6;">${desc}</span>`);
+
+  // Saturation penalty on failure
+  const capacity = (typeof getMainProtectionCapacity === 'function') ? getMainProtectionCapacity() : 100;
+  const satGain = Math.floor(Math.random() * 11) + 10; // 10-20
+  manualSaturation = Math.min(manualSaturation + satGain, capacity + 10);
+  updateSaturationUI(manualSaturation);
+  checkOverflowSaturation(manualSaturation);
 
   if (evt.guide) {
     startVoidGuide(evt.guide, `<b>🚽 Quick Roll:</b> ${desc}`, 'full');
   } else {
     logToOutput(`<span style="color:#fab1a0; font-style:italic;">(No guide steps — narrative event only)</span>`);
   }
+
+  saveState();
 }
 
 function selectProfileFromModal(profile) {
@@ -2292,19 +2442,23 @@ function reportEmergencyLeak() {
 function checkOverflowSaturation(val) {
   let s = parseInt(val);
   const capacity = (typeof getMainProtectionCapacity === 'function') ? getMainProtectionCapacity() : 100;
-  if (s >= capacity) {
+  if (s >= capacity && !window._overflowFired) {
+    window._overflowFired = true;
     const isNone = currentProtectionLevel === 'none';
     const msg = isNone
       ? `<span style="color:#d63031">🚨 <b>LEAK:</b> You have no protection — it's running down your legs!</span>`
       : `<span style="color:#d63031">🚨 <b>OVERFLOW:</b> Your ${formatProtectionLevel(currentProtectionLevel)} has failed. You are leaking now!</span>`;
     logToOutput(msg);
-    regressionLeaks += 2; // Heavy penalty for allowing an overflow
-    checkRegression(); // Check if this forces a move back to diapers
+    regressionLeaks += 2;
+    checkRegression();
 
     // Grant immediate permission to change because of the mess
     changeAllowed = true;
     const changeBtn = $('btnChange');
     if (changeBtn) changeBtn.classList.remove('locked');
+  } else if (s < capacity) {
+    // Reset flag when saturation drops below capacity (e.g. after a change)
+    window._overflowFired = false;
   }
 }
 

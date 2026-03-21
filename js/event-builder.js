@@ -261,10 +261,10 @@ const PROFILE_DETAILS = {
   train_rookie: {
     color: '#7cc4ff',
     title: '🧒 Rookie — Struggle to Control',
-    loop: 'You receive a timed hold challenge every 25–50 minutes. At the moment of truth, a random roll determines if you make it. Rookie has a 60% success rate — you fail often. Failed holds trigger full void guides. Success gives you brief relief but the cycle continues. Great for beginners who want challenge without total loss of control.',
+    loop: 'You receive a timed hold challenge every 25–50 minutes. At the moment of truth, a random roll determines if you make it. Rookie has a ~35% base success rate — you fail most of the time. Failed holds trigger full void guides. Success gives you brief relief but the cycle continues. Great for beginners who want frequent accidents with some chance of recovery.',
     rows: [
       ['Mode type', 'Timed hold with random success roll'],
-      ['Potty success', '~60% with Mercy mode on'],
+      ['Potty success', '~35% base (drops with high pressure)'],
       ['Hold interval', '25–50 min between events'],
       ['Micro events', 'Pressure spasms between holds'],
       ['Leak size', 'Full void on failure; partial hold on success'],
@@ -274,13 +274,13 @@ const PROFILE_DETAILS = {
   train_pro: {
     color: '#55efc4',
     title: '💪 Pro — Retaining Control',
-    loop: 'Like Rookie but harder. Events fire every 50–90 minutes and success rate drops to ~35%. You will fail more than you succeed, but gaps between events are long. Pro creates a realistic \"I think I can hold it\" tension that usually ends in a controlled accident. For experienced players who want meaningful stakes.',
+    loop: 'Like Rookie but with better control. Events fire every 50–90 minutes and you have a ~70% base success rate. You succeed more often than you fail, but high pressure and repeated holds still wear you down. Pro creates a realistic "I can probably hold it" tension where overconfidence leads to accidents. For experienced players who want meaningful stakes.',
     rows: [
-      ['Mode type', 'Timed hold with harder random roll'],
-      ['Potty success', '~35% base (drops with high pressure)'],
+      ['Mode type', 'Timed hold with success roll'],
+      ['Potty success', '~70% base (drops with high pressure/hold penalties)'],
       ['Hold interval', '50–90 min between events'],
-      ['Micro events', 'Harder pressure spasms'],
-      ['Leak size', 'Full void on failure with longer guide],'],
+      ['Micro events', 'Pressure spasms between holds'],
+      ['Leak size', 'Full void on failure with longer guide'],
       ['Protection', 'Diapers recommended']
     ]
   },

@@ -550,6 +550,14 @@ b { color: #fff; font-weight: 700; }
     gap: 10px;
   }
 
+  /* Put the log panel above the sidebar on mobile */
+  .wrap > .panel:first-child {
+    order: 2;
+  }
+  .wrap > .panel:last-child {
+    order: 1;
+  }
+
   header {
     padding: 10px 12px;
   }
