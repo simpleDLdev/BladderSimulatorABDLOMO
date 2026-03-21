@@ -242,6 +242,27 @@ const PROFILE_CONFIG = {
     showCanIGoBtn: false,
     showBabysitterPanel: false,
   },
+
+  /* ---- GAUNTLET ONLY (no bladder sim) ---- */
+  gauntlet_only: {
+    label: 'Gauntlet Only',
+    microTable: () => [],
+    microSource: null,
+    microDie: () => 0,
+    macroTable: () => [],
+    macroSource: null,
+    mainMin: 5, mainMax: 20,          // interval between gauntlets (minutes)
+    microMin: 0, microMax: 0,
+    hydrationSips: [0, 0],
+    scheduler: 'gauntlet',
+    alarmText: ['🎯 <b>GAUNTLET INCOMING</b>', 'Prepare yourself...'],
+    microCompleteMsg: '',
+    leakLimit: null,
+    setupKey: 'gauntlet_only',
+    showHydrationPanel: false,
+    showCanIGoBtn: false,
+    showBabysitterPanel: false,
+  },
 };
 
 /* Helper: get current profile's config, with custom profile runtime overlay */

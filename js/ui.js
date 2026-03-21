@@ -375,6 +375,12 @@ function applySelectedProfile() {
     if (btnCanIGo) btnCanIGo.style.display = 'block';
     if (btnILeaked) btnILeaked.style.display = 'none';
     if (babysitterPanel) babysitterPanel.style.display = 'block';
+  } else if (profileMode === 'gauntlet_only' || profileMode === 'chaos_manual') {
+    if (omorashiSetup) omorashiSetup.style.display = 'none';
+    if (hydrationTrigger) hydrationTrigger.style.display = 'none';
+    if (btnCanIGo) btnCanIGo.style.display = 'none';
+    if (btnILeaked) btnILeaked.style.display = 'none';
+    if (babysitterPanel) babysitterPanel.style.display = 'none';
   } else {
     if (omorashiSetup) omorashiSetup.style.display = 'none';
     if (hydrationTrigger) hydrationTrigger.style.display = 'block';
@@ -821,19 +827,29 @@ function startSession(isResume = false) {
       if (manualPressure > 70) { firstMin = 5; firstMax = 15; }
       scheduleMainEvent({ min: firstMin, max: firstMax });
       scheduleNextHydration();
-    } else if (profileMode === 'chaos_manual') {
-      // Load Chaos setup data
-      const setupStr = localStorage.getItem('chaos_manual_setup');
+    } else if (profileMode === 'gauntlet_only') {
+      // Load gauntlet setup
+      const setupStr = localStorage.getItem('gauntlet_only_setup');
       if (setupStr) {
         const setup = JSON.parse(setupStr);
-        chaosSipMin = setup.sipMin || 2;
-        chaosSipMax = setup.sipMax || 6;
-        logToOutput(`<span style="color:#fab1a0"><b>🔥 Chaos Mode Activated</b><br>Sip range: ${chaosSipMin}-${chaosSipMax}</span>`);
+        window.gauntletDifficulty = setup.difficulty || 'medium';
+        window.gauntletIntervalMin = setup.intervalMin || 5;
+        window.gauntletIntervalMax = setup.intervalMax || 20;
       } else {
-        chaosSipMin = 2;
-        chaosSipMax = 6;
+        window.gauntletDifficulty = 'medium';
+        window.gauntletIntervalMin = 5;
+        window.gauntletIntervalMax = 20;
       }
-      // Chaos doesn't auto-start
+      const diff = window.gauntletDifficulty;
+      logToOutput(`<span style="color:#00cec9"><b>🎯 Gauntlet Mode Started</b><br>Difficulty: ${diff.toUpperCase()} | Interval: ${window.gauntletIntervalMin}-${window.gauntletIntervalMax} min</span>`);
+      scheduleMainEvent({ min: window.gauntletIntervalMin, max: window.gauntletIntervalMax });
+    } else if (profileMode === 'chaos_manual') {
+      // Quick Session — load saved table selections, show Quick Go button
+      const savedTables = JSON.parse(localStorage.getItem('quickModeTables') || '["FULL_D20"]');
+      window.quickModeTables = savedTables;
+      const btn = $('btnQuickGo');
+      if (btn) btn.style.display = 'block';
+      scheduleMainEvent(); // Sets the countdown label
     } else if (profileMode === 'babysitter') {
       // Babysitter-specific setup (realistic omorashi with small failure chance)
       depQueueMin = 0;  // 0-2 micros per main
@@ -854,7 +870,7 @@ function startSession(isResume = false) {
       scheduleNextHydration();
     }
 
-    if (profileMode !== 'omorashi_hold') {
+    if (profileMode !== 'omorashi_hold' && profileMode !== 'gauntlet_only') {
       scheduleForcedCheck();
     }
   }
@@ -882,6 +898,10 @@ function stopAll() {
   meetingActive = false;
   omorashiSessionActive = false;
   omorashiGuideActive = false;
+
+  // Hide Quick Mode button
+  const btnQ = $('btnQuickGo');
+  if (btnQ) btnQ.style.display = 'none';
 
   // --- Session Summary ---
   const elapsed = Date.now() - sessionStartTime;
@@ -936,9 +956,13 @@ function showSessionSetupModal() {
 
   const currentWear = localStorage.getItem('startupWear') || currentProtectionLevel || 'none';
 
-  if ($('sessionSetupProfileStep')) $('sessionSetupProfileStep').style.display = 'block';
+  if ($('sessionSetupProfileStep')) $('sessionSetupProfileStep').style.display = 'none';
   if ($('profileDetailsPanel')) $('profileDetailsPanel').style.display = 'none';
   if ($('diaperingSetup')) $('diaperingSetup').style.display = 'none';
+  if ($('sessionTypeStep')) $('sessionTypeStep').style.display = '';
+  if ($('sessionSetupSubtitle')) $('sessionSetupSubtitle').textContent = 'What kind of session?';
+  const qm = $('quickModeSetup');
+  if (qm) qm.remove();
 
   updateContinencePreview();
   $('sessionSetupBackdrop').style.display = 'block';
@@ -946,6 +970,220 @@ function showSessionSetupModal() {
 
 function closeSessionSetupModal() {
   $('sessionSetupBackdrop').style.display = 'none';
+}
+
+/* ===== SESSION TYPE CHOOSER (Quick vs Full) ===== */
+
+function chooseQuickSession() {
+  // Hide the session type chooser, show quick mode setup
+  if ($('sessionTypeStep')) $('sessionTypeStep').style.display = 'none';
+  if ($('sessionSetupProfileStep')) $('sessionSetupProfileStep').style.display = 'none';
+  if ($('sessionSetupSubtitle')) $('sessionSetupSubtitle').textContent = '';
+  showQuickModeSetup();
+}
+
+function chooseFullSession() {
+  // Hide the session type chooser, show profile grid
+  if ($('sessionTypeStep')) $('sessionTypeStep').style.display = 'none';
+  if ($('sessionSetupProfileStep')) $('sessionSetupProfileStep').style.display = 'block';
+  if ($('sessionSetupSubtitle')) $('sessionSetupSubtitle').textContent = 'Choose your profile to begin';
+}
+
+/* --- Quick Mode Table Descriptions (ABDL/Omorashi themed) --- */
+const QUICK_MODE_TABLES = [
+  {
+    key: 'FULL_D20',
+    name: 'Bladder Events',
+    emoji: '💦',
+    color: '#74b9ff',
+    desc: 'Classic wetting scenarios — spasms, leaks, and full-on floods. The bread & butter of any little\'s worst nightmare.',
+  },
+  {
+    key: 'FULL_TRAINING_FAILURES',
+    name: 'Training Failures',
+    emoji: '🚽',
+    color: '#ff7675',
+    desc: 'You tried to make it to the potty... and didn\'t. Panicked dashes, mid-pull-down floods, and the dreaded "almost made it" moments.',
+  },
+  {
+    key: 'MACRO_DEPENDENT_D20',
+    name: 'Diaper Fills',
+    emoji: '👶',
+    color: '#fab1a0',
+    desc: 'Full diaper events for littles who can\'t control themselves — helpless flooding, naptime accidents, and soggy padding.',
+  },
+  {
+    key: 'MESSY_PUSHING_ACCIDENTS_D10',
+    name: 'Messy Accidents',
+    emoji: '😳',
+    color: '#fdcb6e',
+    desc: 'Pushing events by position — seated, standing, squatting. For when your body decides it\'s going regardless.',
+  },
+  {
+    key: 'MESSY_HOLDING_GAUNTLETS_D10',
+    name: 'Holding Gauntlets',
+    emoji: '💪',
+    color: '#55efc4',
+    desc: 'Exercise-style endurance holds — squats, planks, clenches. How long can you hold before you lose it?',
+  },
+  {
+    key: 'OMORASHI_GAUNTLETS',
+    name: 'Omorashi Challenges',
+    emoji: '💧',
+    color: '#81ecec',
+    desc: 'Named desperation sequences from the omorashi playbook — breath torture, compression holds, kegel crushers, and more.',
+  },
+];
+
+function showQuickModeSetup() {
+  // Build a table checklist inside the session setup modal area
+  const saved = JSON.parse(localStorage.getItem('quickModeTables') || 'null');
+
+  let html = `
+    <div id="quickModeSetup" style="text-align:left;">
+      <button onclick="backToSessionType()" style="background:none; border:none; color:#7cc4ff; cursor:pointer; font-size:13px; margin-bottom:12px; padding:0;">&larr; Back</button>
+      <h2 style="color:#ff7675; margin:0 0 6px 0; text-align:center;">🚽 Quick Session Setup</h2>
+      <p style="color:#cdd7e6; font-size:0.88em; margin:0 0 16px 0; text-align:center; line-height:1.5;">
+        Pick which event tables to roll from when you press the button.<br>
+        <span style="color:#888;">The more tables you enable, the wilder the results.</span>
+      </p>
+
+      <div style="display:flex; flex-direction:column; gap:10px; margin-bottom:20px;">`;
+
+  for (const t of QUICK_MODE_TABLES) {
+    const checked = saved ? saved.includes(t.key) : (t.key === 'FULL_D20' || t.key === 'FULL_TRAINING_FAILURES');
+    html += `
+        <label style="display:flex; align-items:flex-start; gap:10px; background:#1b2030; padding:12px; border-radius:10px; border:1px solid ${t.color}33; cursor:pointer;">
+          <input type="checkbox" class="quickTableCheck" value="${t.key}" ${checked ? 'checked' : ''} style="margin-top:3px; accent-color:${t.color};">
+          <div>
+            <span style="color:${t.color}; font-weight:bold;">${t.emoji} ${t.name}</span>
+            <p style="color:#999; font-size:0.8em; margin:4px 0 0 0; line-height:1.4;">${t.desc}</p>
+          </div>
+        </label>`;
+  }
+
+  html += `
+      </div>
+
+      <div style="text-align:center;">
+        <button onclick="startQuickSession()" style="width:100%; padding:14px; background:#ff7675; color:#000; font-weight:bold; font-size:1.1em; border:none; border-radius:10px; cursor:pointer;">🚽 Start Quick Session</button>
+      </div>
+    </div>`;
+
+  // Insert into the modal (after the profile step area)
+  let container = $('quickModeSetup');
+  if (container) {
+    container.outerHTML = html;
+  } else {
+    $('sessionSetupProfileStep').insertAdjacentHTML('afterend', html);
+  }
+}
+
+function backToSessionType() {
+  // Remove quick mode setup and show session type chooser again
+  const qm = $('quickModeSetup');
+  if (qm) qm.remove();
+  if ($('sessionTypeStep')) $('sessionTypeStep').style.display = '';
+  if ($('sessionSetupSubtitle')) $('sessionSetupSubtitle').textContent = 'What kind of session?';
+}
+
+function startQuickSession() {
+  // Collect selected tables
+  const checks = document.querySelectorAll('.quickTableCheck:checked');
+  const selectedTables = Array.from(checks).map(c => c.value);
+
+  if (selectedTables.length === 0) {
+    toast('Pick at least one table!');
+    return;
+  }
+
+  // Save choices
+  localStorage.setItem('quickModeTables', JSON.stringify(selectedTables));
+  window.quickModeTables = selectedTables;
+
+  // Set profile mode to chaos_manual (re-using the chaos scheduler)
+  profileMode = 'chaos_manual';
+  localStorage.setItem('profileMode', 'chaos_manual');
+  if (typeof applySelectedProfile === 'function') applySelectedProfile();
+
+  // Close the setup modal
+  closeSessionSetupModal();
+  const qm = $('quickModeSetup');
+  if (qm) qm.remove();
+
+  // Start the session
+  sessionRunning = true;
+  sessionStartedAt = Date.now();
+  logToOutput(`<span style="color:#ff7675; font-size:1.1em;"><b>🚽 Quick Session Started</b></span>`);
+  logToOutput(`<span style="color:#cdd7e6;">Tables: ${selectedTables.map(k => QUICK_MODE_TABLES.find(t => t.key === k)?.name || k).join(', ')}</span>`);
+  logToOutput(`<div style="border:1px solid #ff7675; padding:12px; border-radius:10px; background:#1b2030; margin:8px 0;">
+    <span style="color:#ff7675; font-size:1em;"><b>How it works:</b></span><br>
+    <span style="color:#cdd7e6; font-size:0.9em;">When you feel the urge to go, hit the <b style="color:#ff7675;">"I Need to Go!"</b> button below.<br>
+    We'll roll the dice to see what happens — maybe you make it, maybe you don't. 🎲</span>
+  </div>`);
+
+  // Show quick mode UI — update the "I can't hold it" button to be the primary action
+  const btn = $('btnQuickGo');
+  if (btn) btn.style.display = 'block';
+
+  const lbl = $('countdown');
+  if (lbl) lbl.innerHTML = `<span style="color:#ff7675; font-size:1.1em;">Press the button when you need to go!</span>`;
+
+  clearInterval(tickInterval);
+  tickInterval = setInterval(setCountdownLabel, 1000);
+  saveState();
+}
+
+function quickModeRoll() {
+  if (!sessionRunning) {
+    toast('Start a Quick Session first!');
+    return;
+  }
+
+  const tables = window.quickModeTables || JSON.parse(localStorage.getItem('quickModeTables') || '["FULL_D20"]');
+
+  // Build merged event pool from selected tables
+  const pool = [];
+  const tableMap = {
+    'FULL_D20': typeof FULL_D20 !== 'undefined' ? FULL_D20 : [],
+    'FULL_TRAINING_FAILURES': typeof FULL_TRAINING_FAILURES !== 'undefined' ? FULL_TRAINING_FAILURES : [],
+    'MACRO_DEPENDENT_D20': typeof MACRO_DEPENDENT_D20 !== 'undefined' ? MACRO_DEPENDENT_D20 : [],
+    'MESSY_PUSHING_ACCIDENTS_D10': typeof MESSY_PUSHING_ACCIDENTS_D10 !== 'undefined' ? MESSY_PUSHING_ACCIDENTS_D10 : [],
+    'MESSY_HOLDING_GAUNTLETS_D10': typeof MESSY_HOLDING_GAUNTLETS_D10 !== 'undefined' ? MESSY_HOLDING_GAUNTLETS_D10 : [],
+    'OMORASHI_GAUNTLETS': typeof OMORASHI_GAUNTLETS !== 'undefined' ? OMORASHI_GAUNTLETS : [],
+  };
+
+  for (const key of tables) {
+    const tbl = tableMap[key];
+    if (tbl && tbl.length > 0) pool.push(...tbl);
+  }
+
+  if (pool.length === 0) {
+    toast('No events in selected tables!');
+    return;
+  }
+
+  // Pick a random event
+  const evt = pool[Math.floor(Math.random() * pool.length)];
+
+  // Omorashi gauntlets have a different structure (name + guide)
+  if (evt.name && evt.guide && !evt.flow && !evt.desc) {
+    logToOutput(`<span style="color:#ff7675;">🎲 <b>You felt the urge...</b></span>`);
+    logToOutput(`<span style="color:#81ecec;"><b>Gauntlet: ${evt.name}</b></span>`);
+    startVoidGuide(evt.guide, `<b>🚽 Quick Roll:</b> ${evt.name}`, 'full');
+    return;
+  }
+
+  // Standard event with guide
+  const desc = evt.flow || evt.desc || evt.label || 'Something happened...';
+  logToOutput(`<span style="color:#ff7675;">🎲 <b>You felt the urge...</b></span>`);
+  logToOutput(`<span style="color:#cdd7e6;">${desc}</span>`);
+
+  if (evt.guide) {
+    startVoidGuide(evt.guide, `<b>🚽 Quick Roll:</b> ${desc}`, 'full');
+  } else {
+    logToOutput(`<span style="color:#fab1a0; font-style:italic;">(No guide steps — narrative event only)</span>`);
+  }
 }
 
 function selectProfileFromModal(profile) {
@@ -1307,6 +1545,38 @@ function showProfileSetupModal(profile) {
     `;
     break;
   }
+  case 'gauntlet_only': {
+    content = `
+      <div style="width:500px; background:#151923; padding:30px; border-radius:15px; border:2px solid #00cec9; text-align:center;">
+        <h2 style="color:#00cec9; margin:0 0 10px 0;">🎯 Gauntlet Only (Exercise Holds)</h2>
+        <p style="color:#cdd7e6; font-size:13px; margin:0 0 20px 0; line-height:1.6;">
+          <b>How it works:</b> No bladder simulation. Random exercise-style hold challenges fire on a timer — squats, planks, kegels, position holds. Every gauntlet is unique.
+        </p>
+        
+        <div style="background:#1b2030; padding:15px; border-radius:8px; margin-bottom:20px; text-align:left; border:1px solid #2b3348;">
+          <label style="display:flex; flex-direction:column; gap:8px; margin-bottom:15px;">
+            <span style="color:#00cec9; font-weight:bold;">Difficulty</span>
+            <select id="gauntletDifficulty" style="padding:8px; background:#0f1115; border:1px solid #2b3348; color:#fff; border-radius:6px;">
+              <option value="easy">Easy (3 blocks, shorter holds)</option>
+              <option value="medium" selected>Medium (5 blocks, standard)</option>
+              <option value="hard">Hard (7 blocks, longer holds)</option>
+            </select>
+          </label>
+          
+          <label style="display:flex; flex-direction:column; gap:8px; margin-bottom:15px;">
+            <span style="color:#00cec9; font-weight:bold;">Time Between Gauntlets (minutes)</span>
+            <span style="color:#999; font-size:12px;">Min: (2-10)</span>
+            <input type="number" id="gauntletIntervalMin" min="2" max="10" value="5" style="padding:8px; background:#0f1115; border:1px solid #2b3348; color:#fff; border-radius:6px;">
+            <span style="color:#999; font-size:12px;">Max: (10-30)</span>
+            <input type="number" id="gauntletIntervalMax" min="10" max="30" value="20" style="padding:8px; background:#0f1115; border:1px solid #2b3348; color:#fff; border-radius:6px;">
+          </label>
+        </div>
+        
+        <button onclick="confirmProfileSetup('gauntlet_only')" style="width:100%; padding:12px; background:#00cec9; color:#000; font-weight:bold; border:none; border-radius:8px; cursor:pointer;">▶ Begin Session</button>
+      </div>
+    `;
+    break;
+  }
   case 'omorashi_hold':
     setTimeout(() => showOmorashiSetupModal(), 100);
     modal.remove();
@@ -1362,6 +1632,11 @@ function confirmProfileSetup(profile) {
       setupData.queueMax = parseInt($('babysitterQueueMax').value) || 2;
       setupData.sipMin = parseInt($('babysitterSipMin').value) || 1;
       setupData.sipMax = parseInt($('babysitterSipMax').value) || 2;
+      break;
+    case 'gauntlet_only':
+      setupData.difficulty = $('gauntletDifficulty').value || 'medium';
+      setupData.intervalMin = parseInt($('gauntletIntervalMin').value) || 5;
+      setupData.intervalMax = parseInt($('gauntletIntervalMax').value) || 20;
       break;
   }
   
@@ -1636,7 +1911,16 @@ function setCountdownLabel() {
     return;
   }
 
-  // 2. DEBUG DASHBOARD MODE
+  // 2. Quick mode — static label, just show elapsed time
+  if (profileMode === 'chaos_manual' && sessionRunning) {
+    const elapsed = Math.floor((Date.now() - (sessionStartedAt || Date.now())) / 1000);
+    const m = Math.floor(elapsed / 60);
+    const s = elapsed % 60;
+    lbl.innerHTML = `<span style="color:#ff7675; font-size:1.1em;">Press the button when you need to go!</span> <span style="opacity:0.5; font-size:0.85em;">${m}m ${s}s</span>`;
+    return;
+  }
+
+  // 3. DEBUG DASHBOARD MODE
   const now = Date.now();
   let text = [];
 

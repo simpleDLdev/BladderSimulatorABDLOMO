@@ -393,6 +393,54 @@ function generateBabysitterGauntlet() {
   return steps;
 }
 
+/* === GAUNTLET-ONLY MODE — Random Builder === */
+function buildRandomGauntlet(difficulty) {
+  // difficulty: 'easy' | 'medium' | 'hard'
+  const cfg = {
+    easy:   { blocks: 3, timeScale: 0.7 },
+    medium: { blocks: 5, timeScale: 1.0 },
+    hard:   { blocks: 7, timeScale: 1.3 }
+  }[difficulty] || { blocks: 5, timeScale: 1.0 };
+
+  const pool = [...GAUNTLET_STEP_POOL];
+  const cats = [...new Set(pool.map(b => b.cat))];
+  const picked = [];
+
+  // Ensure category diversity — pick 1 from each category first (up to block count)
+  const shuffledCats = cats.sort(() => Math.random() - 0.5);
+  for (const cat of shuffledCats) {
+    if (picked.length >= cfg.blocks) break;
+    const fromCat = pool.filter(b => b.cat === cat);
+    if (fromCat.length > 0) {
+      const choice = fromCat[Math.floor(Math.random() * fromCat.length)];
+      picked.push(choice);
+      pool.splice(pool.indexOf(choice), 1);
+    }
+  }
+
+  // Fill remaining slots randomly from what's left
+  while (picked.length < cfg.blocks && pool.length > 0) {
+    const idx = Math.floor(Math.random() * pool.length);
+    picked.push(pool.splice(idx, 1)[0]);
+  }
+
+  // Shuffle pick order
+  picked.sort(() => Math.random() - 0.5);
+
+  // Flatten blocks into a single step sequence
+  // Each step's time is randomized from its [min, max] range, then scaled by difficulty
+  const steps = [];
+  for (const block of picked) {
+    for (const s of block.steps) {
+      const base = randInt(s.t[0], s.t[1]);
+      const scaled = Math.max(3, Math.round(base * cfg.timeScale));
+      steps.push({ text: s.text, time: scaled, type: "stop" });
+    }
+  }
+
+  return steps;
+}
+
 /* --- Updated State Variable --- */
 let isRestroomTrip = false;
 let isPreviewMode = false; // Set true when event is being previewed from Event Builder
@@ -420,6 +468,17 @@ function closeVoidGuide() {
   // --- ABORT PENALTY CHECK ---
   // If the guide is NOT complete AND it wasn't a restroom trip...
   if (!isGuideComplete && !isRestroomTrip) {
+    if (currentGuideType === 'gauntlet') {
+      logToOutput(`<span style="color:#00cec9; font-style:italic;">⚠️ <b>Gauntlet Aborted:</b> Skipped early. Next one still coming...</span>`);
+      if (sessionRunning) {
+        scheduleMainEvent({ min: window.gauntletIntervalMin || 5, max: window.gauntletIntervalMax || 20 });
+      }
+      return;
+    }
+    if (profileMode === 'chaos_manual') {
+      logToOutput(`<span style="color:#ff7675; font-style:italic;">⚠️ <b>Skipped:</b> You bailed — maybe next time!</span>`);
+      return;
+    }
     logToOutput(`<span style="color:#7cc4ff; font-style:italic;">⚠️ <b>Guide Aborted:</b> You stopped early. Checking hydration levels...</span>`);
     triggerHydrationEvent(); // Force Drink
   }
@@ -429,6 +488,14 @@ function closeVoidGuide() {
   if (isRestroomTrip && sessionRunning) {
     logToOutput(`<span style="color:#55efc4; font-size:0.9em;">⏱️ <b>Timer Reset:</b> Potty trip complete; scheduling next urge window.</span>`);
     scheduleMainEvent();
+  }
+
+  // Quick mode — no scheduled follow-ups, just log and return
+  if (profileMode === 'chaos_manual') {
+    if (isGuideComplete) {
+      logToOutput(`<span style="color:#ff7675; font-style:italic;">🎲 Roll complete. Press the button when you're ready for another!</span>`);
+    }
+    return;
   }
 
   clearInterval(statusCheckInterval);
@@ -448,6 +515,12 @@ function closeVoidGuide() {
         logToOutput(`<span style="color:#fab1a0; font-style:italic;">${cfg.microCompleteMsg}</span>`);
         return;
       }
+      case 'gauntlet':
+        logToOutput(`<span style="color:#00cec9; font-style:italic;">✅ <b>Gauntlet Complete!</b> Well held. Next one incoming...</span>`);
+        if (sessionRunning) {
+          scheduleMainEvent({ min: window.gauntletIntervalMin || 5, max: window.gauntletIntervalMax || 20 });
+        }
+        return;
       default:
         scheduleForcedCheck();
         return;

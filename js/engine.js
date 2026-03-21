@@ -321,23 +321,46 @@ function scheduleMainEvent(windowOverride) {
       clearTimeout(preChimeTimer);
       
       const lbl = $('countdown');
-      if (lbl) lbl.innerHTML = `<span style="color:#fab1a0">WAITING FOR MANUAL TRIGGER...</span>`;
+      if (lbl) lbl.innerHTML = `<span style="color:#ff7675">Press the button when you need to go!</span>`;
       
-      logToOutput(`<div style="border:1px solid #fab1a0; padding:10px; border-radius:8px; background:#1b2030; margin-bottom:10px;">
-        <strong style="color:#fab1a0; font-size:1.1em;">🔥 CHAOS MODE PROTOCOL</strong>
-        <ul style="margin:5px 0 0 15px; padding:0; color:#ccc; font-size:0.9em; list-style-type:square;">
-            <li><b>Hydration:</b> Follow all drink orders strictly.</li>
-            <li><b>The Trigger:</b> You must click <b style="color:#ff6b6b">"Force Release"</b> the moment you feel the <u>very first</u> physical urge to pee.</li>
-            <li><b>The Gamble:</b> Triggers pull from ALL tables (Micro, Macro, Dependent). You might just leak, or you might flood.</li>
-        </ul>
-      </div>`);
-      
-      return; // Stop. No automated timer.
+      return; // Stop. No automated timer — user presses Quick Roll button.
   }
 
   // DEPENDENT MODE — queue-based scheduling
   if (schedulerType === 'dependent') {
     scheduleDependentEvent();
+    return;
+  }
+
+  // GAUNTLET-ONLY MODE — timer fires random gauntlets
+  if (schedulerType === 'gauntlet') {
+    clearTimeout(mainTimer);
+    clearTimeout(preChimeTimer);
+
+    const cfg = getProfileConfig();
+    const min = windowOverride?.min ?? cfg.mainMin;
+    const max = windowOverride?.max ?? cfg.mainMax;
+    const minutes = randInt(min, max);
+    mainEndAt = Date.now() + (minutes * 60000);
+
+    logToOutput(`<span style="color:#a29bfe;">🎯 Next gauntlet in ~${minutes} min.</span>`);
+
+    // Pre-chime 30s before
+    preChimeTimer = setTimeout(() => {
+      startChime(randInt(600, 900));
+    }, Math.max(0, (minutes * 60000) - 30000));
+
+    mainTimer = setTimeout(() => {
+      if (!sessionRunning) return;
+      const diff = window.gauntletDifficulty || 'medium';
+      const seq = buildRandomGauntlet(diff);
+      showBanner('🎯 GAUNTLET INCOMING', 'Prepare yourself...', 'high');
+      setTimeout(() => {
+        acknowledgeAlarm();
+        startVoidGuide(seq, `<b>GAUNTLET (${diff.toUpperCase()}):</b> ${seq.length} steps — hold everything!`, 'gauntlet');
+      }, 2000);
+    }, minutes * 60000);
+
     return;
   }
 

@@ -64,6 +64,8 @@
         <button onclick="showSessionSetupModal()"
           style="width:100%; padding:12px; background:#a29bfe; color:#000; font-weight:bold; font-size:1.1em;">▶ Start
           Session</button>
+        <button id="btnQuickGo" onclick="quickModeRoll()"
+          style="display:none; width:100%; padding:14px; background:#ff7675; color:#000; font-weight:bold; font-size:1.2em; border:none; border-radius:8px; cursor:pointer; margin-top:8px;">🚽 I Need to Go!</button>
         <button onclick="stopAll()" style="width:100%; padding:10px; margin-top:8px;">⏹ Stop</button>
         <button onclick="openCustomProfileEditor()" style="width:100%; padding:8px; margin-top:6px; background:#1b2030; border:1px solid #e17055; color:#e17055; border-radius:8px; cursor:pointer; font-size:12px;">🧪 Custom Profiles (Create / Import / Export)</button>
         <button id="btnMeeting" class="pill" onclick="toggleMeetingMode()"
@@ -304,6 +306,7 @@
         <option value="chaos_manual">Free-Form Challenges (Manual)</option>
         <option value="omorashi_hold">💧 Omorashi (Hold & Release)</option>
         <option value="babysitter">👩‍🍼 Babysitter (Realistic Omorashi)</option>
+        <option value="gauntlet_only">🎯 Gauntlet Only (Exercise Holds)</option>
       </select>
     </div>
 
@@ -415,7 +418,7 @@
     <div
       style="position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); width:min(700px, 90vw); background:#151923; border:2px solid #a29bfe; border-radius:20px; padding:40px; text-align:center; z-index:5001; max-height:90vh; overflow-y:auto;">
       <h1 style="color:#a29bfe; margin:0 0 20px 0; font-size:2.2em;">ABDL Bladder Sim</h1>
-      <p style="color:#cdd7e6; margin:0 0 10px 0; font-size:1.1em;">Choose your profile to begin</p>
+      <p id="sessionSetupSubtitle" style="color:#cdd7e6; margin:0 0 10px 0; font-size:1.1em;">What kind of session?</p>
       <div style="display:flex; gap:8px; flex-wrap:wrap; justify-content:center; margin-bottom:20px;">
         <button onclick="showInfoModal('intro')" style="padding:6px 14px; background:#81ecec; border:none; color:#000; border-radius:8px; cursor:pointer; font-size:12px; font-weight:bold;">📘 Intro Guide</button>
         <button onclick="showInfoModal('howtoplay')" style="padding:6px 14px; background:#a29bfe; border:none; color:#000; border-radius:8px; cursor:pointer; font-size:12px; font-weight:bold;">📖 How to Play</button>
@@ -423,7 +426,23 @@
         <button onclick="openEventBuilder()" style="padding:6px 14px; background:#1b2030; border:1px solid #74b9ff; color:#74b9ff; border-radius:8px; cursor:pointer; font-size:12px;">🎠 Browse Events</button>
       </div>
 
-      <div id="sessionSetupProfileStep">
+      <!-- Session Type Chooser (Quick vs Full) -->
+      <div id="sessionTypeStep">
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:16px;">
+          <div style="background:#1b2030; border:2px solid #ff7675; border-radius:14px; padding:24px 16px; cursor:pointer; transition:transform 0.15s;" onclick="chooseQuickSession()" onmouseover="this.style.transform='scale(1.03)'" onmouseout="this.style.transform='scale(1)'">
+            <div style="font-size:2em; margin-bottom:8px;">🚽</div>
+            <h3 style="color:#ff7675; margin:0 0 8px 0; font-size:1.2em;">Quick Session</h3>
+            <p style="color:#cdd7e6; font-size:0.82em; margin:0; line-height:1.5;">Out and about? Press a button when you feel the urge and roll the dice to find out if you make it to the potty in time. No timers, no waiting.</p>
+          </div>
+          <div style="background:#1b2030; border:2px solid #a29bfe; border-radius:14px; padding:24px 16px; cursor:pointer; transition:transform 0.15s;" onclick="chooseFullSession()" onmouseover="this.style.transform='scale(1.03)'" onmouseout="this.style.transform='scale(1)'">
+            <div style="font-size:2em; margin-bottom:8px;">⏱️</div>
+            <h3 style="color:#a29bfe; margin:0 0 8px 0; font-size:1.2em;">Full Session</h3>
+            <p style="color:#cdd7e6; font-size:0.82em; margin:0; line-height:1.5;">Settling in for a while? Pick a profile with timed events, hold challenges, babysitter checks, training exercises, and more.</p>
+          </div>
+        </div>
+      </div>
+
+      <div id="sessionSetupProfileStep" style="display:none;">
 
       <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:16px;">
         <div style="background:#1b2030; border:2px solid #fab1a0; border-radius:12px; overflow:hidden;">
@@ -442,10 +461,6 @@
           <button onclick="selectProfileFromModal('train_pro')" style="width:100%; padding:20px 20px 10px 20px; background:transparent; border:none; color:#55efc4; cursor:pointer; font-weight:bold; font-size:1em;">💪 Pro<br><span style="font-size:0.75em; color:#cdd7e6;">Retaining Control</span></button>
           <button onclick="toggleProfileDetails('train_pro')" style="width:100%; padding:6px; background:rgba(85,239,196,0.08); border:none; border-top:1px solid rgba(85,239,196,0.2); color:#55efc4; cursor:pointer; font-size:0.72em;">▼ More Details</button>
         </div>
-        <div style="background:#1b2030; border:2px solid #ff7675; border-radius:12px; overflow:hidden;">
-          <button onclick="selectProfileFromModal('chaos_manual')" style="width:100%; padding:20px 20px 10px 20px; background:transparent; border:none; color:#ff7675; cursor:pointer; font-weight:bold; font-size:1em;">🔥 Chaos<br><span style="font-size:0.75em; color:#cdd7e6;">Manual Trigger</span></button>
-          <button onclick="toggleProfileDetails('chaos_manual')" style="width:100%; padding:6px; background:rgba(255,118,117,0.08); border:none; border-top:1px solid rgba(255,118,117,0.2); color:#ff7675; cursor:pointer; font-size:0.72em;">▼ More Details</button>
-        </div>
         <div style="background:#1b2030; border:2px solid #81ecec; border-radius:12px; overflow:hidden;">
           <button onclick="selectProfileFromModal('omorashi_hold')" style="width:100%; padding:20px 20px 10px 20px; background:transparent; border:none; color:#81ecec; cursor:pointer; font-weight:bold; font-size:1em;">💧 Omorashi<br><span style="font-size:0.75em; color:#cdd7e6;">Hold & Release</span></button>
           <button onclick="toggleProfileDetails('omorashi_hold')" style="width:100%; padding:6px; background:rgba(129,236,236,0.08); border:none; border-top:1px solid rgba(129,236,236,0.2); color:#81ecec; cursor:pointer; font-size:0.72em;">▼ More Details</button>
@@ -453,6 +468,10 @@
         <div style="background:#1b2030; border:2px solid #a29bfe; border-radius:12px; overflow:hidden;">
           <button onclick="selectProfileFromModal('babysitter')" style="width:100%; padding:20px 20px 10px 20px; background:transparent; border:none; color:#a29bfe; cursor:pointer; font-weight:bold; font-size:1em;">👩‍🍼 Babysitter<br><span style="font-size:0.75em; color:#cdd7e6;">Realistic Holds</span></button>
           <button onclick="toggleProfileDetails('babysitter')" style="width:100%; padding:6px; background:rgba(162,155,254,0.08); border:none; border-top:1px solid rgba(162,155,254,0.2); color:#a29bfe; cursor:pointer; font-size:0.72em;">▼ More Details</button>
+        </div>
+        <div style="background:#1b2030; border:2px solid #00cec9; border-radius:12px; overflow:hidden;">
+          <button onclick="selectProfileFromModal('gauntlet_only')" style="width:100%; padding:20px 20px 10px 20px; background:transparent; border:none; color:#00cec9; cursor:pointer; font-weight:bold; font-size:1em;">🎯 Gauntlet Only<br><span style="font-size:0.75em; color:#cdd7e6;">Exercise Holds</span></button>
+          <button onclick="toggleProfileDetails('gauntlet_only')" style="width:100%; padding:6px; background:rgba(0,206,201,0.08); border:none; border-top:1px solid rgba(0,206,201,0.2); color:#00cec9; cursor:pointer; font-size:0.72em;">▼ More Details</button>
         </div>
         <div style="background:#1b2030; border:2px solid #e17055; border-radius:12px; overflow:hidden;">
           <button onclick="openCustomProfileEditor()" style="width:100%; padding:20px 20px 10px 20px; background:transparent; border:none; color:#e17055; cursor:pointer; font-weight:bold; font-size:1em;">🧪 Custom<br><span style="font-size:0.75em; color:#cdd7e6;">Create / Import / Export</span></button>
@@ -912,9 +931,9 @@
       </div>
 
       <!-- Tabs -->
-      <div style="display:flex; gap:6px; margin:12px 0 0 0;">
+      <div class="eb-tabs" style="display:flex; gap:6px; margin:12px 0 0 0;">
         <button id="ebTabBrowse" onclick="switchEbTab('browse')" style="padding:8px 16px; border-radius:8px 8px 0 0; border:1px solid #2b3348; background:#0f1420; color:#74b9ff; cursor:pointer; font-weight:bold; border-bottom:2px solid #74b9ff;">📚 Browse</button>
-        <button id="ebTabBuild" onclick="switchEbTab('build')" style="padding:8px 16px; border-radius:8px 8px 0 0; border:1px solid #2b3348; background:#1b2030; color:#8ea0b6; cursor:pointer; border-bottom:1px solid #2b3348;">✏️ Build Event</button>
+        <button id="ebTabBuild" onclick="switchEbTab('build')" style="padding:8px 16px; border-radius:8px 8px 0 0; border:1px solid #2b3348; background:#1b2030; color:#8ea0b6; cursor:pointer; border-bottom:1px solid #2b3348;">✏️ Build</button>
         <button id="ebTabJson" onclick="switchEbTab('json')" style="padding:8px 16px; border-radius:8px 8px 0 0; border:1px solid #2b3348; background:#1b2030; color:#8ea0b6; cursor:pointer; border-bottom:1px solid #2b3348;">{ } JSON</button>
       </div>
       <div style="border-top:1px solid #2b3348; margin-bottom:14px;"></div>

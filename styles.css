@@ -641,6 +641,93 @@ b { color: #fff; font-weight: 700; }
     left: 8px;
     text-align: center;
   }
+
+  /* ---- EVENT BUILDER MOBILE ---- */
+  .event-builder-modal {
+    width: 98vw;
+    margin: 6px auto;
+    padding: 10px;
+    border-radius: 10px;
+  }
+
+  .event-builder-modal h2 {
+    font-size: 15px;
+  }
+
+  /* Controls stack vertically */
+  .eb-controls {
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
+
+  /* Carousel: shrink nav buttons, give card full width */
+  .eb-carousel-wrap {
+    grid-template-columns: 44px 1fr 44px;
+    gap: 4px;
+  }
+
+  .eb-nav-btn {
+    font-size: 14px;
+    padding: 6px;
+    min-width: 0;
+  }
+
+  .eb-card {
+    padding: 10px;
+    min-height: auto;
+  }
+
+  .eb-card h3 {
+    font-size: 14px;
+    word-break: break-word;
+  }
+
+  .eb-badge {
+    font-size: 10px;
+    padding: 2px 6px;
+  }
+
+  .eb-steps {
+    max-height: 150px;
+    padding: 6px;
+    font-size: 11px;
+  }
+
+  .eb-actions {
+    gap: 6px;
+  }
+
+  .eb-actions button {
+    padding: 10px 10px;
+    font-size: 11px;
+    flex: 1 1 auto;
+    min-width: 0;
+    text-align: center;
+  }
+
+  .eb-json textarea {
+    min-height: 80px;
+    font-size: 12px;
+  }
+
+  /* Build tab: stack 2-col grids */
+  #ebPaneBuild [style*="grid-template-columns:1fr 1fr"] {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Tabs: scroll horizontally instead of wrapping ugly */
+  .eb-tabs {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    flex-wrap: nowrap !important;
+    white-space: nowrap;
+  }
+
+  .eb-tabs button {
+    font-size: 12px;
+    padding: 7px 10px !important;
+    flex-shrink: 0;
+  }
 }
 
 @media (max-width: 480px) {
@@ -675,5 +762,29 @@ b { color: #fff; font-weight: 700; }
   .void-carousel {
     gap: 10px;
     flex-direction: column;
+  }
+
+  /* Event builder extra small */
+  .event-builder-modal {
+    padding: 6px;
+    border-width: 1px;
+  }
+
+  .eb-carousel-wrap {
+    grid-template-columns: 36px 1fr 36px;
+  }
+
+  .eb-nav-btn {
+    font-size: 12px;
+    padding: 4px;
+  }
+
+  .eb-card {
+    padding: 8px;
+  }
+
+  .eb-actions button {
+    font-size: 10px;
+    padding: 8px 6px;
   }
 }

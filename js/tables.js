@@ -2155,4 +2155,53 @@ const MESSY_PUSHING_ACCIDENTS_D10 = [
   }
 ];
 
+/* ===================================================================
+   GAUNTLET MODE — Modular Step Pool
+   ~30 hold/exercise blocks shuffled into random gauntlets.
+   Each step stores [min, max] seconds — builder randomizes the actual time.
+   All type:"stop" — the goal is always to HOLD.
+   =================================================================== */
+const GAUNTLET_STEP_POOL = [
+  // ---- SQUATS & LEGS ----
+  { cat: 'legs', steps: [{ text: "SQUAT & HOLD", t: [15, 30] }, { text: "STAND", t: [2, 3] }] },
+  { cat: 'legs', steps: [{ text: "WALL SIT", t: [20, 45] }] },
+  { cat: 'legs', steps: [{ text: "LEGS WIDE — HOLD", t: [15, 25] }, { text: "SQUEEZE LEGS TOGETHER", t: [10, 20] }] },
+  { cat: 'legs', steps: [{ text: "CALF RAISES (hold top)", t: [15, 25] }, { text: "HOLD TOP POSITION", t: [10, 20] }] },
+  { cat: 'legs', steps: [{ text: "LUNGE HOLD — LEFT", t: [12, 20] }, { text: "LUNGE HOLD — RIGHT", t: [12, 20] }] },
+  { cat: 'legs', steps: [{ text: "STAND ON TIPTOES", t: [15, 30] }] },
+
+  // ---- CORE & PLANK ----
+  { cat: 'core', steps: [{ text: "PLANK — HOLD", t: [20, 45] }] },
+  { cat: 'core', steps: [{ text: "TIGHTEN CORE", t: [10, 20] }, { text: "HOLD TIGHTER", t: [15, 30] }] },
+  { cat: 'core', steps: [{ text: "HOLLOW BODY HOLD", t: [15, 30] }] },
+  { cat: 'core', steps: [{ text: "SIDE PLANK — LEFT", t: [12, 25] }, { text: "SIDE PLANK — RIGHT", t: [12, 25] }] },
+  { cat: 'core', steps: [{ text: "DEAD BUG HOLD", t: [15, 25] }, { text: "TIGHTEN ABS", t: [10, 20] }] },
+
+  // ---- SEATED HOLDS ----
+  { cat: 'seated', steps: [{ text: "SIT ON EDGE OF CHAIR", t: [5, 10] }, { text: "CROSS LEGS TIGHT", t: [15, 30] }] },
+  { cat: 'seated', steps: [{ text: "FOLD CHEST TO KNEES", t: [15, 25] }, { text: "HOLD BELLY TIGHT", t: [10, 20] }] },
+  { cat: 'seated', steps: [{ text: "HUG KNEES TO CHEST", t: [15, 25] }, { text: "SQUEEZE HARD", t: [10, 20] }] },
+  { cat: 'seated', steps: [{ text: "SIT HEAVILY — DON'T MOVE", t: [20, 40] }] },
+  { cat: 'seated', steps: [{ text: "CIRCULAR HIP MOTION (10 circles)", t: [12, 20] }, { text: "STOP & HOLD", t: [15, 25] }] },
+
+  // ---- KEGEL / PELVIC ----
+  { cat: 'kegel', steps: [{ text: "KEGEL — MAX CONTRACT", t: [10, 20] }, { text: "HOLD (no relaxing)", t: [15, 30] }] },
+  { cat: 'kegel', steps: [{ text: "RAPID KEGEL PULSES", t: [8, 15] }, { text: "FINAL HOLD", t: [10, 20] }] },
+  { cat: 'kegel', steps: [{ text: "SQUEEZE PELVIC FLOOR", t: [15, 25] }] },
+  { cat: 'kegel', steps: [{ text: "CLENCH EVERYTHING BELOW WAIST", t: [20, 35] }] },
+
+  // ---- BREATHING / PRESSURE ----
+  { cat: 'breath', steps: [{ text: "DEEP INHALE (MAX)", t: [5, 8] }, { text: "HOLD BREATH", t: [10, 20] }, { text: "EXHALE & HOLD", t: [5, 10] }] },
+  { cat: 'breath', steps: [{ text: "BELLY INHALE — EXPAND", t: [5, 8] }, { text: "HOLD — DON'T BREATHE", t: [12, 20] }] },
+  { cat: 'breath', steps: [{ text: "HANDS ON STOMACH", t: [3, 5] }, { text: "BREATHE INTO HANDS", t: [8, 15] }, { text: "PRESS STOMACH IN", t: [10, 20] }] },
+
+  // ---- POSITION CHANGES ----
+  { cat: 'position', steps: [{ text: "STAND UP — LEGS TOGETHER", t: [5, 8] }, { text: "STAY STANDING — NO FIDGETING", t: [20, 40] }] },
+  { cat: 'position', steps: [{ text: "LEAN FORWARD — HANDS ON KNEES", t: [10, 20] }, { text: "HOLD POSITION", t: [15, 25] }] },
+  { cat: 'position', steps: [{ text: "HANDS ABOVE HEAD", t: [15, 30] }] },
+  { cat: 'position', steps: [{ text: "FEET SHOULDER WIDTH", t: [3, 5] }, { text: "BEND AT WAIST — TOUCH TOES", t: [10, 20] }, { text: "HOLD DOWN THERE", t: [15, 25] }] },
+  { cat: 'position', steps: [{ text: "LIE ON BACK", t: [3, 5] }, { text: "LEGS STRAIGHT UP (90°)", t: [15, 30] }, { text: "LOWER LEGS SLOWLY", t: [8, 15] }] },
+  { cat: 'position', steps: [{ text: "ROTATE HIPS LEFT", t: [8, 15] }, { text: "ROTATE HIPS RIGHT", t: [8, 15] }, { text: "HOLD IN PLACE", t: [10, 20] }] },
+];
+
 
