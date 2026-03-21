@@ -541,3 +541,139 @@ b { color: #fff; font-weight: 700; }
     min-height: 110px;
     font-family: monospace;
 }
+
+/* ========== MOBILE RESPONSIVE ========== */
+@media (max-width: 768px) {
+  .wrap {
+    grid-template-columns: 1fr;
+    padding: 8px;
+    gap: 10px;
+  }
+
+  header {
+    padding: 10px 12px;
+  }
+
+  h1 {
+    font-size: 16px;
+  }
+
+  .panel {
+    padding: 10px;
+    border-radius: 10px;
+  }
+
+  /* Larger touch targets */
+  .buttons button, .timer-controls button, .pill {
+    padding: 12px 14px;
+    font-size: 14px;
+    min-height: 44px;
+  }
+
+  .info-btn {
+    width: 32px !important;
+    height: 32px !important;
+    font-size: 14px !important;
+    min-height: 32px;
+  }
+
+  /* Modal adjustments */
+  #modal {
+    width: 96vw;
+    top: 2%;
+  }
+
+  #modal .body {
+    max-height: 80vh;
+    padding: 10px;
+  }
+
+  /* Session setup modal */
+  #sessionSetupBackdrop > div {
+    width: 96vw !important;
+    max-width: 96vw !important;
+    max-height: 90vh;
+    padding: 10px !important;
+  }
+
+  /* Void guide overlay text sizing */
+  .void-label {
+    font-size: 1.6rem;
+  }
+
+  .void-timer {
+    font-size: 2.5rem;
+  }
+
+  .void-reticle {
+    width: 220px;
+    height: 220px;
+  }
+
+  .void-ring-svg {
+    width: 220px;
+    height: 220px;
+  }
+
+  .void-text-wrap {
+    width: 160px;
+  }
+
+  /* Stacked sidebar sections */
+  .row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  /* Range sliders easier to grab */
+  input[type="range"] {
+    height: 32px;
+  }
+
+  #output {
+    font-size: 14px;
+  }
+
+  /* Toast positioning */
+  #puToast {
+    right: 8px;
+    bottom: 8px;
+    left: 8px;
+    text-align: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .wrap {
+    padding: 4px;
+    gap: 6px;
+  }
+
+  .void-reticle {
+    width: 180px;
+    height: 180px;
+  }
+
+  .void-ring-svg {
+    width: 180px;
+    height: 180px;
+  }
+
+  .void-label {
+    font-size: 1.3rem;
+  }
+
+  .void-timer {
+    font-size: 2rem;
+  }
+
+  .void-text-wrap {
+    width: 130px;
+  }
+
+  /* Carousel collapses on very small screens */
+  .void-carousel {
+    gap: 10px;
+    flex-direction: column;
+  }
+}

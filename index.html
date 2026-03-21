@@ -135,6 +135,8 @@
           style="width:100%; font-size:0.8em; padding:6px; margin-top:10px;">✅ Confirm Status</button>
         <button class="pill" onclick="reportEmergencyLeak()"
           style="border-color:#ff7675; color:#ff7675; width:100%; margin-top:8px;">💦 Emergency</button>
+        <button id="btnMessy" class="pill" onclick="triggerMessyEvent()"
+          style="border-color:#8B4513; color:#c97b3a; width:100%; margin-top:8px; display:none;">💩 Uh Oh...</button>
 
         <div id="hydrationTriggerSection" style="margin-top:12px; text-align:center; display:none;">
           <div class="muted" style="font-size:11px; margin-bottom:8px;">💧 Hydration</div>
@@ -256,6 +258,25 @@
       <div style="display:flex; align-items:center; gap:8px; padding:6px 12px; background:#0f1115; border-radius:8px; border:1px solid #2b3348; margin-bottom:8px;">
         <label style="flex:1; display:flex; align-items:center; gap:8px; color:#8ea0b6; font-size:12px; cursor:pointer;">
           <input type="checkbox" id="pushToLeakSkipLongToggle" onchange="togglePushToLeakSkipLong(this.checked)"> ⏩ Skip push-to-leak for long leaks (&gt;10s)
+        </label>
+      </div>
+      <div style="display:flex; align-items:center; gap:10px; background:#1b2030; padding:8px 12px; border-radius:10px; border:1px solid #2b3348; margin-bottom:8px;">
+        <label style="flex:1; display:flex; align-items:center; gap:8px; color:#cdd7e6; font-size:13px; cursor:pointer;">
+          <input type="checkbox" id="messyModeToggle" onchange="toggleMessyMode(this.checked)"> 💩 Uh-Oh Button
+        </label>
+        <button class="info-btn" onclick="showInfoModal('messymode')" title="What is this?" style="width:22px; height:22px; font-size:11px;">?</button>
+      </div>
+      <!-- Desk Mode Toggle -->
+      <div style="display:flex; align-items:center; gap:10px; background:#1b2030; padding:8px 12px; border-radius:10px; border:1px solid #2b3348; margin-bottom:8px;">
+        <label style="flex:1; display:flex; align-items:center; gap:8px; color:#cdd7e6; font-size:13px; cursor:pointer;">
+          <input type="checkbox" id="deskModeToggle" onchange="toggleDeskMode(this.checked)"> 🪑 Desk Mode
+        </label>
+        <button class="info-btn" onclick="showInfoModal('deskmode')" title="What is this?" style="width:22px; height:22px; font-size:11px;">?</button>
+      </div>
+      <!-- Involuntary Filter Toggle -->
+      <div style="display:flex; align-items:center; gap:8px; padding:6px 12px; background:#0f1115; border-radius:8px; border:1px solid #2b3348; margin-bottom:8px;">
+        <label style="flex:1; display:flex; align-items:center; gap:8px; color:#8ea0b6; font-size:12px; cursor:pointer;">
+          <input type="checkbox" id="involuntaryFilterToggle" onchange="toggleInvoluntaryFilter(this.checked)"> 🚫 Filter involuntary actions (laugh, sneeze, etc.)
         </label>
       </div>
 
@@ -578,7 +599,46 @@
       <div id="pushToLeakStatus" style="color:#666; font-size:0.8em; margin-top:6px;">PAUSED — hold button to go</div>
     </div>
 
-    <button onclick="closeVoidGuide()" class="btn-void-close">Stop Guide</button>
+    <!-- Inline Event Browser (visible in preview mode) -->
+    <div id="voidEventBrowser" style="display:none; margin-top:18px; width:100%; max-width:420px; margin-left:auto; margin-right:auto;">
+      <button onclick="toggleVoidBrowser()" id="voidBrowserToggle"
+        style="width:100%; padding:8px; background:#1b2030; border:1px solid #2b3348; border-radius:8px 8px 0 0; color:#74b9ff; cursor:pointer; font-size:0.85em; font-weight:bold;">
+        📚 Browse Events ▼
+      </button>
+      <div id="voidBrowserPanel" style="display:none; background:#0f1420; border:1px solid #2b3348; border-top:none; border-radius:0 0 8px 8px; padding:12px;">
+        <div style="display:flex; gap:6px; margin-bottom:10px; flex-wrap:wrap;">
+          <select id="vbProfile" onchange="refreshVoidBrowser()" style="flex:1; min-width:100px; padding:6px; background:#1b2030; border:1px solid #2b3348; color:#fff; border-radius:6px; font-size:12px;">
+            <option value="babysitter">Babysitter</option>
+            <option value="dependent">Dependent</option>
+            <option value="npt">Not Potty Trained</option>
+            <option value="train_rookie">Rookie</option>
+            <option value="train_pro">Pro</option>
+            <option value="chaos_manual">Chaos</option>
+            <option value="omorashi_hold">Omorashi</option>
+          </select>
+          <select id="vbType" onchange="refreshVoidBrowser()" style="flex:1; min-width:80px; padding:6px; background:#1b2030; border:1px solid #2b3348; color:#fff; border-radius:6px; font-size:12px;">
+            <option value="all">All</option>
+            <option value="micro">Micro</option>
+            <option value="full">Full</option>
+            <option value="transition">Transitions</option>
+            <option value="permission">Permission</option>
+          </select>
+          <input id="vbSearch" type="text" placeholder="Search..." oninput="refreshVoidBrowser()" style="flex:1; min-width:80px; padding:6px; background:#1b2030; border:1px solid #2b3348; color:#fff; border-radius:6px; font-size:12px;">
+        </div>
+        <div style="display:flex; align-items:center; gap:8px;">
+          <button onclick="voidBrowserPrev()" style="padding:6px 12px; background:#1b2030; border:1px solid #2b3348; color:#74b9ff; border-radius:6px; cursor:pointer;">◀</button>
+          <div id="vbCard" style="flex:1; background:#151923; border:1px solid #2b3348; border-radius:8px; padding:10px; min-height:60px; font-size:12px; color:#cdd7e6; overflow:hidden;"></div>
+          <button onclick="voidBrowserNext()" style="padding:6px 12px; background:#1b2030; border:1px solid #2b3348; color:#74b9ff; border-radius:6px; cursor:pointer;">▶</button>
+        </div>
+        <div style="display:flex; gap:6px; margin-top:8px; flex-wrap:wrap; justify-content:center;">
+          <button onclick="voidBrowserTry()" style="padding:6px 14px; background:#a29bfe; color:#000; border:none; border-radius:6px; cursor:pointer; font-weight:bold; font-size:12px;">▶ Try This Event</button>
+          <button onclick="voidBrowserToggleDisable()" id="vbDisableBtn" style="padding:6px 14px; background:#ff7675; color:#000; border:none; border-radius:6px; cursor:pointer; font-size:12px;">Disable</button>
+          <button onclick="openEventBuilder()" style="padding:6px 14px; background:#1b2030; border:1px solid #2b3348; color:#74b9ff; border-radius:6px; cursor:pointer; font-size:12px;">✏️ Full Builder</button>
+        </div>
+      </div>
+    </div>
+
+    <button onclick="closeVoidGuide()" class="btn-void-close">Stop Event / I'm Empty</button>
 
   </div>
 
@@ -985,7 +1045,20 @@
     </div>
   </div>
 
-  <script src="app.js"></script>
+  <!-- Split from app.js — load order matters (all global scope) -->
+  <script src="js/state.js"></script>
+  <script src="js/tables.js"></script>
+  <script src="js/profile-config.js"></script>
+  <script src="js/session.js"></script>
+  <script src="js/engine.js"></script>
+  <script src="js/guide.js"></script>
+  <script src="js/profiles/babysitter.js"></script>
+  <script src="js/profiles/dependent.js"></script>
+  <script src="js/profiles/training.js"></script>
+  <script src="js/profiles/omorashi.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/event-builder.js"></script>
+  <script src="js/custom-profiles.js"></script>
 </body>
 
 </html>
