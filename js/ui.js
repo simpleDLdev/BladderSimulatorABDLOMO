@@ -937,6 +937,8 @@ function stopAll() {
 }
 
 function showSessionSetupModal() {
+  const isFirstVisit = !localStorage.getItem('abdlSimState') && !localStorage.getItem('profileMode');
+
   const savedCont = localStorage.getItem('currentContinenceLevel');
   if ($('continenceSelect') && savedCont) $('continenceSelect').value = savedCont;
 
@@ -959,13 +961,31 @@ function showSessionSetupModal() {
   if ($('sessionSetupProfileStep')) $('sessionSetupProfileStep').style.display = 'none';
   if ($('profileDetailsPanel')) $('profileDetailsPanel').style.display = 'none';
   if ($('diaperingSetup')) $('diaperingSetup').style.display = 'none';
-  if ($('sessionTypeStep')) $('sessionTypeStep').style.display = '';
-  if ($('sessionSetupSubtitle')) $('sessionSetupSubtitle').textContent = 'What kind of session?';
   const qm = $('quickModeSetup');
   if (qm) qm.remove();
 
+  // First visit: show welcome step, hide session type chooser and info buttons
+  if (isFirstVisit) {
+    if ($('welcomeStep')) $('welcomeStep').style.display = 'block';
+    if ($('sessionTypeStep')) $('sessionTypeStep').style.display = 'none';
+    if ($('sessionSetupInfoBtns')) $('sessionSetupInfoBtns').style.display = 'none';
+    if ($('sessionSetupSubtitle')) $('sessionSetupSubtitle').textContent = '';
+  } else {
+    if ($('welcomeStep')) $('welcomeStep').style.display = 'none';
+    if ($('sessionTypeStep')) $('sessionTypeStep').style.display = '';
+    if ($('sessionSetupInfoBtns')) $('sessionSetupInfoBtns').style.display = 'flex';
+    if ($('sessionSetupSubtitle')) $('sessionSetupSubtitle').textContent = 'What kind of session?';
+  }
+
   updateContinencePreview();
   $('sessionSetupBackdrop').style.display = 'block';
+}
+
+function dismissWelcome() {
+  if ($('welcomeStep')) $('welcomeStep').style.display = 'none';
+  if ($('sessionTypeStep')) $('sessionTypeStep').style.display = '';
+  if ($('sessionSetupInfoBtns')) $('sessionSetupInfoBtns').style.display = 'flex';
+  if ($('sessionSetupSubtitle')) $('sessionSetupSubtitle').textContent = 'What kind of session?';
 }
 
 function closeSessionSetupModal() {
@@ -990,87 +1010,122 @@ function chooseFullSession() {
 }
 
 /* --- Quick Mode Table Descriptions (ABDL/Omorashi themed) --- */
-const QUICK_MODE_TABLES = [
+/* ===== QUICK SESSION: GUIDED SETUP ===== */
+
+// Step 1: Continence style → Step 2: Preferences → Step 3: Confirm & Start
+// Maps user-friendly choices to event table keys
+
+const QUICK_CONTINENCE_STYLES = [
   {
-    key: 'FULL_D20',
-    name: 'Bladder Events',
-    emoji: '💦',
-    color: '#74b9ff',
-    desc: 'Classic wetting scenarios — spasms, leaks, and full-on floods. The bread & butter of any little\'s worst nightmare.',
-  },
-  {
-    key: 'FULL_TRAINING_FAILURES',
-    name: 'Training Failures',
-    emoji: '🚽',
-    color: '#ff7675',
-    desc: 'You tried to make it to the potty... and didn\'t. Panicked dashes, mid-pull-down floods, and the dreaded "almost made it" moments.',
-  },
-  {
-    key: 'MACRO_DEPENDENT_D20',
-    name: 'Diaper Fills',
-    emoji: '👶',
-    color: '#fab1a0',
-    desc: 'Full diaper events for littles who can\'t control themselves — helpless flooding, naptime accidents, and soggy padding.',
-  },
-  {
-    key: 'MESSY_PUSHING_ACCIDENTS_D10',
-    name: 'Messy Accidents',
-    emoji: '😳',
-    color: '#fdcb6e',
-    desc: 'Pushing events by position — seated, standing, squatting. For when your body decides it\'s going regardless.',
-  },
-  {
-    key: 'MESSY_HOLDING_GAUNTLETS_D10',
-    name: 'Holding Gauntlets',
+    key: 'holding',
     emoji: '💪',
+    label: 'Holding & Desperation',
+    desc: 'You\'re trying your best to hold it. Focus on endurance, urgency, and the struggle.',
     color: '#55efc4',
-    desc: 'Exercise-style endurance holds — squats, planks, clenches. How long can you hold before you lose it?',
   },
   {
-    key: 'OMORASHI_GAUNTLETS',
-    name: 'Omorashi Challenges',
+    key: 'leaking',
     emoji: '💧',
-    color: '#81ecec',
-    desc: 'Named desperation sequences from the omorashi playbook — breath torture, compression holds, kegel crushers, and more.',
+    label: 'Leaking & Losing Control',
+    desc: 'You can\'t quite keep it together. Spurts, dribbles, and gradual loss of control.',
+    color: '#74b9ff',
+  },
+  {
+    key: 'wetting',
+    emoji: '💦',
+    label: 'Full Wetting & Accidents',
+    desc: 'Accidents happen. Full releases, floods, and the moment you realize it\'s too late.',
+    color: '#ff7675',
+  },
+  {
+    key: 'everything',
+    emoji: '🎲',
+    label: 'Surprise Me (All of the Above)',
+    desc: 'A mix of everything — holding, leaking, and full accidents. Maximum variety.',
+    color: '#a29bfe',
   },
 ];
 
-function showQuickModeSetup() {
-  // Build a table checklist inside the session setup modal area
-  const saved = JSON.parse(localStorage.getItem('quickModeTables') || 'null');
+const QUICK_PREFERENCE_OPTIONS = [
+  {
+    key: 'omorashi',
+    emoji: '💧',
+    label: 'Omorashi / Desperation',
+    desc: 'Holding challenges, breath torture, compression holds. No protection needed.',
+    color: '#81ecec',
+    tables: ['OMORASHI_GAUNTLETS', 'MESSY_HOLDING_GAUNTLETS_D10'],
+  },
+  {
+    key: 'training',
+    emoji: '🚽',
+    label: 'Potty Training / Accidents',
+    desc: 'Trying to make it in time — panicked dashes, close calls, and "almost made it" moments.',
+    color: '#ff7675',
+    tables: ['FULL_TRAINING_FAILURES', 'FULL_D20'],
+  },
+  {
+    key: 'protection',
+    emoji: '🩳',
+    label: 'Pads / Pullups / Protection',
+    desc: 'Wearing protection and dealing with leaks, saturation, and changes.',
+    color: '#fdcb6e',
+    tables: ['FULL_D20'],
+  },
+  {
+    key: 'diapers',
+    emoji: '👶',
+    label: 'Diapers / Regression',
+    desc: 'Full diaper scenarios — helpless flooding, soggy padding, caregiver checks.',
+    color: '#fab1a0',
+    tables: ['MACRO_DEPENDENT_D20', 'FULL_D20'],
+  },
+  {
+    key: 'messy',
+    emoji: '😳',
+    label: 'Messy / #2 Accidents',
+    desc: 'Loss of bowel control — pushing, seated accidents, and the "uh oh" moments.',
+    color: '#dfe6e9',
+    tables: ['MESSY_PUSHING_ACCIDENTS_D10'],
+  },
+];
 
+// Kept for backward compatibility (quickModeRoll reads this)
+const QUICK_MODE_TABLES = [
+  { key: 'FULL_D20', name: 'Bladder Events', emoji: '💦', color: '#74b9ff', desc: '' },
+  { key: 'FULL_TRAINING_FAILURES', name: 'Training Failures', emoji: '🚽', color: '#ff7675', desc: '' },
+  { key: 'MACRO_DEPENDENT_D20', name: 'Diaper Fills', emoji: '👶', color: '#fab1a0', desc: '' },
+  { key: 'MESSY_PUSHING_ACCIDENTS_D10', name: 'Messy Accidents', emoji: '😳', color: '#fdcb6e', desc: '' },
+  { key: 'MESSY_HOLDING_GAUNTLETS_D10', name: 'Holding Gauntlets', emoji: '💪', color: '#55efc4', desc: '' },
+  { key: 'OMORASHI_GAUNTLETS', name: 'Omorashi Challenges', emoji: '💧', color: '#81ecec', desc: '' },
+];
+
+function showQuickModeSetup() {
+  showQuickStep1();
+}
+
+function showQuickStep1() {
+  // Step 1: What kind of experience?
   let html = `
     <div id="quickModeSetup" style="text-align:left;">
       <button onclick="backToSessionType()" style="background:none; border:none; color:#7cc4ff; cursor:pointer; font-size:13px; margin-bottom:12px; padding:0;">&larr; Back</button>
-      <h2 style="color:#ff7675; margin:0 0 6px 0; text-align:center;">🚽 Quick Session Setup</h2>
-      <p style="color:#cdd7e6; font-size:0.88em; margin:0 0 16px 0; text-align:center; line-height:1.5;">
-        Pick which event tables to roll from when you press the button.<br>
-        <span style="color:#888;">The more tables you enable, the wilder the results.</span>
+      <h2 style="color:#ff7675; margin:0 0 6px 0; text-align:center;">🚽 Quick Session</h2>
+      <p style="color:#cdd7e6; font-size:0.92em; margin:0 0 16px 0; text-align:center; line-height:1.5;">
+        What kind of experience are you looking for?
       </p>
+      <div style="display:flex; flex-direction:column; gap:10px; margin-bottom:10px;">`;
 
-      <div style="display:flex; flex-direction:column; gap:10px; margin-bottom:20px;">`;
-
-  for (const t of QUICK_MODE_TABLES) {
-    const checked = saved ? saved.includes(t.key) : (t.key === 'FULL_D20' || t.key === 'FULL_TRAINING_FAILURES');
+  for (const s of QUICK_CONTINENCE_STYLES) {
     html += `
-        <label style="display:flex; align-items:flex-start; gap:10px; background:#1b2030; padding:12px; border-radius:10px; border:1px solid ${t.color}33; cursor:pointer;">
-          <input type="checkbox" class="quickTableCheck" value="${t.key}" ${checked ? 'checked' : ''} style="margin-top:3px; accent-color:${t.color};">
-          <div>
-            <span style="color:${t.color}; font-weight:bold;">${t.emoji} ${t.name}</span>
-            <p style="color:#999; font-size:0.8em; margin:4px 0 0 0; line-height:1.4;">${t.desc}</p>
-          </div>
-        </label>`;
+        <div onclick="quickSelectContinence('${s.key}')" style="background:#1b2030; padding:14px 16px; border-radius:12px; border:2px solid ${s.color}33; cursor:pointer; transition:transform 0.15s, border-color 0.15s;" onmouseover="this.style.borderColor='${s.color}';this.style.transform='scale(1.02)'" onmouseout="this.style.borderColor='${s.color}33';this.style.transform='scale(1)'">
+          <div style="font-size:1.1em; font-weight:bold; color:${s.color}; margin-bottom:4px;">${s.emoji} ${s.label}</div>
+          <div style="color:#999; font-size:0.82em; line-height:1.4;">${s.desc}</div>
+        </div>`;
   }
 
   html += `
       </div>
-
-      <div style="text-align:center;">
-        <button onclick="startQuickSession()" style="width:100%; padding:14px; background:#ff7675; color:#000; font-weight:bold; font-size:1.1em; border:none; border-radius:10px; cursor:pointer;">🚽 Start Quick Session</button>
-      </div>
     </div>`;
 
-  // Insert into the modal (after the profile step area)
   let container = $('quickModeSetup');
   if (container) {
     container.outerHTML = html;
@@ -1079,50 +1134,104 @@ function showQuickModeSetup() {
   }
 }
 
-function backToSessionType() {
-  // Remove quick mode setup and show session type chooser again
-  const qm = $('quickModeSetup');
-  if (qm) qm.remove();
-  if ($('sessionTypeStep')) $('sessionTypeStep').style.display = '';
-  if ($('sessionSetupSubtitle')) $('sessionSetupSubtitle').textContent = 'What kind of session?';
+function quickSelectContinence(styleKey) {
+  // Store the continence choice and move to preference step
+  window._quickContinenceStyle = styleKey;
+  showQuickStep2(styleKey);
 }
 
-function startQuickSession() {
-  // Collect selected tables
-  const checks = document.querySelectorAll('.quickTableCheck:checked');
-  const selectedTables = Array.from(checks).map(c => c.value);
+function showQuickStep2(styleKey) {
+  // Step 2: What are you into? (multi-select preferences)
+  // Pre-select based on continence style
+  const preSelects = {
+    holding: ['omorashi'],
+    leaking: ['training', 'protection'],
+    wetting: ['training', 'protection', 'diapers'],
+    everything: ['omorashi', 'training', 'protection', 'diapers'],
+  };
+  const preSelected = preSelects[styleKey] || [];
 
-  if (selectedTables.length === 0) {
-    toast('Pick at least one table!');
+  let html = `
+    <div id="quickModeSetup" style="text-align:left;">
+      <button onclick="showQuickStep1()" style="background:none; border:none; color:#7cc4ff; cursor:pointer; font-size:13px; margin-bottom:12px; padding:0;">&larr; Back</button>
+      <h2 style="color:#ff7675; margin:0 0 6px 0; text-align:center;">🎯 Your Preferences</h2>
+      <p style="color:#cdd7e6; font-size:0.88em; margin:0 0 6px 0; text-align:center; line-height:1.5;">
+        Select what you're into — we'll only roll events that match.<br>
+        <span style="color:#888; font-size:0.9em;">Everyone's different, and that's totally fine!</span>
+      </p>
+      <div style="display:flex; flex-direction:column; gap:8px; margin-bottom:16px;">`;
+
+  for (const p of QUICK_PREFERENCE_OPTIONS) {
+    const checked = preSelected.includes(p.key) ? 'checked' : '';
+    html += `
+        <label style="display:flex; align-items:flex-start; gap:10px; background:#1b2030; padding:12px; border-radius:10px; border:2px solid ${p.color}22; cursor:pointer; transition:border-color 0.2s;" onmouseover="this.style.borderColor='${p.color}'" onmouseout="this.style.borderColor='${p.color}22'">
+          <input type="checkbox" class="quickPrefCheck" value="${p.key}" ${checked} style="margin-top:3px; accent-color:${p.color}; width:18px; height:18px; flex-shrink:0;">
+          <div>
+            <span style="color:${p.color}; font-weight:bold; font-size:0.95em;">${p.emoji} ${p.label}</span>
+            <p style="color:#999; font-size:0.78em; margin:3px 0 0 0; line-height:1.4;">${p.desc}</p>
+          </div>
+        </label>`;
+  }
+
+  html += `
+      </div>
+      <button onclick="quickConfirmPrefs()" style="width:100%; padding:14px; background:#ff7675; color:#000; font-weight:bold; font-size:1.1em; border:none; border-radius:10px; cursor:pointer;">🚽 Start Quick Session</button>
+    </div>`;
+
+  let container = $('quickModeSetup');
+  if (container) {
+    container.outerHTML = html;
+  } else {
+    $('sessionSetupProfileStep').insertAdjacentHTML('afterend', html);
+  }
+}
+
+function quickConfirmPrefs() {
+  // Collect selected preferences and map to event tables
+  const checks = document.querySelectorAll('.quickPrefCheck:checked');
+  const selectedPrefs = Array.from(checks).map(c => c.value);
+
+  if (selectedPrefs.length === 0) {
+    toast('Pick at least one preference!');
     return;
   }
 
-  // Save choices
+  // Map preferences to table keys (dedup)
+  const tableSet = new Set();
+  for (const prefKey of selectedPrefs) {
+    const pref = QUICK_PREFERENCE_OPTIONS.find(p => p.key === prefKey);
+    if (pref) pref.tables.forEach(t => tableSet.add(t));
+  }
+  const selectedTables = Array.from(tableSet);
+
+  // Save and start (reuse existing startQuickSession logic)
   localStorage.setItem('quickModeTables', JSON.stringify(selectedTables));
+  localStorage.setItem('quickModePrefs', JSON.stringify(selectedPrefs));
   window.quickModeTables = selectedTables;
 
-  // Set profile mode to chaos_manual (re-using the chaos scheduler)
+  // Set profile mode to chaos_manual
   profileMode = 'chaos_manual';
   localStorage.setItem('profileMode', 'chaos_manual');
   if (typeof applySelectedProfile === 'function') applySelectedProfile();
 
-  // Close the setup modal
+  // Close setup
   closeSessionSetupModal();
   const qm = $('quickModeSetup');
   if (qm) qm.remove();
 
-  // Start the session
+  // Start session
   sessionRunning = true;
   sessionStartedAt = Date.now();
+
+  const prefLabels = selectedPrefs.map(k => QUICK_PREFERENCE_OPTIONS.find(p => p.key === k)?.label || k).join(', ');
   logToOutput(`<span style="color:#ff7675; font-size:1.1em;"><b>🚽 Quick Session Started</b></span>`);
-  logToOutput(`<span style="color:#cdd7e6;">Tables: ${selectedTables.map(k => QUICK_MODE_TABLES.find(t => t.key === k)?.name || k).join(', ')}</span>`);
+  logToOutput(`<span style="color:#cdd7e6;">Your vibe: ${prefLabels}</span>`);
   logToOutput(`<div style="border:1px solid #ff7675; padding:12px; border-radius:10px; background:#1b2030; margin:8px 0;">
     <span style="color:#ff7675; font-size:1em;"><b>How it works:</b></span><br>
-    <span style="color:#cdd7e6; font-size:0.9em;">When you feel the urge to go, hit the <b style="color:#ff7675;">"I Need to Go!"</b> button below.<br>
-    We'll roll the dice to see what happens — maybe you make it, maybe you don't. 🎲</span>
+    <span style="color:#cdd7e6; font-size:0.9em;">When you feel the urge, hit the <b style="color:#ff7675;">"I Need to Go!"</b> button.<br>
+    We'll roll the dice to see what happens. 🎲</span>
   </div>`);
 
-  // Show quick mode UI — update the "I can't hold it" button to be the primary action
   const btn = $('btnQuickGo');
   if (btn) btn.style.display = 'block';
 
@@ -1132,6 +1241,13 @@ function startQuickSession() {
   clearInterval(tickInterval);
   tickInterval = setInterval(setCountdownLabel, 1000);
   saveState();
+}
+
+function backToSessionType() {
+  const qm = $('quickModeSetup');
+  if (qm) qm.remove();
+  if ($('sessionTypeStep')) $('sessionTypeStep').style.display = '';
+  if ($('sessionSetupSubtitle')) $('sessionSetupSubtitle').textContent = 'What kind of session?';
 }
 
 function quickModeRoll() {
@@ -1215,6 +1331,7 @@ function selectProfileFromModal(profile) {
 function saveDiaperingSetup() {
   // Collect selected protection types
   const types = [];
+  if ($('protNone')?.checked) types.push('none');
   if ($('protPad')?.checked) types.push('pad');
   if ($('protPullups')?.checked) types.push('pullups');
   if ($('protDiapers')?.checked) types.push('diapers');
@@ -1756,7 +1873,8 @@ function debugTimers() {
 
 
 function changeDiaper() {
-  if (!changeAllowed && manualSaturation < 100) {
+  const cap = (typeof getMainProtectionCapacity === 'function') ? getMainProtectionCapacity() : 100;
+  if (!changeAllowed && manualSaturation < cap) {
     alert("You haven't been granted a change yet.");
     return;
   }
@@ -2077,6 +2195,9 @@ function haveAccident() {
   const shouldResume = loadState();
   if (shouldResume) {
     startSession(true);
+  } else if (!localStorage.getItem('abdlSimState') && !localStorage.getItem('profileMode')) {
+    // First visit — no cached session or profile. Auto-show the setup modal.
+    setTimeout(() => showSessionSetupModal(), 300);
   }
 
   // 3. Auto-save on slider changes
@@ -2123,6 +2244,7 @@ function reportEmergencyLeak() {
       const capacity = getMainProtectionCapacity();
       const sat = manualSaturation;
       const leakThrough = sat >= capacity;
+      const fillPct = (sat / capacity) * 100; // Fill percentage relative to protection
       babysitterFailureCount++;
       protectionFailures++;
       protectionSuccesses = 0;
@@ -2133,13 +2255,13 @@ function reportEmergencyLeak() {
         logToOutput(`<span style="color:#ff7675;">😨 Babysitter: "Oh no, you've leaked through completely. This ${formatProtectionLevel(currentProtectionLevel)} can't handle any more. We're changing you right now."</span>`);
         trackDayEvent('accident');
         checkBabysitterProgression('major_accident');
-      } else if (sat >= 65) {
+      } else if (fillPct >= 65) {
         // Heavy accident — very likely triggers protection change
         logToOutput(`<span style="color:#d63031;">😰 Babysitter: "Oh sweetie, that's a big one. Your ${formatProtectionLevel(currentProtectionLevel)} is really struggling. We need to deal with this."</span>`);
         logToOutput(`<span style="color:#fdcb6e;">⏳ Accident logged. You are being left to sit in it for a while. Status check in ~15 mins.</span>`);
         trackDayEvent('accident');
         checkBabysitterProgression('major_accident');
-      } else if (sat >= 35) {
+      } else if (fillPct >= 35) {
         // Moderate accident
         logToOutput(`<span style="color:#ff7675;">😟 Babysitter: "I can feel it, you definitely had an accident in there. We'll monitor this closely."</span>`);
         logToOutput(`<span style="color:#fdcb6e;">⏳ Accident logged. Babysitter will check again soon.</span>`);
@@ -2157,8 +2279,9 @@ function reportEmergencyLeak() {
   }
 
   // Manually pushing saturation to an "overflow" state
-  manualSaturation = 110;
-  updateSaturationUI(110);
+  const overflowVal = (typeof getMainProtectionCapacity === 'function') ? getMainProtectionCapacity() + 10 : 110;
+  manualSaturation = overflowVal;
+  updateSaturationUI(overflowVal);
 
   logToOutput(`<span style="color:#ff7675">⚠️ <b>ADMISSION:</b> You admitted to a leak. Reporting for Bio-Check immediately.</span>`);
 
@@ -2168,8 +2291,13 @@ function reportEmergencyLeak() {
 
 function checkOverflowSaturation(val) {
   let s = parseInt(val);
-  if (s >= 110) {
-    logToOutput(`<span style="color:#d63031">🚨 <b>OVERFLOW:</b> Your protection has failed. You are leaking now!</span>`);
+  const capacity = (typeof getMainProtectionCapacity === 'function') ? getMainProtectionCapacity() : 100;
+  if (s >= capacity) {
+    const isNone = currentProtectionLevel === 'none';
+    const msg = isNone
+      ? `<span style="color:#d63031">🚨 <b>LEAK:</b> You have no protection — it's running down your legs!</span>`
+      : `<span style="color:#d63031">🚨 <b>OVERFLOW:</b> Your ${formatProtectionLevel(currentProtectionLevel)} has failed. You are leaking now!</span>`;
+    logToOutput(msg);
     regressionLeaks += 2; // Heavy penalty for allowing an overflow
     checkRegression(); // Check if this forces a move back to diapers
 

@@ -176,6 +176,7 @@
         <div style="display:flex; align-items:center; gap:8px; background:#151923; padding:8px 10px; border-radius:6px; border:1px solid #a29bfe; margin-bottom:8px;">
           <span style="font-size:12px; color:#a29bfe;">👗 Wearing:</span>
           <select id="protectionChooser" onchange="changeProtectionDirect(this.value)" style="flex:1; padding:4px 8px; border-radius:6px; background:#1b2030; color:#fff; border:1px solid #2b3348; font-size:12px; cursor:pointer;">
+            <option value="none">🚫 None (Underwear)</option>
             <option value="pad">🛡️ Pad</option>
             <option value="pullups">🩳 Pullups</option>
             <option value="diapers">👶 Diapers</option>
@@ -184,6 +185,12 @@
           <span id="currentlyWearingLabel" style="display:none;"></span>
         </div>
         <div id="stashGrid" style="display:grid; grid-template-columns:1fr 1fr; gap:6px;">
+          <div class="stash-item" data-prot="none" style="display:flex; align-items:center; justify-content:space-between; background:#151923; padding:6px 8px; border-radius:6px; border:1px solid #2b3348;">
+            <span style="font-size:12px; color:#cdd7e6;">🚫 None</span>
+            <div style="display:flex; align-items:center; gap:4px;">
+              <span id="stashCount_none" style="font-size:11px; color:#666;">∞</span>
+            </div>
+          </div>
           <div class="stash-item" data-prot="pad" style="display:flex; align-items:center; justify-content:space-between; background:#151923; padding:6px 8px; border-radius:6px; border:1px solid #2b3348;">
             <span style="font-size:12px; color:#cdd7e6;">🛡️ Pads</span>
             <div style="display:flex; align-items:center; gap:4px;">
@@ -419,11 +426,29 @@
       style="position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); width:min(700px, 90vw); background:#151923; border:2px solid #a29bfe; border-radius:20px; padding:40px; text-align:center; z-index:5001; max-height:90vh; overflow-y:auto;">
       <h1 style="color:#a29bfe; margin:0 0 20px 0; font-size:2.2em;">ABDL Bladder Sim</h1>
       <p id="sessionSetupSubtitle" style="color:#cdd7e6; margin:0 0 10px 0; font-size:1.1em;">What kind of session?</p>
-      <div style="display:flex; gap:8px; flex-wrap:wrap; justify-content:center; margin-bottom:20px;">
+      <div id="sessionSetupInfoBtns" style="display:flex; gap:8px; flex-wrap:wrap; justify-content:center; margin-bottom:20px;">
         <button onclick="showInfoModal('intro')" style="padding:6px 14px; background:#81ecec; border:none; color:#000; border-radius:8px; cursor:pointer; font-size:12px; font-weight:bold;">📘 Intro Guide</button>
         <button onclick="showInfoModal('howtoplay')" style="padding:6px 14px; background:#a29bfe; border:none; color:#000; border-radius:8px; cursor:pointer; font-size:12px; font-weight:bold;">📖 How to Play</button>
         <button onclick="showInfoModal('profiles')" style="padding:6px 14px; background:#1b2030; border:1px solid #7cc4ff; color:#7cc4ff; border-radius:8px; cursor:pointer; font-size:12px;">🤓 Nerd Stats</button>
         <button onclick="openEventBuilder()" style="padding:6px 14px; background:#1b2030; border:1px solid #74b9ff; color:#74b9ff; border-radius:8px; cursor:pointer; font-size:12px;">🎠 Browse Events</button>
+      </div>
+
+      <!-- Welcome Step (shown on first visit only) -->
+      <div id="welcomeStep" style="display:none; text-align:left; margin-bottom:20px; padding:20px; background:#1b2030; border-radius:14px; border:1px solid #a29bfe;">
+        <h2 style="color:#a29bfe; margin:0 0 12px 0; font-size:1.4em; text-align:center;">👋 Welcome!</h2>
+        <p style="color:#cdd7e6; font-size:0.92em; line-height:1.6; margin:0 0 12px 0;">This is a timed <b style="color:#74b9ff;">ABDL / omorashi routine helper</b>. You choose a profile, follow prompts, and keep your sliders honest so the pacing matches your real urgency.</p>
+        <h3 style="color:#74b9ff; margin:12px 0 6px; font-size:1em;">Quick Start</h3>
+        <ol style="color:#cdd7e6; font-size:0.88em; line-height:1.6; margin:0 0 14px 0; padding-left:18px;">
+          <li>Pick <b>Quick</b> (on-the-go) or <b>Full</b> (timed session).</li>
+          <li>Choose a profile that matches your mood.</li>
+          <li>When alerts fire, press <b>Reveal</b> and follow the guide steps.</li>
+          <li>Update <b>Pressure</b> &amp; <b>Saturation</b> sliders to match reality.</li>
+        </ol>
+        <div style="padding:10px 12px; background:#0f1420; border-radius:8px; border-left:3px solid #81ecec; margin-bottom:16px;">
+          <div style="color:#81ecec; font-weight:bold; font-size:0.8em; margin-bottom:4px;">💡 FIRST TIME?</div>
+          <div style="color:#cdd7e6; font-size:0.85em;">Try <b style="color:#7cc4ff;">Rookie</b> or <b style="color:#a29bfe;">Babysitter</b> for 20-30 minutes to learn the flow.</div>
+        </div>
+        <button onclick="dismissWelcome()" style="width:100%; padding:12px; background:#a29bfe; color:#000; font-weight:bold; font-size:1.1em; border:none; border-radius:10px; cursor:pointer;">Got it — Let's Go! →</button>
       </div>
 
       <!-- Session Type Chooser (Quick vs Full) -->
@@ -431,7 +456,7 @@
         <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:16px;">
           <div style="background:#1b2030; border:2px solid #ff7675; border-radius:14px; padding:24px 16px; cursor:pointer; transition:transform 0.15s;" onclick="chooseQuickSession()" onmouseover="this.style.transform='scale(1.03)'" onmouseout="this.style.transform='scale(1)'">
             <div style="font-size:2em; margin-bottom:8px;">🚽</div>
-            <h3 style="color:#ff7675; margin:0 0 8px 0; font-size:1.2em;">Quick Session</h3>
+            <h3 style="color:#ff7675; margin:0 0 8px 0; font-size:1.2em;">Quick Session (Beta)</h3>
             <p style="color:#cdd7e6; font-size:0.82em; margin:0; line-height:1.5;">Out and about? Press a button when you feel the urge and roll the dice to find out if you make it to the potty in time. No timers, no waiting.</p>
           </div>
           <div style="background:#1b2030; border:2px solid #a29bfe; border-radius:14px; padding:24px 16px; cursor:pointer; transition:transform 0.15s;" onclick="chooseFullSession()" onmouseover="this.style.transform='scale(1.03)'" onmouseout="this.style.transform='scale(1)'">
@@ -486,6 +511,9 @@
         <h3 style="color:#a29bfe; margin:0 0 15px 0;">👩‍🍼 Protection & Progression Setup</h3>
         <p style="color:#888; font-size:0.85em; margin:0 0 12px 0;">Select which protection types are available. Babysitter will move you between levels based on your performance.</p>
         <div class="stack" style="gap:10px;">
+          <div style="display:flex; align-items:center; gap:10px; color:#cdd7e6;">
+            <label style="flex:1; display:flex; align-items:center; gap:8px;"><input type="checkbox" id="protNone"> 🚫 None / Underwear (no protection)</label>
+          </div>
           <div style="display:flex; align-items:center; gap:10px; color:#cdd7e6;">
             <label style="flex:1; display:flex; align-items:center; gap:8px;"><input type="checkbox" id="protPad" checked> 🛡️ Pad (light protection)</label>
             <input type="number" id="setupStash_pad" min="0" placeholder="∞" style="width:60px; padding:4px; border-radius:6px; border:1px solid #2b3348; background:#0f141f; color:#fff; font-size:12px;" title="How many pads do you have? Leave empty for unlimited.">
@@ -592,7 +620,7 @@
       </div>
 
       <div class="void-reticle">
-        <svg class="void-ring-svg">
+        <svg class="void-ring-svg" viewBox="0 0 300 300">
           <circle class="ring-bg" cx="150" cy="150" r="140"></circle>
           <circle id="voidRing" class="ring-progress" cx="150" cy="150" r="140"></circle>
         </svg>
@@ -701,7 +729,7 @@
 
         <label style="margin-top:15px;">Current Saturation: <b id="modalSaturationVal">0%</b></label>
         <input type="range" id="modalSaturationSlider" min="0" max="100" step="5"
-          oninput="$('modalSaturationVal').textContent=this.value+'%'">
+          oninput="var cap=(typeof getMainProtectionCapacity==='function')?getMainProtectionCapacity():100;var pct=Math.round((this.value/cap)*100);$('modalSaturationVal').textContent=pct+'% of '+cap">
       </div>
 
       <button class="pill" onclick="submitForcedCheck()"

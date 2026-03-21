@@ -597,26 +597,75 @@ b { color: #fff; font-weight: 700; }
   }
 
   /* Void guide overlay text sizing */
+  .void-instruction {
+    font-size: 1rem;
+    margin-bottom: 12px;
+    padding: 0 12px;
+    line-height: 1.3;
+  }
+
   .void-label {
-    font-size: 1.6rem;
+    font-size: 1.4rem;
   }
 
   .void-timer {
-    font-size: 2.5rem;
+    font-size: 2.2rem;
   }
 
   .void-reticle {
-    width: 220px;
-    height: 220px;
+    width: 180px;
+    height: 180px;
   }
 
   .void-ring-svg {
-    width: 220px;
-    height: 220px;
+    width: 180px;
+    height: 180px;
   }
 
   .void-text-wrap {
-    width: 160px;
+    width: 140px;
+  }
+
+  /* Hide side rings on mobile — not enough horizontal space */
+  .void-side-ring {
+    display: none !important;
+  }
+
+  .void-carousel {
+    gap: 0;
+  }
+
+  /* Shrink push-to-leak button on mobile */
+  #pushToLeakBtn {
+    width: 120px !important;
+    height: 120px !important;
+    font-size: 1.1rem !important;
+  }
+
+  #pushToLeakContainer {
+    margin-top: 16px !important;
+  }
+
+  /* Compact the void overlay vertical spacing */
+  #voidOverlay {
+    padding: 10px 0;
+    justify-content: space-evenly;
+  }
+
+  #voidActionBtn {
+    font-size: 1rem !important;
+    padding: 8px 24px !important;
+  }
+
+  .btn-void-close {
+    margin-top: 16px;
+    padding: 8px 16px;
+  }
+
+  /* Event browser in void overlay */
+  #voidEventBrowser {
+    max-width: 95vw;
+    margin-top: 10px !important;
   }
 
   /* Stacked sidebar sections */

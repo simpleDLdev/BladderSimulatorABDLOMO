@@ -111,7 +111,8 @@ let pushToLeakHeld = false; // Whether the leak button is currently being held
 
 /* --- PROTECTION STASH SYSTEM --- */
 let protectionStash = JSON.parse(localStorage.getItem('protectionStash') || 'null') || {
-  pad: null,        // null = unlimited/not tracked, number = exact count
+  none: null,       // null = unlimited/not tracked, number = exact count
+  pad: null,
   pullups: null,
   diapers: null,
   thick_diapers: null
@@ -201,7 +202,7 @@ let protectionSuccesses = 0; // Successes at current level
 let protectionFailures = 0; // Failures at current level
 let autoModeEnabled = false;
 let autoDifficulty = 'medium'; // easy, medium, hard
-const PROTECTION_HIERARCHY = ['pad', 'pullups', 'diapers', 'thick_diapers']; // Progression order
+const PROTECTION_HIERARCHY = ['none', 'pad', 'pullups', 'diapers', 'thick_diapers']; // Progression order
 
 /* --- CONTINENCE LEVEL SYSTEM --- */
 let currentContinenceLevel = 'mostly_continent';

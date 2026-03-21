@@ -357,9 +357,10 @@ function reportEmergencyOmorashiLeak() {
     return;
   }
 
-  manualSaturation = 100;
-  updateSaturationUI(100);
-  logToOutput(`<span style="color:#ff6b6b"><b>💦 ACCIDENT!</b><br>You could not hold any longer. Saturation reset to 100%. Full release into protection.</span>`);
+  const omoOverflow = (typeof getMainProtectionCapacity === 'function') ? getMainProtectionCapacity() : 100;
+  manualSaturation = omoOverflow;
+  updateSaturationUI(omoOverflow);
+  logToOutput(`<span style="color:#ff6b6b"><b>💦 ACCIDENT!</b><br>You could not hold any longer. Full release into ${formatProtectionLevel(currentProtectionLevel)}.</span>`);
   
   // Stop the session
   omorashiSessionActive = false;

@@ -254,10 +254,11 @@ const BABYSITTER_SYMPTOMS = {
 };
 
 const PROTECTION_CAPACITY = {
-  'pad': 25,         // Very light — overflows easily
-  'pullups': 50,        // Medium — handles moderate leaks
-  'diapers': 80,        // Heavy — handles most accidents
-  'thick_diapers': 100  // Maximum — rarely overflows
+  'none': 5,           // No protection — any wetness shows immediately
+  'pad': 25,           // Very light — overflows easily
+  'pullups': 50,       // Medium — handles moderate leaks
+  'diapers': 80,       // Heavy — handles most accidents
+  'thick_diapers': 100 // Maximum — rarely overflows
 };
 
 /* --- DAY TRACKER SYSTEM --- */

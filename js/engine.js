@@ -60,9 +60,11 @@ function updatePressureUI(val) {
 
 function updateSaturationUI(val) {
   manualSaturation = parseInt(val, 10);
-  $('saturationVal').textContent = manualSaturation + "%";
+  const capacity = (typeof getMainProtectionCapacity === 'function') ? getMainProtectionCapacity() : 100;
+  const fillPct = Math.round((manualSaturation / capacity) * 100);
+  $('saturationVal').textContent = fillPct + "% of " + capacity;
 
-  // Trigger overflow logic if it hits 110%
+  // Trigger overflow when saturation reaches or exceeds capacity
   checkOverflowSaturation(manualSaturation);
 }
 

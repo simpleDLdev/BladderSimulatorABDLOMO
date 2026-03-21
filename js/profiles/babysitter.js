@@ -15,7 +15,7 @@ function hasCurse(key) {
 
 function formatProtectionLevel(level) {
   if (level === 'guards') level = 'pad'; // Legacy migration
-  const names = { 'pad': 'Pad', 'pullups': 'Pullups', 'diapers': 'Diapers', 'thick_diapers': 'Thick Diapers' };
+  const names = { 'none': 'None (Underwear)', 'pad': 'Pad', 'pullups': 'Pullups', 'diapers': 'Diapers', 'thick_diapers': 'Thick Diapers' };
   return names[level] || (level || '').replace(/_/g, ' ');
 }
 
@@ -53,6 +53,7 @@ function getStartingPottyPasses() {
     fully_incontinent: 0
   };
   const baseByProtection = {
+    none: 0,
     pad: 0,
     pullups: 1,
     diapers: 1,
@@ -570,8 +571,9 @@ function getBabysitterPottyChance() {
   if (manualPressure > 80) chance -= 20;
   else if (manualPressure > 60) chance -= 10;
   
-  // Saturation penalty: if already wet, babysitter is less likely to send you
-  if (manualSaturation > 50) chance -= 10;
+  // Saturation penalty: if already wet past 50% capacity, babysitter is less likely to send you
+  const _cap = getMainProtectionCapacity();
+  if (manualSaturation > _cap * 0.5) chance -= 10;
 
   if (hasSymptom('urge_incontinence')) chance -= (manualPressure > 70 ? 20 : 10);
   if (hasCurse('strict_sitter')) chance -= 10;
