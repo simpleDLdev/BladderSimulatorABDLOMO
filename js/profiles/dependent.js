@@ -37,7 +37,8 @@ function triggerDependentMacro() {
   depMicroCount = 0;
   depMicroTarget = randInt(3, 6);
 
-  const evt = fullTable(d(20));
+  // Use prerollEvent to ensure variety (Fixes back-to-back repeats)
+  const evt = (typeof prerollEvent === 'function') ? prerollEvent('full') : fullTable(d(20));
 
   showBanner("🌊 <b>BLADDER FAILURE</b>", "Total release incoming...", 'high');
   startChime(880);

@@ -66,6 +66,8 @@
           Session</button>
         <button id="btnQuickGo" onclick="quickModeRoll()"
           style="display:none; width:100%; padding:14px; background:#ff7675; color:#000; font-weight:bold; font-size:1.2em; border:none; border-radius:8px; cursor:pointer; margin-top:8px;">🚽 I Need to Go!</button>
+        <button id="btnBedMorning" onclick="bedwettingMorningCheck()"
+          style="display:none; width:100%; padding:14px; background:#81ecec; color:#000; font-weight:bold; font-size:1.05em; border:none; border-radius:8px; cursor:pointer; margin-top:8px;">☀️ Morning Check</button>
         <button onclick="stopAll()" style="width:100%; padding:10px; margin-top:8px;">⏹ Stop</button>
         <button onclick="openCustomProfileEditor()" style="width:100%; padding:8px; margin-top:6px; background:#1b2030; border:1px solid #e17055; color:#e17055; border-radius:8px; cursor:pointer; font-size:12px;">🧪 Custom Profiles (Create / Import / Export)</button>
         <button id="btnMeeting" class="pill" onclick="toggleMeetingMode()"
@@ -451,18 +453,23 @@
         <button onclick="dismissWelcome()" style="width:100%; padding:12px; background:#a29bfe; color:#000; font-weight:bold; font-size:1.1em; border:none; border-radius:10px; cursor:pointer;">Got it — Let's Go! →</button>
       </div>
 
-      <!-- Session Type Chooser (Quick vs Full) -->
+      <!-- Session Type Chooser (Quick vs Full vs Bedwetting) -->
       <div id="sessionTypeStep">
-        <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:16px;">
-          <div style="background:#1b2030; border:2px solid #ff7675; border-radius:14px; padding:24px 16px; cursor:pointer; transition:transform 0.15s;" onclick="chooseQuickSession()" onmouseover="this.style.transform='scale(1.03)'" onmouseout="this.style.transform='scale(1)'">
-            <div style="font-size:2em; margin-bottom:8px;">🚽</div>
-            <h3 style="color:#ff7675; margin:0 0 8px 0; font-size:1.2em;">Quick Session (Beta)</h3>
-            <p style="color:#cdd7e6; font-size:0.82em; margin:0; line-height:1.5;">Out and about? Press a button when you feel the urge and roll the dice to find out if you make it to the potty in time. No timers, no waiting.</p>
+        <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; margin-bottom:16px;">
+          <div style="background:#1b2030; border:2px solid #ff7675; border-radius:14px; padding:20px 12px; cursor:pointer; transition:transform 0.15s;" onclick="chooseQuickSession()" onmouseover="this.style.transform='scale(1.03)'" onmouseout="this.style.transform='scale(1)'">
+            <div style="font-size:1.8em; margin-bottom:6px;">🚽</div>
+            <h3 style="color:#ff7675; margin:0 0 6px 0; font-size:1.05em;">Quick Session</h3>
+            <p style="color:#cdd7e6; font-size:0.78em; margin:0; line-height:1.4;">Press a button when you feel the urge. Roll the dice!</p>
           </div>
-          <div style="background:#1b2030; border:2px solid #a29bfe; border-radius:14px; padding:24px 16px; cursor:pointer; transition:transform 0.15s;" onclick="chooseFullSession()" onmouseover="this.style.transform='scale(1.03)'" onmouseout="this.style.transform='scale(1)'">
-            <div style="font-size:2em; margin-bottom:8px;">⏱️</div>
-            <h3 style="color:#a29bfe; margin:0 0 8px 0; font-size:1.2em;">Full Session</h3>
-            <p style="color:#cdd7e6; font-size:0.82em; margin:0; line-height:1.5;">Settling in for a while? Pick a profile with timed events, hold challenges, babysitter checks, training exercises, and more.</p>
+          <div style="background:#1b2030; border:2px solid #a29bfe; border-radius:14px; padding:20px 12px; cursor:pointer; transition:transform 0.15s;" onclick="chooseFullSession()" onmouseover="this.style.transform='scale(1.03)'" onmouseout="this.style.transform='scale(1)'">
+            <div style="font-size:1.8em; margin-bottom:6px;">⏱️</div>
+            <h3 style="color:#a29bfe; margin:0 0 6px 0; font-size:1.05em;">Full Session</h3>
+            <p style="color:#cdd7e6; font-size:0.78em; margin:0; line-height:1.4;">Timed events, hold challenges, training & more.</p>
+          </div>
+          <div style="background:#1b2030; border:2px solid #81ecec; border-radius:14px; padding:20px 12px; cursor:pointer; transition:transform 0.15s;" onclick="chooseBedwettingSession()" onmouseover="this.style.transform='scale(1.03)'" onmouseout="this.style.transform='scale(1)'">
+            <div style="font-size:1.8em; margin-bottom:6px;">🌙</div>
+            <h3 style="color:#81ecec; margin:0 0 6px 0; font-size:1.05em;">Bedwetting</h3>
+            <p style="color:#cdd7e6; font-size:0.78em; margin:0; line-height:1.4;">Nighttime mode. Roll when you wake up. Train over time.</p>
           </div>
         </div>
       </div>
@@ -692,7 +699,7 @@
   <div id="statusModalBackdrop"
     style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.85); z-index:20000; backdrop-filter:blur(5px);">
     <div
-      style="position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); width:320px; background:#151923; padding:20px; border:2px solid #a29bfe; border-radius:15px; text-align:center;">
+      style="position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); width:min(320px, 92vw); background:#151923; padding:20px; border:2px solid #a29bfe; border-radius:15px; text-align:center;">
       <h2 id="bioCheckTitle" style="color:#a29bfe; margin-top:0;">📝 Bio-Check</h2>
       <p id="bioCheckDesc" class="muted">Confirm your current physical state to continue.</p>
 

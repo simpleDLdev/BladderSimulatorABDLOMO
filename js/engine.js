@@ -77,21 +77,26 @@ function checkUrgencyOverride() {
 
 /* ---------- MEETING MODE ---------- */
 function toggleMeetingMode() {
+  const meetingBanner = $('meetingBanner') || $('pauseBannerAlarm');
+  const changeBtn = $('btnChange');
+  const meetingBtn = $('btnMeeting');
+  const output = $('output');
+
   if (meetingActive) {
     // End Meeting
     meetingActive = false;
-    $('meetingBanner').style.display = 'none';
-    $('btnChange').classList.remove('locked');
-    $('btnMeeting').textContent = "⏸ Pause Alarm (30m)";
-    $('output').textContent = "▶ Alarm resumed. Controls unlocked.";
+    if (meetingBanner) meetingBanner.style.display = 'none';
+    if (changeBtn) changeBtn.classList.remove('locked');
+    if (meetingBtn) meetingBtn.textContent = "⏸ Pause Alarm (30m)";
+    if (output) output.textContent = "▶ Alarm resumed. Controls unlocked.";
     clearTimeout(meetingTimer);
   } else {
     // Start Meeting
     meetingActive = true;
-    $('meetingBanner').style.display = 'block';
-    $('btnChange').classList.add('locked');
-    $('btnMeeting').textContent = "▶ Resume Alarm";
-    $('output').textContent = "⏸ Alarm paused for 30 mins. No changes until resumed.";
+    if (meetingBanner) meetingBanner.style.display = 'block';
+    if (changeBtn) changeBtn.classList.add('locked');
+    if (meetingBtn) meetingBtn.textContent = "▶ Resume Alarm";
+    if (output) output.textContent = "⏸ Alarm paused for 30 mins. No changes until resumed.";
 
     meetingTimer = setTimeout(() => {
       if (meetingActive) toggleMeetingMode();
@@ -679,39 +684,125 @@ document.addEventListener('touchstart', function resumeAudioTouch() {
   if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
 }, { once: false, passive: true });
 
-// Catch up timers after mobile tab comes back from background
-document.addEventListener('visibilitychange', () => {
-  if (document.hidden || !sessionRunning) return;
+let lastVisibilityCatchupAt = 0;
+
+function runMobileRecoveryChecks(source = 'visibilitychange') {
+  if (!sessionRunning || document.hidden) return;
 
   const now = Date.now();
+  const cfg = getProfileConfig();
+  const banner = $('alarmBanner');
+  const isBannerVisible = !!(banner && banner.style.display !== 'none' && banner.style.display !== '');
 
-  // Resume AudioContext when returning
+  // Resume AudioContext when returning to foreground.
   if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
 
-  // Check if main timer should have fired while backgrounded
+  // Respect pause mode and active alarms; avoid stacking additional banners.
+  if (meetingActive || isBannerVisible) return;
+
+  // MAIN TIMER: fire once when overdue, or re-arm if timer got dropped while in background.
   if (mainEndAt && now >= mainEndAt) {
     clearTimeout(mainTimer);
     clearTimeout(preChimeTimer);
-    alarmMain();
+    mainEndAt = null;
+
+    if (cfg.scheduler === 'dependent') {
+      const nextType = (depMicroCount >= depMicroTarget) ? 'full' : 'micro';
+      if (nextType === 'micro') triggerDependentMicro();
+      else triggerDependentMacro();
+    } else {
+      alarmMain();
+    }
+  } else if (mainEndAt && !mainTimer) {
+    const remaining = mainEndAt - now;
+    if (remaining > 0) {
+      clearTimeout(preChimeTimer);
+      if (cfg.scheduler !== 'dependent') {
+        preChimeTimer = setTimeout(startChime, Math.max(0, remaining - 15000));
+      }
+      mainTimer = setTimeout(() => {
+        if (!sessionRunning) return;
+        if (cfg.scheduler === 'dependent') {
+          const nextType = (depMicroCount >= depMicroTarget) ? 'full' : 'micro';
+          if (nextType === 'micro') triggerDependentMicro();
+          else triggerDependentMacro();
+        } else {
+          alarmMain();
+        }
+      }, remaining);
+    }
   }
 
-  // Check if micro timer should have fired
+  // MICRO TIMER: fire once when overdue (non-dependent), or re-arm if dropped.
   if (microEndAt && now >= microEndAt) {
     clearTimeout(microTimer);
+    microEndAt = null;
     if (microNoiseOn && profileMode !== 'dependent') {
       pendingAmbientEvent = prerollEvent('micro');
       showBanner("⚠️ <b>BLADDER SPASM</b>", "Status uncertain...", 'high');
       startChime(randInt(800, 1200));
       scheduleNextMicro();
     }
+  } else if (microEndAt && !microTimer && microNoiseOn && profileMode !== 'dependent') {
+    const microRemaining = microEndAt - now;
+    if (microRemaining > 0) {
+      microTimer = setTimeout(() => {
+        if (!sessionRunning || profileMode === 'dependent') return;
+        pendingAmbientEvent = prerollEvent('micro');
+        showBanner("⚠️ <b>BLADDER SPASM</b>", "Status uncertain...", 'high');
+        startChime(randInt(800, 1200));
+        scheduleNextMicro();
+      }, microRemaining);
+    }
   }
 
-  // Vibrate on return if there's a pending alarm
+  // HYDRATION TIMER: catch up missed drink alerts, or re-arm dropped timer.
+  if (hydrationEndAt && now >= hydrationEndAt) {
+    clearTimeout(hydrationTimer);
+    hydrationEndAt = null;
+    if (!isHydrationPending) {
+      triggerHydrationEvent();
+    }
+    scheduleNextHydration();
+  } else if (hydrationEndAt && !hydrationTimer) {
+    const hydrationRemaining = hydrationEndAt - now;
+    if (hydrationRemaining > 0) {
+      hydrationTimer = setTimeout(() => {
+        if (!sessionRunning) return;
+        triggerHydrationEvent();
+        scheduleNextHydration();
+      }, hydrationRemaining);
+    }
+  }
+}
+
+// Catch up timers after mobile tab comes back from background
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden || !sessionRunning) return;
+
+  // Some mobile browsers dispatch rapid focus/visibility events when switching apps.
+  const ts = Date.now();
+  if (ts - lastVisibilityCatchupAt < 1200) return;
+  lastVisibilityCatchupAt = ts;
+
+  runMobileRecoveryChecks('visibilitychange');
+
+  // Vibrate on return if there's a pending alarm.
   if (typeof navigator.vibrate === 'function') {
     const banner = $('alarmBanner');
     if (banner && banner.style.display !== 'none') {
       navigator.vibrate([200, 100, 200]);
     }
   }
+});
+
+window.addEventListener('pageshow', () => {
+  // iOS/Safari can restore from bfcache without a reliable visibility transition.
+  runMobileRecoveryChecks('pageshow');
+});
+
+window.addEventListener('focus', () => {
+  // Some Android browsers send focus without visibility updates on app switch.
+  runMobileRecoveryChecks('focus');
 });
 

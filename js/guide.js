@@ -27,8 +27,8 @@ function startVoidGuide(seq, instructionText = "", type = "full") {
 function triggerDependentMicro() {
     depMicroCount++;
     
-    // Get a dependent-specific micro event
-    const evt = microTableForMode(d(20)); 
+    // Use prerollEvent to ensure variety (Fixes back-to-back repeats)
+    const evt = (typeof prerollEvent === 'function') ? prerollEvent('micro') : microTableForMode(d(20)); 
 
     showBanner("⚠️ BLADDER SPASM", "Status uncertain...", 'high');
     startChime(randInt(800, 1200)); 
@@ -512,7 +512,9 @@ function closeVoidGuide() {
         break;
       case 'micro': {
         const cfg = getProfileConfig();
-        logToOutput(`<span style="color:#fab1a0; font-style:italic;">${cfg.microCompleteMsg}</span>`);
+        // Handle both string or array for message variety
+        const msg = Array.isArray(cfg.microCompleteMsg) ? pick(cfg.microCompleteMsg) : cfg.microCompleteMsg;
+        logToOutput(`<span style="color:#fab1a0; font-style:italic;">${msg}</span>`);
         return;
       }
       case 'gauntlet':

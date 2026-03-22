@@ -412,6 +412,7 @@ function applySelectedProfile() {
 function scheduleNextHydration() {
   clearTimeout(hydrationTimer);
   if (!sessionRunning) return;
+  if (window.hydrationEnabled === false) return;
 
   const runtime = customProfileRuntime;
   const minHydration = runtime?.hydrationMin ?? 6;
@@ -543,15 +544,27 @@ function testSelectedGuide() {
 }
 
 function triggerHydrationEvent() {
+  if (window.hydrationEnabled === false) return;
   // 1. Define Intensity from config
   const cfg = getProfileConfig();
   const [min, max] = cfg.hydrationSips;
 
   // 2. Roll Content
   const count = randInt(min, max);
-  const unit = (count >= 6) ? "large gulps" : "sips";
+  const unitType = (count >= 6) ? "large gulps" : "sips";
   const drinkType = pick(["Water", "Coffee/Soda"]);
-  const msg = `<b>Hydration Order:</b> Take <b>${count} ${unit}</b> of your <b>${drinkType}</b> immediately.`;
+
+  const templates = [
+    `<b>Hydration Order:</b> Take <b>${count} ${unitType}</b> of your <b>${drinkType}</b> immediately.`,
+    `<b>Drink Check:</b> Time for <b>${count} ${unitType}</b> of your <b>${drinkType}</b>. No excuses.`,
+    `<b>Refill Request:</b> Pour yourself <b>${drinkType}</b> and take <b>${count} ${unitType}</b> now.`,
+    `<b>Forced Hydration:</b> You're looking thirsty. <b>${count} ${unitType}</b> of <b>${drinkType}</b>, please.`,
+    `<b>Bladder Maintenance:</b> Feed the cycle with <b>${count} ${unitType}</b> of <b>${drinkType}</b>.`,
+    `<b>Top Up:</b> Ensure the flow continues. <b>${count} ${unitType}</b> of <b>${drinkType}</b>.`,
+    `<b>Liquid Intake:</b> <b>${count} ${unitType}</b> of <b>${drinkType}</b>. Keep the pressure rising.`
+  ];
+
+  const msg = pick(templates);
 
   // 3. UI Setup
   isHydrationPending = true;
@@ -576,6 +589,7 @@ function startSession(isResume = false) {
   if (sessionRunning && !isResume) return;
 
   sessionRunning = true;
+  if (window.hydrationEnabled === undefined) window.hydrationEnabled = true;
   $('output').textContent = isResume ? "Session Resumed." : "Session Started. Bio-Logger Active.";
 
   // Hide the getting started guide once session is active
@@ -901,7 +915,13 @@ function stopAll() {
 
   // Hide Quick Mode button
   const btnQ = $('btnQuickGo');
-  if (btnQ) btnQ.style.display = 'none';
+  if (btnQ) {
+    btnQ.style.display = 'none';
+    btnQ.textContent = '🚽 I Need to Go!';
+    btnQ.onclick = quickModeRoll;
+  }
+  const btnMorning = $('btnBedMorning');
+  if (btnMorning) btnMorning.style.display = 'none';
 
   // Remove quick prefs panel
   const qpp = $('quickPrefsPanel');
@@ -996,10 +1016,9 @@ function closeSessionSetupModal() {
   $('sessionSetupBackdrop').style.display = 'none';
 }
 
-/* ===== SESSION TYPE CHOOSER (Quick vs Full) ===== */
+/* ===== SESSION TYPE CHOOSER (Quick vs Full vs Bedwetting) ===== */
 
 function chooseQuickSession() {
-  // Hide the session type chooser, show quick mode setup
   if ($('sessionTypeStep')) $('sessionTypeStep').style.display = 'none';
   if ($('sessionSetupProfileStep')) $('sessionSetupProfileStep').style.display = 'none';
   if ($('sessionSetupSubtitle')) $('sessionSetupSubtitle').textContent = '';
@@ -1007,139 +1026,160 @@ function chooseQuickSession() {
 }
 
 function chooseFullSession() {
-  // Hide the session type chooser, show profile grid
   if ($('sessionTypeStep')) $('sessionTypeStep').style.display = 'none';
   if ($('sessionSetupProfileStep')) $('sessionSetupProfileStep').style.display = 'block';
   if ($('sessionSetupSubtitle')) $('sessionSetupSubtitle').textContent = 'Choose your profile to begin';
 }
 
+function chooseBedwettingSession() {
+  if ($('sessionTypeStep')) $('sessionTypeStep').style.display = 'none';
+  if ($('sessionSetupProfileStep')) $('sessionSetupProfileStep').style.display = 'none';
+  if ($('sessionSetupSubtitle')) $('sessionSetupSubtitle').textContent = '';
+  showBedwettingSetup();
+}
+
 /* --- Quick Mode Table Descriptions (ABDL/Omorashi themed) --- */
 /* ===== QUICK SESSION: GUIDED SETUP ===== */
 
-// Step 1: Continence style → Step 2: Preferences → Step 3: Confirm & Start
-// Maps user-friendly choices to event table keys
+// Single-step setup: pick continence level → auto-selects event tables & hold chance
+// Messing events are always manual (never auto-included)
 
-const QUICK_CONTROL_LEVELS = [
-  {
-    key: 'strong',
-    emoji: '💪',
-    label: 'Strong Control',
-    desc: 'You can usually hold it. Accidents are rare but the pressure builds.',
-    color: '#55efc4',
-    holdChance: 70,
-    preSelect: ['omorashi'],
-  },
-  {
-    key: 'moderate',
-    emoji: '😬',
-    label: 'Moderate Control',
-    desc: 'You can hold it sometimes, but you leak under pressure. Close calls are common.',
-    color: '#74b9ff',
-    holdChance: 45,
-    preSelect: ['training', 'protection'],
-  },
-  {
-    key: 'weak',
-    emoji: '💧',
-    label: 'Weak Control',
-    desc: 'You struggle to hold it. Most urges end in a partial or full accident.',
-    color: '#fdcb6e',
-    holdChance: 25,
-    preSelect: ['training', 'protection', 'diapers'],
-  },
-  {
-    key: 'none',
-    emoji: '💦',
-    label: 'No Control',
-    desc: 'You can\'t hold it at all. Every urge is an accident waiting to happen.',
-    color: '#ff7675',
-    holdChance: 10,
-    preSelect: ['diapers', 'training'],
-  },
-];
-
-const QUICK_PREFERENCE_OPTIONS = [
-  {
-    key: 'omorashi',
-    emoji: '💧',
-    label: 'Holding Challenges',
-    desc: 'Endurance exercises — squeezing, breath holds, compression. You try to hold it as long as possible.',
-    color: '#81ecec',
+const QUICK_CONTINENCE_MAP = {
+  fully_continent: {
+    holdChance: 78,
     tables: ['OMORASHI_GAUNTLETS', 'MESSY_HOLDING_GAUNTLETS_D10'],
+    summary: 'Holding challenges & endurance. Accidents are very rare.',
   },
-  {
-    key: 'training',
-    emoji: '🚽',
-    label: 'Potty Accidents',
-    desc: 'Leaks, spurts, and "I didn\'t make it" moments. Events describe losing control with guides to follow.',
-    color: '#ff7675',
-    tables: ['FULL_TRAINING_FAILURES', 'FULL_D20'],
+  mostly_continent: {
+    holdChance: 55,
+    tables: ['FULL_D20', 'OMORASHI_GAUNTLETS'],
+    summary: 'Mostly holding, occasional close calls and small leaks.',
   },
-  {
-    key: 'protection',
-    emoji: '🩳',
-    label: 'Pad / Pullup Events',
-    desc: 'For when you\'re wearing light protection. Leaking into pads, pullup checks, saturation buildup.',
-    color: '#fdcb6e',
-    tables: ['FULL_D20'],
+  somewhat_incontinent: {
+    holdChance: 35,
+    tables: ['FULL_D20', 'FULL_TRAINING_FAILURES'],
+    summary: 'Frequent leaks and training failures. Unreliable control.',
   },
-  {
-    key: 'diapers',
-    emoji: '👶',
-    label: 'Diaper Events',
-    desc: 'Full diaper floods, helpless filling, soggy padding. For when you\'re wearing full protection.',
-    color: '#fab1a0',
+  mostly_incontinent: {
+    holdChance: 18,
+    tables: ['FULL_D20', 'FULL_TRAINING_FAILURES', 'MACRO_DEPENDENT_D20'],
+    summary: 'Poor control — most urges end in an accident or flood.',
+  },
+  fully_incontinent: {
+    holdChance: 8,
     tables: ['MACRO_DEPENDENT_D20', 'FULL_D20'],
+    summary: 'No real control. Every urge is basically an accident.',
   },
-  {
-    key: 'messy',
-    emoji: '😳',
-    label: 'Messy / #2',
-    desc: 'Loss of bowel control events. Pushing, seated accidents, and unexpected messes.',
-    color: '#dfe6e9',
-    tables: ['MESSY_PUSHING_ACCIDENTS_D10'],
-  },
-];
+};
 
-// Kept for backward compatibility (quickModeRoll reads this)
-const QUICK_MODE_TABLES = [
-  { key: 'FULL_D20', name: 'Bladder Events', emoji: '💦', color: '#74b9ff', desc: '' },
-  { key: 'FULL_TRAINING_FAILURES', name: 'Training Failures', emoji: '🚽', color: '#ff7675', desc: '' },
-  { key: 'MACRO_DEPENDENT_D20', name: 'Diaper Fills', emoji: '👶', color: '#fab1a0', desc: '' },
-  { key: 'MESSY_PUSHING_ACCIDENTS_D10', name: 'Messy Accidents', emoji: '😳', color: '#fdcb6e', desc: '' },
-  { key: 'MESSY_HOLDING_GAUNTLETS_D10', name: 'Holding Gauntlets', emoji: '💪', color: '#55efc4', desc: '' },
-  { key: 'OMORASHI_GAUNTLETS', name: 'Omorashi Challenges', emoji: '💧', color: '#81ecec', desc: '' },
+// Quick session event preference definitions (no messy — that's always manual)
+const QUICK_EVENT_PREFS = [
+  { key: 'holding',    emoji: '💧', label: 'Holding Challenges', tables: ['OMORASHI_GAUNTLETS', 'MESSY_HOLDING_GAUNTLETS_D10'], color: '#81ecec' },
+  { key: 'accidents',  emoji: '🚽', label: 'Potty Accidents',   tables: ['FULL_TRAINING_FAILURES', 'FULL_D20'],                color: '#ff7675' },
+  { key: 'diapers',    emoji: '👶', label: 'Diaper Events',     tables: ['MACRO_DEPENDENT_D20', 'FULL_D20'],                   color: '#fab1a0' },
 ];
 
 function showQuickModeSetup() {
-  showQuickStep1();
-}
+  const saved = localStorage.getItem('quickContinence') || 'mostly_continent';
+  const savedProt = localStorage.getItem('quickProtection') || currentProtectionLevel || 'pad';
+  const savedHydration = localStorage.getItem('quickHydration') !== 'false';
+  const savedPrefs = JSON.parse(localStorage.getItem('quickEventPrefs') || 'null');
+  const savedCustom = localStorage.getItem('quickCustomMode') === 'true';
+  const savedHold = parseInt(localStorage.getItem('quickCustomHold') || '45', 10);
+  const savedCloseCall = parseInt(localStorage.getItem('quickCustomCloseCall') || '10', 10);
 
-function showQuickStep1() {
-  // Step 1: How much control do you have?
+  // Default prefs based on continence if none saved
+  const defaultPrefs = savedPrefs || getDefaultPrefsForLevel(saved);
+
+  let prefChecks = '';
+  for (const p of QUICK_EVENT_PREFS) {
+    const checked = defaultPrefs.includes(p.key) ? 'checked' : '';
+    prefChecks += `
+      <label style="display:flex; align-items:center; gap:8px; cursor:pointer; padding:4px 0;">
+        <input type="checkbox" class="quickEvtPref" value="${p.key}" ${checked}
+          style="width:18px; height:18px; accent-color:${p.color}; flex-shrink:0; cursor:pointer;">
+        <span style="color:${p.color}; font-size:0.9em;">${p.emoji} ${p.label}</span>
+      </label>`;
+  }
+
   let html = `
     <div id="quickModeSetup" style="text-align:left;">
       <button onclick="backToSessionType()" style="background:none; border:none; color:#7cc4ff; cursor:pointer; font-size:13px; margin-bottom:12px; padding:0;">&larr; Back</button>
-      <h2 style="color:#ff7675; margin:0 0 6px 0; text-align:center;">🧠 How much control do you have?</h2>
+      <h2 style="color:#ff7675; margin:0 0 6px 0; text-align:center;">🚽 Quick Session</h2>
       <p style="color:#cdd7e6; font-size:0.88em; margin:0 0 14px 0; text-align:center; line-height:1.5;">
-        This decides how often you make it when you press the button.<br>
-        <span style="color:#888; font-size:0.9em;">Higher control = more holds. Lower control = more accidents.</span>
+        Pick your setup and go.<br>
+        <span style="color:#888; font-size:0.9em;">Press "I Need to Go!" whenever you feel the urge.</span>
       </p>
-      <div style="display:flex; flex-direction:column; gap:10px; margin-bottom:10px;">`;
 
-  for (const s of QUICK_CONTROL_LEVELS) {
-    html += `
-        <div onclick="quickSelectControl('${s.key}')" style="background:#1b2030; padding:14px 16px; border-radius:12px; border:2px solid ${s.color}33; cursor:pointer; transition:transform 0.15s, border-color 0.15s;" onmouseover="this.style.borderColor='${s.color}';this.style.transform='scale(1.02)'" onmouseout="this.style.borderColor='${s.color}33';this.style.transform='scale(1)'">
-          <div style="display:flex; justify-content:space-between; align-items:center;">
-            <span style="font-size:1.1em; font-weight:bold; color:${s.color};">${s.emoji} ${s.label}</span>
-            <span style="color:${s.color}; font-size:0.85em; opacity:0.8;">~${s.holdChance}% hold</span>
-          </div>
-          <div style="color:#999; font-size:0.82em; line-height:1.4; margin-top:4px;">${s.desc}</div>
-        </div>`;
-  }
-
-  html += `
+      <!-- What are you wearing? -->
+      <div style="background:#1b2030; padding:12px 14px; border-radius:12px; border:1px solid #a29bfe44; margin-bottom:8px;">
+        <div style="color:#a29bfe; font-weight:bold; margin-bottom:6px; font-size:0.92em;">🩳 What are you wearing?</div>
+        <select id="quickProtectionSelect"
+          style="width:100%; padding:8px 10px; background:#151923; color:#fff; border:1px solid #2b3348; border-radius:8px; font-size:13px; cursor:pointer;">
+          <option value="none" ${savedProt === 'none' ? 'selected' : ''}>Nothing / Underwear</option>
+          <option value="pad" ${savedProt === 'pad' ? 'selected' : ''}>Pad</option>
+          <option value="pullups" ${savedProt === 'pullups' ? 'selected' : ''}>Pullups</option>
+          <option value="diapers" ${savedProt === 'diapers' ? 'selected' : ''}>Diapers</option>
+          <option value="thick_diapers" ${savedProt === 'thick_diapers' ? 'selected' : ''}>Thick Diapers</option>
+        </select>
       </div>
+
+      <!-- Continence Level -->
+      <div style="background:#1b2030; padding:12px 14px; border-radius:12px; border:1px solid #a29bfe44; margin-bottom:8px;">
+        <div style="color:#a29bfe; font-weight:bold; margin-bottom:6px; font-size:0.92em;">🧠 Continence Level</div>
+        <select id="quickContinenceSelect" onchange="updateQuickContinencePreview(); updateQuickPrefsFromLevel();"
+          style="width:100%; padding:8px 10px; background:#151923; color:#fff; border:1px solid #2b3348; border-radius:8px; font-size:13px; cursor:pointer;">
+          <option value="fully_continent" ${saved === 'fully_continent' ? 'selected' : ''}>Fully Continent — strong control, rare leaks</option>
+          <option value="mostly_continent" ${saved === 'mostly_continent' ? 'selected' : ''}>Mostly Continent — occasional close calls</option>
+          <option value="somewhat_incontinent" ${saved === 'somewhat_incontinent' ? 'selected' : ''}>Somewhat Incontinent — frequent leaks</option>
+          <option value="mostly_incontinent" ${saved === 'mostly_incontinent' ? 'selected' : ''}>Mostly Incontinent — poor control</option>
+          <option value="fully_incontinent" ${saved === 'fully_incontinent' ? 'selected' : ''}>Fully Incontinent — no real control</option>
+          <option value="custom" ${saved === 'custom' ? 'selected' : ''}>✏️ Custom</option>
+        </select>
+        <div id="quickContinencePreview" style="margin-top:8px; padding:8px; background:#0d1017; border-radius:8px; border:1px solid #2b334844; font-size:0.85em;"></div>
+      </div>
+
+      <!-- Event Types -->
+      <div style="background:#1b2030; padding:12px 14px; border-radius:12px; border:1px solid #a29bfe44; margin-bottom:8px;">
+        <div style="color:#a29bfe; font-weight:bold; margin-bottom:6px; font-size:0.92em;">🎯 Event Types</div>
+        <div id="quickEventPrefs">${prefChecks}</div>
+      </div>
+
+      <!-- Hydration toggle -->
+      <div style="background:#1b2030; padding:8px 14px; border-radius:12px; border:1px solid #a29bfe44; margin-bottom:8px; display:flex; align-items:center; gap:10px;">
+        <input type="checkbox" id="quickHydrationToggle" ${savedHydration ? 'checked' : ''}
+          style="width:18px; height:18px; accent-color:#81ecec; flex-shrink:0; cursor:pointer;">
+        <label for="quickHydrationToggle" style="color:#81ecec; font-size:0.88em; cursor:pointer;">
+          💧 Drink reminders <span style="color:#888; font-size:0.82em;">(off if already hydrated)</span>
+        </label>
+      </div>
+
+      <!-- Custom / Advanced (hidden by default, shown when "Custom" selected) -->
+      <div id="quickCustomPanel" style="display:${saved === 'custom' || savedCustom ? 'block' : 'none'}; background:#1b2030; padding:12px 14px; border-radius:12px; border:1px solid #fdcb6e44; margin-bottom:10px;">
+        <div style="color:#fdcb6e; font-weight:bold; margin-bottom:8px; font-size:0.92em;">⚙️ Custom Settings</div>
+
+        <label style="color:#cdd7e6; font-size:0.82em; display:block; margin-bottom:8px;">
+          Hold chance: <b id="quickCustomHoldLabel">${savedHold}%</b>
+          <input type="range" id="quickCustomHoldSlider" min="0" max="95" value="${savedHold}"
+            oninput="$('quickCustomHoldLabel').textContent=this.value+'%'"
+            style="width:100%; margin-top:4px; accent-color:#fdcb6e;">
+          <span style="display:flex; justify-content:space-between; color:#888; font-size:0.75em;">
+            <span>0% (no control)</span><span>95% (iron bladder)</span>
+          </span>
+        </label>
+
+        <label style="color:#cdd7e6; font-size:0.82em; display:block; margin-bottom:4px;">
+          Close-call window: <b id="quickCustomCCLabel">${savedCloseCall}%</b>
+          <input type="range" id="quickCustomCCSlider" min="0" max="30" value="${savedCloseCall}"
+            oninput="$('quickCustomCCLabel').textContent=this.value+'%'"
+            style="width:100%; margin-top:4px; accent-color:#fdcb6e;">
+          <span style="display:flex; justify-content:space-between; color:#888; font-size:0.75em;">
+            <span>0% (no close calls)</span><span>30% (frequent dribbles)</span>
+          </span>
+        </label>
+      </div>
+
+      <button onclick="quickStartSession()" style="width:100%; padding:14px; background:#ff7675; color:#000; font-weight:bold; font-size:1.1em; border:none; border-radius:10px; cursor:pointer;">🚽 Start Quick Session</button>
     </div>`;
 
   let container = $('quickModeSetup');
@@ -1148,78 +1188,148 @@ function showQuickStep1() {
   } else {
     $('sessionSetupProfileStep').insertAdjacentHTML('afterend', html);
   }
+
+  updateQuickContinencePreview();
 }
 
-function quickSelectControl(controlKey) {
-  // Store the control choice and move to preference step
-  window._quickControlLevel = controlKey;
-  const level = QUICK_CONTROL_LEVELS.find(l => l.key === controlKey);
-  showQuickStep2(controlKey, level ? level.preSelect : []);
-}
-
-function showQuickStep2(controlKey, preSelected) {
-  // Step 2: What events do you want?
-
-  let html = `
-    <div id="quickModeSetup" style="text-align:left;">
-      <button onclick="showQuickStep1()" style="background:none; border:none; color:#7cc4ff; cursor:pointer; font-size:13px; margin-bottom:12px; padding:0;">&larr; Back</button>
-      <h2 style="color:#ff7675; margin:0 0 6px 0; text-align:center;">🎯 What events do you want?</h2>
-      <p style="color:#cdd7e6; font-size:0.88em; margin:0 0 6px 0; text-align:center; line-height:1.5;">
-        Pick the types of events you'll see when you press "I Need to Go!"<br>
-        <span style="color:#888; font-size:0.9em;">We pre-selected some based on your control level.</span>
-      </p>
-      <div style="display:flex; flex-direction:column; gap:8px; margin-bottom:16px;">`;
-
-  for (const p of QUICK_PREFERENCE_OPTIONS) {
-    const checked = preSelected.includes(p.key) ? 'checked' : '';
-    html += `
-        <label style="display:flex; align-items:flex-start; gap:10px; background:#1b2030; padding:12px; border-radius:10px; border:2px solid ${p.color}22; cursor:pointer; transition:border-color 0.2s;" onmouseover="this.style.borderColor='${p.color}'" onmouseout="this.style.borderColor='${p.color}22'">
-          <input type="checkbox" class="quickPrefCheck" value="${p.key}" ${checked} style="margin-top:3px; accent-color:${p.color}; width:18px; height:18px; flex-shrink:0;">
-          <div>
-            <span style="color:${p.color}; font-weight:bold; font-size:0.95em;">${p.emoji} ${p.label}</span>
-            <p style="color:#999; font-size:0.78em; margin:3px 0 0 0; line-height:1.4;">${p.desc}</p>
-          </div>
-        </label>`;
-  }
-
-  html += `
-      </div>
-      <button onclick="quickConfirmPrefs()" style="width:100%; padding:14px; background:#ff7675; color:#000; font-weight:bold; font-size:1.1em; border:none; border-radius:10px; cursor:pointer;">🚽 Start Quick Session</button>
-    </div>`;
-
-  let container = $('quickModeSetup');
-  if (container) {
-    container.outerHTML = html;
-  } else {
-    $('sessionSetupProfileStep').insertAdjacentHTML('afterend', html);
+function getDefaultPrefsForLevel(level) {
+  switch (level) {
+    case 'fully_continent':       return ['holding'];
+    case 'mostly_continent':      return ['holding', 'accidents'];
+    case 'somewhat_incontinent':  return ['accidents'];
+    case 'mostly_incontinent':    return ['accidents', 'diapers'];
+    case 'fully_incontinent':     return ['diapers'];
+    default:                      return ['accidents'];
   }
 }
 
-function quickConfirmPrefs() {
-  // Collect selected preferences and map to event tables
-  const checks = document.querySelectorAll('.quickPrefCheck:checked');
-  const selectedPrefs = Array.from(checks).map(c => c.value);
+function updateQuickPrefsFromLevel() {
+  const sel = $('quickContinenceSelect');
+  if (!sel) return;
+  const level = sel.value;
+  const customPanel = $('quickCustomPanel');
 
-  if (selectedPrefs.length === 0) {
-    toast('Pick at least one event type!');
+  if (level === 'custom') {
+    if (customPanel) customPanel.style.display = 'block';
     return;
   }
 
-  // Map preferences to table keys (dedup)
-  const tableSet = new Set();
-  for (const prefKey of selectedPrefs) {
-    const pref = QUICK_PREFERENCE_OPTIONS.find(p => p.key === prefKey);
-    if (pref) pref.tables.forEach(t => tableSet.add(t));
-  }
-  const selectedTables = Array.from(tableSet);
+  if (customPanel) customPanel.style.display = 'none';
 
-  // Save control level
-  const controlKey = window._quickControlLevel || 'moderate';
-  const controlLevel = QUICK_CONTROL_LEVELS.find(l => l.key === controlKey);
-  localStorage.setItem('quickControlLevel', controlKey);
+  // Auto-select event prefs for this level
+  const defaults = getDefaultPrefsForLevel(level);
+  document.querySelectorAll('.quickEvtPref').forEach(cb => {
+    cb.checked = defaults.includes(cb.value);
+  });
+}
+
+function updateQuickContinencePreview() {
+  const sel = $('quickContinenceSelect');
+  const preview = $('quickContinencePreview');
+  if (!sel || !preview) return;
+
+  const level = sel.value;
+
+  if (level === 'custom') {
+    preview.innerHTML = `
+      <div style="color:#fdcb6e; font-weight:bold; font-size:0.95em; margin-bottom:4px;">✏️ Custom</div>
+      <div style="color:#cdd7e6; font-size:0.82em; line-height:1.5;">Use the sliders below to set your own hold chance and close-call window.</div>
+    `;
+    return;
+  }
+
+  const qm = QUICK_CONTINENCE_MAP[level];
+  const meta = (typeof CONTINENCE_PROFILE_META !== 'undefined') ? CONTINENCE_PROFILE_META[level] : null;
+
+  let holdPct = qm ? qm.holdChance : 45;
+  let summary = qm ? qm.summary : '';
+  let rec = meta ? meta.recommendedProtection : '';
+  let stats = meta?.stats || {};
+
+  preview.innerHTML = `
+    <div style="color:#a29bfe; font-weight:bold; font-size:0.95em; margin-bottom:4px;">${meta?.title || level}</div>
+    <div style="color:#cdd7e6; font-size:0.82em; line-height:1.5; margin-bottom:6px;">${summary}</div>
+    <div style="display:flex; gap:12px; flex-wrap:wrap; margin-bottom:6px;">
+      <span style="color:#55efc4; font-size:0.82em;">Hold chance: ~${holdPct}%</span>
+      <span style="color:#fdcb6e; font-size:0.82em;">Accident risk: ${stats.accidentRisk || '—'}</span>
+    </div>
+    <div style="color:#888; font-size:0.78em;">Recommended: ${rec || 'Any'}</div>
+  `;
+}
+
+function quickStartSession() {
+  const sel = $('quickContinenceSelect');
+  const level = sel ? sel.value : 'mostly_continent';
+  const isCustom = level === 'custom';
+  const qm = isCustom ? null : QUICK_CONTINENCE_MAP[level];
+  const meta = (!isCustom && typeof CONTINENCE_PROFILE_META !== 'undefined') ? CONTINENCE_PROFILE_META[level] : null;
+
+  // --- Event prefs: build table list from checked boxes ---
+  const checkedPrefs = [];
+  const selectedTables = [];
+  document.querySelectorAll('.quickEvtPref:checked').forEach(cb => {
+    checkedPrefs.push(cb.value);
+    const pref = QUICK_EVENT_PREFS.find(p => p.key === cb.value);
+    if (pref) {
+      for (const t of pref.tables) {
+        if (!selectedTables.includes(t)) selectedTables.push(t);
+      }
+    }
+  });
+  if (selectedTables.length === 0) selectedTables.push('FULL_D20'); // fallback
+
+  localStorage.setItem('quickEventPrefs', JSON.stringify(checkedPrefs));
+
+  // --- Custom mode hold/close-call ---
+  let holdPct;
+  let closeCallWindow = 10;
+  if (isCustom) {
+    const slider = $('quickCustomHoldSlider');
+    holdPct = slider ? parseInt(slider.value, 10) : 45;
+    const ccSlider = $('quickCustomCCSlider');
+    closeCallWindow = ccSlider ? parseInt(ccSlider.value, 10) : 10;
+    localStorage.setItem('quickCustomMode', 'true');
+    localStorage.setItem('quickCustomHold', String(holdPct));
+    localStorage.setItem('quickCustomCloseCall', String(closeCallWindow));
+  } else {
+    holdPct = qm ? qm.holdChance : 45;
+    localStorage.setItem('quickCustomMode', 'false');
+  }
+
+  // Store custom overrides on window for quickModeRoll
+  window._quickCustomHoldChance = isCustom ? holdPct : null;
+  window._quickCloseCallWindow = closeCallWindow;
+
+  // Set protection from chooser
+  const protSel = $('quickProtectionSelect');
+  const chosenProt = protSel ? protSel.value : 'pad';
+  currentProtectionLevel = chosenProt;
+  localStorage.setItem('quickProtection', chosenProt);
+  if (typeof updateProtectionUI === 'function') updateProtectionUI();
+  const protChooser = $('protectionChooser');
+  if (protChooser) protChooser.value = chosenProt;
+
+  // Hydration toggle
+  const hydToggle = $('quickHydrationToggle');
+  window.hydrationEnabled = hydToggle ? hydToggle.checked : true;
+  localStorage.setItem('quickHydration', String(window.hydrationEnabled));
+
+  // Mercy mode: OFF for mostly/fully incontinent, ON otherwise (custom = ON)
+  const noMercyLevels = ['mostly_incontinent', 'fully_incontinent'];
+  window.mercyMode = isCustom ? true : !noMercyLevels.includes(level);
+  const mercyBtn = $('btnMercy');
+  if (mercyBtn) {
+    mercyBtn.textContent = window.mercyMode ? 'Mercy: ON' : 'Mercy: OFF';
+    mercyBtn.style.color = window.mercyMode ? '#55efc4' : '#ff6b6b';
+    mercyBtn.style.borderColor = window.mercyMode ? '#55efc4' : '#ff6b6b';
+  }
+
+  // Persist
+  localStorage.setItem('quickContinence', level);
+  localStorage.setItem('quickControlLevel', level);
   localStorage.setItem('quickModeTables', JSON.stringify(selectedTables));
-  localStorage.setItem('quickModePrefs', JSON.stringify(selectedPrefs));
   window.quickModeTables = selectedTables;
+  window._quickControlLevel = level;
 
   // Set profile mode to chaos_manual
   profileMode = 'chaos_manual';
@@ -1228,19 +1338,25 @@ function quickConfirmPrefs() {
 
   // Close setup
   closeSessionSetupModal();
-  const qm = $('quickModeSetup');
-  if (qm) qm.remove();
+  const qmEl = $('quickModeSetup');
+  if (qmEl) qmEl.remove();
 
-  // Start session
+  // Clear log & start session
+  $('output').textContent = '';
   sessionRunning = true;
   sessionStartedAt = Date.now();
+  manualPressure = 0;
+  manualSaturation = 0;
+  if (typeof updatePressureUI === 'function') updatePressureUI(0);
+  if (typeof updateSaturationUI === 'function') updateSaturationUI(0);
 
-  const prefLabels = selectedPrefs.map(k => QUICK_PREFERENCE_OPTIONS.find(p => p.key === k)?.label || k).join(', ');
-  const controlLabel = controlLevel ? controlLevel.label : 'Moderate';
-  const holdPct = controlLevel ? controlLevel.holdChance : 45;
+  const title = isCustom ? `Custom (~${holdPct}%)` : (meta?.title || level);
+  const protLabel = formatProtectionLevel ? formatProtectionLevel(chosenProt) : chosenProt;
+  const prefLabels = checkedPrefs.map(k => { const p = QUICK_EVENT_PREFS.find(x => x.key === k); return p ? p.emoji + ' ' + p.label : k; }).join(', ');
 
   logToOutput(`<span style="color:#ff7675; font-size:1.1em;"><b>🚽 Quick Session Started</b></span>`);
-  logToOutput(`<span style="color:#cdd7e6;">Control: <b>${controlLabel}</b> (~${holdPct}% hold) | Events: ${prefLabels}</span>`);
+  logToOutput(`<span style="color:#cdd7e6;">Continence: <b>${title}</b> | Wearing: <b>${protLabel}</b>${!window.mercyMode ? ' | Mercy: OFF' : ''}</span>`);
+  logToOutput(`<span style="color:#888; font-size:0.85em;">Events: ${prefLabels || 'Default'}</span>`);
   logToOutput(`<div style="border:1px solid #ff7675; padding:12px; border-radius:10px; background:#1b2030; margin:8px 0;">
     <span style="color:#ff7675; font-size:1em;"><b>How it works:</b></span><br>
     <span style="color:#cdd7e6; font-size:0.9em;">When you feel the urge, hit the <b style="color:#ff7675;">"I Need to Go!"</b> button.<br>
@@ -1248,8 +1364,8 @@ function quickConfirmPrefs() {
     Higher pressure &amp; saturation make accidents more likely.</span>
   </div>`);
 
-  // Show collapsible quick session prefs in the sidebar
-  showQuickSessionPrefsPanel(controlLabel, holdPct, prefLabels);
+  // Show sidebar summary
+  showQuickSessionPrefsPanel(title, holdPct);
 
   const btn = $('btnQuickGo');
   if (btn) btn.style.display = 'block';
@@ -1259,11 +1375,16 @@ function quickConfirmPrefs() {
 
   clearInterval(tickInterval);
   tickInterval = setInterval(setCountdownLabel, 1000);
+
+  // Start hydration loop if enabled
+  if (window.hydrationEnabled !== false) {
+    scheduleNextHydration();
+  }
+
   saveState();
 }
 
-function showQuickSessionPrefsPanel(controlLabel, holdPct, prefLabels) {
-  // Remove existing if present
+function showQuickSessionPrefsPanel(continenceLabel, holdPct) {
   const existing = $('quickPrefsPanel');
   if (existing) existing.remove();
 
@@ -1275,19 +1396,14 @@ function showQuickSessionPrefsPanel(controlLabel, holdPct, prefLabels) {
       <h2 style="margin:0; font-size:14px; color:#ff7675;"><span id="quickPrefsContentArrow" class="collapse-arrow collapsed">▼</span> 🚽 Quick Session</h2>
     </div>
     <div id="quickPrefsContent" style="display:none; background:#1b2030; padding:10px 12px; border-radius:10px; border:1px solid #ff767544; margin-top:4px;">
-      <div style="margin-bottom:6px;">
-        <span style="color:#888; font-size:12px;">Control Level:</span>
-        <span style="color:#ff7675; font-weight:bold; font-size:13px;"> ${controlLabel} (~${holdPct}%)</span>
-      </div>
       <div style="margin-bottom:8px;">
-        <span style="color:#888; font-size:12px;">Active Events:</span>
-        <span style="color:#cdd7e6; font-size:12px;"> ${prefLabels}</span>
+        <span style="color:#888; font-size:12px;">Continence:</span>
+        <span style="color:#ff7675; font-weight:bold; font-size:13px;"> ${continenceLabel} (~${holdPct}%)</span>
       </div>
       <button onclick="showSessionSetupModal()" style="width:100%; padding:8px; background:#0f1115; border:1px solid #ff767544; color:#ff7675; border-radius:6px; cursor:pointer; font-size:12px;">⚙️ Change Settings</button>
     </div>
   `;
 
-  // Insert after the session control buttons
   const sessionPanel = document.querySelector('.panel.stack');
   const firstHr = sessionPanel?.querySelector('.hr');
   if (firstHr) {
@@ -1300,6 +1416,8 @@ function showQuickSessionPrefsPanel(controlLabel, holdPct, prefLabels) {
 function backToSessionType() {
   const qm = $('quickModeSetup');
   if (qm) qm.remove();
+  const bw = $('bedwettingSetup');
+  if (bw) bw.remove();
   if ($('sessionTypeStep')) $('sessionTypeStep').style.display = '';
   if ($('sessionSetupSubtitle')) $('sessionSetupSubtitle').textContent = 'What kind of session?';
 }
@@ -1337,7 +1455,6 @@ function quickModeRoll() {
     'FULL_D20': typeof FULL_D20 !== 'undefined' ? FULL_D20 : [],
     'FULL_TRAINING_FAILURES': typeof FULL_TRAINING_FAILURES !== 'undefined' ? FULL_TRAINING_FAILURES : [],
     'MACRO_DEPENDENT_D20': typeof MACRO_DEPENDENT_D20 !== 'undefined' ? MACRO_DEPENDENT_D20 : [],
-    'MESSY_PUSHING_ACCIDENTS_D10': typeof MESSY_PUSHING_ACCIDENTS_D10 !== 'undefined' ? MESSY_PUSHING_ACCIDENTS_D10 : [],
     'MESSY_HOLDING_GAUNTLETS_D10': typeof MESSY_HOLDING_GAUNTLETS_D10 !== 'undefined' ? MESSY_HOLDING_GAUNTLETS_D10 : [],
     'OMORASHI_GAUNTLETS': typeof OMORASHI_GAUNTLETS !== 'undefined' ? OMORASHI_GAUNTLETS : [],
   };
@@ -1361,11 +1478,14 @@ function quickModeRoll() {
   const evt = pool[Math.floor(Math.random() * pool.length)];
 
   // --- CHANCE TO MAKE IT ---
-  const controlKey = window._quickControlLevel || localStorage.getItem('quickControlLevel') || 'moderate';
-  const controlLevel = QUICK_CONTROL_LEVELS.find(l => l.key === controlKey);
+  const controlKey = window._quickControlLevel || localStorage.getItem('quickControlLevel') || 'mostly_continent';
+  const qcm = (controlKey !== 'custom') ? QUICK_CONTINENCE_MAP[controlKey] : null;
 
-  // Base success chance from control level
-  let successChance = controlLevel ? controlLevel.holdChance : 45;
+  // Custom hold chance override takes priority
+  let successChance = (window._quickCustomHoldChance != null) ? window._quickCustomHoldChance
+                     : (qcm ? qcm.holdChance : 45);
+
+  const closeCallWindow = window._quickCloseCallWindow || 10;
 
   // Dependent-type events are involuntary — no hold possible
   const isAutoFail = alwaysFailTables.has(evt._sourceTable);
@@ -1390,8 +1510,8 @@ function quickModeRoll() {
 
     if (roll < successChance) {
       // --- SUCCESS: You held it! ---
-      // Close call (small leak) if roll was within 10% of failing
-      const closeCall = roll > (successChance - 10);
+      // Close call (small leak) if roll was within closeCallWindow% of failing
+      const closeCall = roll > (successChance - closeCallWindow);
 
       if (closeCall) {
         const cc = QUICK_CLOSE_CALL_MESSAGES[Math.floor(Math.random() * QUICK_CLOSE_CALL_MESSAGES.length)];
@@ -1448,6 +1568,911 @@ function quickModeRoll() {
   } else {
     logToOutput(`<span style="color:#fab1a0; font-style:italic;">(No guide steps — narrative event only)</span>`);
   }
+
+  saveState();
+}
+
+/* ===== BEDWETTING MODE ===== */
+
+const BEDWETTING_TIER_MAP = {
+  dry_nights: {
+    wakeChance: 88,
+    microChance: 88,
+    macroChance: 12,
+    hydrationMl: 200,
+    bedtimeRule: 'Use the potty right before bed. Pullups or underwear are fine.',
+    summary: 'Usually wakes in time. Accidents are rare and mostly just dribbles.',
+  },
+  light_bedwetter: {
+    wakeChance: 74,
+    microChance: 72,
+    macroChance: 28,
+    hydrationMl: 225,
+    bedtimeRule: 'Drink 250ml before bed and potty right before lying down.',
+    summary: 'Sometimes wakes to pee, sometimes only notices when already dribbling.',
+  },
+  moderate_bedwetter: {
+    wakeChance: 50,
+    microChance: 48,
+    macroChance: 52,
+    hydrationMl: 350,
+    bedtimeRule: 'Drink 350ml before bed. If in pullups, potty right before sleep.',
+    summary: 'Waking in time is unreliable. Small and medium accidents are common.',
+  },
+  heavy_bedwetter: {
+    wakeChance: 24,
+    microChance: 26,
+    macroChance: 74,
+    hydrationMl: 350,
+    bedtimeRule: 'Drink 350ml before bed. If in diapers, put one on 30 minutes before bedtime and do not change unless leaking.',
+    summary: 'Usually sleeps through the urge. Full wettings are common.',
+  },
+  full_bedwetter: {
+    wakeChance: 8,
+    microChance: 14,
+    macroChance: 86,
+    hydrationMl: 400,
+    bedtimeRule: 'Drink 400ml before bed. Diaper up early and treat the night as fully dependent.',
+    summary: 'Almost never wakes in time. Nights are mostly decided by protection and leaks.',
+  },
+};
+
+const BEDWETTING_PROFILE_META = {
+  dry_nights: {
+    title: 'Dry Sleeper',
+    description: 'You are expected to stay dry most nights. Accidents are usually just dribbles or sleepy close calls.',
+    expectedWetNightsWeek: '0-1',
+    expectedPattern: 'Mostly dry, very occasional micro leak',
+    recommendedProtection: 'Pad or Pullups',
+    recommendedProtectionOptions: ['pad', 'pullups'],
+  },
+  light_bedwetter: {
+    title: 'Light Bedwetter',
+    description: 'You still wake in time a lot, but a few nights each week end with dampness or a small accident.',
+    expectedWetNightsWeek: '1-3',
+    expectedPattern: 'Micros are common, full accidents are rare',
+    recommendedProtection: 'Pad or Pullups',
+    recommendedProtectionOptions: ['pad', 'pullups'],
+  },
+  moderate_bedwetter: {
+    title: 'Moderate Bedwetter',
+    description: 'Mixed nights. Sometimes you make it, sometimes you leak, sometimes you wake up properly wet.',
+    expectedWetNightsWeek: '3-5',
+    expectedPattern: 'Balanced micros and full accidents',
+    recommendedProtection: 'Pullups or Diapers',
+    recommendedProtectionOptions: ['pullups', 'diapers'],
+  },
+  heavy_bedwetter: {
+    title: 'Heavy Bedwetter',
+    description: 'You usually sleep through the urge and need dependable protection every night.',
+    expectedWetNightsWeek: '5-7',
+    expectedPattern: 'Frequent full accidents and occasional repeat voids',
+    recommendedProtection: 'Diapers or Thick Diapers',
+    recommendedProtectionOptions: ['diapers', 'thick_diapers'],
+  },
+  full_bedwetter: {
+    title: 'Permanent Bedwetter / Baby',
+    description: 'You are not expected to be dry. You wake up wet every night and often void multiple times a night.',
+    expectedWetNightsWeek: '7',
+    expectedPattern: 'Multiple wettings a night are normal',
+    recommendedProtection: 'Thick Diapers',
+    recommendedProtectionOptions: ['thick_diapers'],
+  },
+};
+
+const BEDWETTING_SUGGESTED_PROFILES = {
+  dry_sleeper: {
+    key: 'dry_sleeper',
+    name: 'Dry Sleeper',
+    tier: 'dry_nights',
+    protection: 'pad',
+    ruleFollowed: true,
+    wakeChanceMod: 2,
+    wakeDuringAccidentChance: 75,
+    wakeAfterAccidentChance: 85,
+    nightOutputPct: 70,
+    afterAccidentHydrationMl: 0,
+  },
+  pad_dribbler: {
+    key: 'pad_dribbler',
+    name: 'Pad Dribbler',
+    tier: 'light_bedwetter',
+    protection: 'pad',
+    ruleFollowed: true,
+    wakeChanceMod: 10,
+    wakeDuringAccidentChance: 82,
+    wakeAfterAccidentChance: 92,
+    nightOutputPct: 60,
+    afterAccidentHydrationMl: 0,
+  },
+  pullup_tosser: {
+    key: 'pullup_tosser',
+    name: 'Pullup Tosser',
+    tier: 'moderate_bedwetter',
+    protection: 'pullups',
+    ruleFollowed: true,
+    wakeChanceMod: 0,
+    wakeDuringAccidentChance: 52,
+    wakeAfterAccidentChance: 68,
+    nightOutputPct: 92,
+    afterAccidentHydrationMl: 75,
+  },
+  nightly_diaper: {
+    key: 'nightly_diaper',
+    name: 'Nightly Diaper User',
+    tier: 'heavy_bedwetter',
+    protection: 'diapers',
+    ruleFollowed: true,
+    wakeChanceMod: -6,
+    wakeDuringAccidentChance: 28,
+    wakeAfterAccidentChance: 45,
+    nightOutputPct: 115,
+    afterAccidentHydrationMl: 125,
+  },
+  permanent_bedwetter: {
+    key: 'permanent_bedwetter',
+    name: 'Permanent Bedwetter / Baby',
+    tier: 'full_bedwetter',
+    protection: 'thick_diapers',
+    ruleFollowed: true,
+    wakeChanceMod: -12,
+    wakeDuringAccidentChance: 10,
+    wakeAfterAccidentChance: 24,
+    nightOutputPct: 130,
+    afterAccidentHydrationMl: 200,
+  },
+};
+
+const BEDWETTING_EVENT_MODULES = {
+  positions: [
+    'on your back',
+    'curled on your side',
+    'half on your stomach',
+    'flat on your tummy',
+    'twisted in the sheets',
+    'with your knees tucked up',
+    'spread out under the blankets',
+    'with one leg hooked around the blanket',
+    'hugging a pillow',
+    'on the edge of the mattress',
+    'bundled up tight',
+    'mushed down into the bed',
+  ],
+  wakeCues: [
+    'you feel a heavy warmth low in your tummy',
+    'your bladder nags hard enough to drag you half-awake',
+    'you wake with your thighs pressing together instinctively',
+    'the need to pee finally cuts through the sleepiness',
+    'your body squirms before your brain catches up',
+    'you blink awake, tense and needy',
+    'the pressure gets sharp enough to notice',
+    'you become aware of a sleepy, urgent ache',
+    'your lower belly feels tight and demanding',
+    'you wake with a helpless little squirm',
+  ],
+  microStarts: [
+    'a few warm dribbles slip out',
+    'a weak sleepy squeeze leaks into your protection',
+    'a tiny spurt escapes before you can react',
+    'your body lets out a brief dribble',
+    'a quick little leak wets you',
+    'you lose a small spurt into the padding',
+    'a short dribble sneaks out',
+    'a warm trickle slips free',
+    'a few spurts patter into your protection',
+    'your bladder gives up just a little',
+  ],
+  macroStarts: [
+    'your bladder gives up in a heavy rush',
+    'a full wetting surges out before you can stop it',
+    'you start soaking hard into your protection',
+    'a strong, helpless flood pours out',
+    'your body commits to a full accident',
+    'a thick, steady wetting takes over',
+    'a heavy nighttime accident spreads through the padding',
+    'you release hard before you can do anything useful',
+    'the bedwetting comes in a strong gush',
+    'you void heavily, deep in the mattress and blankets',
+  ],
+  midWake: [
+    'You wake halfway through it and tense up hard.',
+    'That finally jars you awake enough to notice what is happening.',
+    'You come to in the middle of the accident and can react a little.',
+    'You wake with a start and catch part of it in progress.',
+    'That warmth snaps you awake halfway through.',
+    'You notice in time to stop some of it, but not all.',
+  ],
+  afterWake: [
+    'You only really wake once the warmth settles.',
+    'You wake after the accident is already done.',
+    'By the time you understand it, the wetting is over.',
+    'You come to slowly, already damp and aware of what happened.',
+    'You wake once the pressure is gone and the wetness remains.',
+    'It is only afterward that you realize how wet you are.',
+  ],
+  sleepThrough: [
+    'You stay deeply asleep and do not really deal with it until morning.',
+    'You drift right through it without reacting.',
+    'You never fully wake and just settle deeper into sleep.',
+    'Your body handles it without waking you properly at all.',
+    'You remain half-lost in sleep and do nothing about it.',
+    'You do not wake enough to respond before sleep takes over again.',
+  ],
+};
+
+const BEDWETTING_EVENT_VARIANT_COUNT =
+  BEDWETTING_EVENT_MODULES.positions.length *
+  BEDWETTING_EVENT_MODULES.wakeCues.length *
+  (BEDWETTING_EVENT_MODULES.microStarts.length + BEDWETTING_EVENT_MODULES.macroStarts.length) *
+  (BEDWETTING_EVENT_MODULES.midWake.length + BEDWETTING_EVENT_MODULES.afterWake.length + BEDWETTING_EVENT_MODULES.sleepThrough.length);
+
+function randomFrom(list) {
+  return list[Math.floor(Math.random() * list.length)];
+}
+
+const BEDWETTING_CUSTOM_DEFAULTS = {
+  schema: 'abdl-bedwetting-profile-v1',
+  name: 'Night Profile',
+  tier: 'moderate_bedwetter',
+  protection: 'pullups',
+  ruleFollowed: false,
+  wakeChanceMod: 0,
+  wakeDuringAccidentChance: 35,
+  wakeAfterAccidentChance: 55,
+  nightOutputPct: 100,
+  afterAccidentHydrationMl: 0,
+};
+
+function clampNum(value, min, max, fallback) {
+  const parsed = parseInt(value, 10);
+  if (Number.isNaN(parsed)) return fallback;
+  return Math.max(min, Math.min(max, parsed));
+}
+
+function getStoredBedwettingProfile() {
+  try {
+    const raw = localStorage.getItem('bedwettingProfileConfig');
+    if (!raw) return { ...BEDWETTING_CUSTOM_DEFAULTS };
+    const parsed = JSON.parse(raw);
+    return { ...BEDWETTING_CUSTOM_DEFAULTS, ...(parsed || {}) };
+  } catch (err) {
+    console.error(err);
+    return { ...BEDWETTING_CUSTOM_DEFAULTS };
+  }
+}
+
+function buildBedwettingProfileFromSetup() {
+  return {
+    schema: 'abdl-bedwetting-profile-v1',
+    name: ($('bedwettingProfileName')?.value || '').trim() || 'Night Profile',
+    tier: $('bedwettingTierSelect')?.value || 'moderate_bedwetter',
+    protection: $('bedwettingProtectionSelect')?.value || 'pullups',
+    ruleFollowed: !!$('bedwettingHydrationDone')?.checked,
+    wakeChanceMod: clampNum($('bedwettingWakeMod')?.value, -30, 30, 0),
+    wakeDuringAccidentChance: clampNum($('bedwettingWakeDuring')?.value, 0, 100, 35),
+    wakeAfterAccidentChance: clampNum($('bedwettingWakeAfter')?.value, 0, 100, 55),
+    nightOutputPct: clampNum($('bedwettingNightOutput')?.value, 50, 180, 100),
+    afterAccidentHydrationMl: clampNum($('bedwettingAfterHydration')?.value, 0, 500, 0),
+  };
+}
+
+function setBedwettingSliderLabels(profile) {
+  const wakeModLabel = $('bedwettingWakeModLabel');
+  if (wakeModLabel) {
+    const v = profile.wakeChanceMod;
+    wakeModLabel.textContent = v <= -20 ? 'Very deep sleeper' : v <= -8 ? 'Hard to wake' : v <= 8 ? 'Normal' : v <= 18 ? 'Light sleeper' : 'Very light sleeper';
+  }
+  const wakeDuringLabel = $('bedwettingWakeDuringLabel');
+  if (wakeDuringLabel) {
+    const v = profile.wakeDuringAccidentChance;
+    wakeDuringLabel.textContent = v <= 15 ? 'Rarely' : v <= 35 ? 'Sometimes' : v <= 60 ? 'Often' : v <= 80 ? 'Usually' : 'Almost always';
+  }
+  const wakeAfterLabel = $('bedwettingWakeAfterLabel');
+  if (wakeAfterLabel) {
+    const v = profile.wakeAfterAccidentChance;
+    wakeAfterLabel.textContent = v <= 15 ? 'Rarely' : v <= 35 ? 'Sometimes' : v <= 60 ? 'Often' : v <= 80 ? 'Usually' : 'Almost always';
+  }
+  const outputLabel = $('bedwettingNightOutputLabel');
+  if (outputLabel) {
+    const v = profile.nightOutputPct;
+    outputLabel.textContent = v <= 70 ? 'Light' : v <= 90 ? 'Normal' : v <= 110 ? 'Full' : v <= 140 ? 'Heavy' : 'Very heavy';
+  }
+  const hydrationLabel = $('bedwettingAfterHydrationLabel');
+  if (hydrationLabel) {
+    const v = profile.afterAccidentHydrationMl;
+    hydrationLabel.textContent = v === 0 ? 'Off' : v <= 100 ? 'Small sip' : v <= 200 ? 'Quarter glass' : v <= 350 ? 'Half glass' : 'Full glass';
+  }
+}
+
+function fillBedwettingExportBox(profile) {
+  const box = $('bedwettingProfileJson');
+  if (box) box.value = JSON.stringify(profile, null, 2);
+}
+
+function getSuggestedBedwettingProfileButtons(activeName) {
+  return Object.values(BEDWETTING_SUGGESTED_PROFILES).map(profile => {
+    const isActive = activeName === profile.name;
+    return `<button onclick="applySuggestedBedwettingProfile('${profile.key}')" style="padding:8px 10px; background:${isActive ? '#81ecec' : '#0f1420'}; color:${isActive ? '#000' : '#81ecec'}; border:1px solid #81ecec44; border-radius:8px; cursor:pointer; font-size:12px;">${profile.name}</button>`;
+  }).join('');
+}
+
+function applySuggestedBedwettingProfile(profileKey) {
+  const preset = BEDWETTING_SUGGESTED_PROFILES[profileKey];
+  if (!preset) return;
+  const merged = { ...BEDWETTING_CUSTOM_DEFAULTS, ...preset };
+  localStorage.setItem('bedwettingProfileConfig', JSON.stringify(merged));
+  applyBedwettingProfileToSetup(merged);
+  showBedwettingSetup();
+}
+
+function applyBedwettingProfileToSetup(profile) {
+  const merged = { ...BEDWETTING_CUSTOM_DEFAULTS, ...(profile || {}) };
+
+  if ($('bedwettingProfileName')) $('bedwettingProfileName').value = merged.name || 'Night Profile';
+  if ($('bedwettingTierSelect')) $('bedwettingTierSelect').value = merged.tier || 'moderate_bedwetter';
+  if ($('bedwettingProtectionSelect')) $('bedwettingProtectionSelect').value = merged.protection || 'pullups';
+  if ($('bedwettingHydrationDone')) $('bedwettingHydrationDone').checked = !!merged.ruleFollowed;
+  if ($('bedwettingWakeMod')) $('bedwettingWakeMod').value = clampNum(merged.wakeChanceMod, -30, 30, 0);
+  if ($('bedwettingWakeDuring')) $('bedwettingWakeDuring').value = clampNum(merged.wakeDuringAccidentChance, 0, 100, 35);
+  if ($('bedwettingWakeAfter')) $('bedwettingWakeAfter').value = clampNum(merged.wakeAfterAccidentChance, 0, 100, 55);
+  if ($('bedwettingNightOutput')) $('bedwettingNightOutput').value = clampNum(merged.nightOutputPct, 50, 180, 100);
+  if ($('bedwettingAfterHydration')) $('bedwettingAfterHydration').value = clampNum(merged.afterAccidentHydrationMl, 0, 500, 0);
+
+  setBedwettingSliderLabels(merged);
+  updateBedwettingPreview();
+}
+
+function exportBedwettingProfile() {
+  const profile = buildBedwettingProfileFromSetup();
+  fillBedwettingExportBox(profile);
+  localStorage.setItem('bedwettingProfileConfig', JSON.stringify(profile));
+  const box = $('bedwettingProfileJson');
+  if (box) {
+    box.focus();
+    box.select();
+  }
+  toast('Bedwetting profile JSON ready to copy');
+}
+
+async function copyBedwettingProfileJson() {
+  const profile = buildBedwettingProfileFromSetup();
+  const raw = JSON.stringify(profile, null, 2);
+  fillBedwettingExportBox(profile);
+  localStorage.setItem('bedwettingProfileConfig', raw);
+
+  if (navigator.clipboard?.writeText) {
+    try {
+      await navigator.clipboard.writeText(raw);
+      toast('Bedwetting profile copied to clipboard');
+      return;
+    } catch (err) {
+      console.error(err);
+    }
+  }
+
+  const box = $('bedwettingProfileJson');
+  if (box) {
+    box.focus();
+    box.select();
+  }
+  toast('Clipboard unavailable — copy from the box below');
+}
+
+function importBedwettingProfile() {
+  const box = $('bedwettingProfileJson');
+  const raw = (box?.value || '').trim();
+  if (!raw) {
+    toast('Paste a bedwetting profile JSON first');
+    return;
+  }
+
+  try {
+    const parsed = JSON.parse(raw);
+    if (!parsed || (parsed.schema && parsed.schema !== 'abdl-bedwetting-profile-v1')) {
+      throw new Error('Invalid bedwetting profile schema');
+    }
+    const merged = { ...BEDWETTING_CUSTOM_DEFAULTS, ...parsed };
+    localStorage.setItem('bedwettingProfileConfig', JSON.stringify(merged));
+    applyBedwettingProfileToSetup(merged);
+    toast(`Imported bedwetting profile: ${merged.name || 'Night Profile'}`);
+  } catch (err) {
+    console.error(err);
+    toast('Invalid bedwetting profile JSON');
+  }
+}
+
+function showBedwettingSetup() {
+  const saved = getStoredBedwettingProfile();
+
+  let html = `
+    <div id="bedwettingSetup" style="text-align:left;">
+      <button onclick="backToSessionType()" style="background:none; border:none; color:#7cc4ff; cursor:pointer; font-size:13px; margin-bottom:12px; padding:0;">&larr; Back</button>
+      <h2 style="color:#81ecec; margin:0 0 6px 0; text-align:center;">🌙 Bedwetting Session</h2>
+      <p style="color:#cdd7e6; font-size:0.88em; margin:0 0 14px 0; text-align:center; line-height:1.5;">
+        Set up for the night, then only roll if you wake up.<br>
+        <span style="color:#888; font-size:0.9em;">No timers. No random daytime prompts. Just nighttime checks.</span>
+      </p>
+
+      <div style="background:#1b2030; padding:12px 14px; border-radius:12px; border:1px solid #81ecec44; margin-bottom:8px;">
+        <div style="color:#81ecec; font-weight:bold; margin-bottom:6px; font-size:0.92em;">📝 Profile Name</div>
+        <input id="bedwettingProfileName" value="${saved.name || 'Night Profile'}"
+          style="width:100%; padding:8px 10px; background:#151923; color:#fff; border:1px solid #2b3348; border-radius:8px; font-size:13px; box-sizing:border-box;"
+          placeholder="Night Profile">
+      </div>
+
+      <div style="background:#1b2030; padding:12px 14px; border-radius:12px; border:1px solid #81ecec44; margin-bottom:8px;">
+        <div style="color:#81ecec; font-weight:bold; margin-bottom:8px; font-size:0.92em;">🛏️ Suggested Profiles</div>
+        <div style="display:flex; flex-wrap:wrap; gap:8px;">${getSuggestedBedwettingProfileButtons(saved.name)}</div>
+      </div>
+
+      <div style="background:#1b2030; padding:12px 14px; border-radius:12px; border:1px solid #81ecec44; margin-bottom:8px;">
+        <div style="color:#81ecec; font-weight:bold; margin-bottom:6px; font-size:0.92em;">🌙 Bedwetting Tier</div>
+        <select id="bedwettingTierSelect" onchange="updateBedwettingPreview()"
+          style="width:100%; padding:8px 10px; background:#151923; color:#fff; border:1px solid #2b3348; border-radius:8px; font-size:13px; cursor:pointer;">
+          <option value="dry_nights" ${saved.tier === 'dry_nights' ? 'selected' : ''}>Dry Nights — usually wakes in time</option>
+          <option value="light_bedwetter" ${saved.tier === 'light_bedwetter' ? 'selected' : ''}>Light Bedwetter — occasional nighttime slips</option>
+          <option value="moderate_bedwetter" ${saved.tier === 'moderate_bedwetter' ? 'selected' : ''}>Moderate Bedwetter — mixed nights</option>
+          <option value="heavy_bedwetter" ${saved.tier === 'heavy_bedwetter' ? 'selected' : ''}>Heavy Bedwetter — often sleeps through it</option>
+          <option value="full_bedwetter" ${saved.tier === 'full_bedwetter' ? 'selected' : ''}>Full Bedwetter — almost never wakes in time</option>
+        </select>
+        <div id="bedwettingPreview" style="margin-top:8px; padding:8px; background:#0d1017; border-radius:8px; border:1px solid #2b334844; font-size:0.85em;"></div>
+      </div>
+
+      <div style="background:#1b2030; padding:12px 14px; border-radius:12px; border:1px solid #81ecec44; margin-bottom:8px;">
+        <div style="color:#81ecec; font-weight:bold; margin-bottom:6px; font-size:0.92em;">🩲 Night Protection</div>
+        <select id="bedwettingProtectionSelect"
+          style="width:100%; padding:8px 10px; background:#151923; color:#fff; border:1px solid #2b3348; border-radius:8px; font-size:13px; cursor:pointer;">
+          <option value="none" ${saved.protection === 'none' ? 'selected' : ''}>Underwear / Nothing</option>
+          <option value="pad" ${saved.protection === 'pad' ? 'selected' : ''}>Pad</option>
+          <option value="pullups" ${saved.protection === 'pullups' ? 'selected' : ''}>Pullups</option>
+          <option value="diapers" ${saved.protection === 'diapers' ? 'selected' : ''}>Diapers</option>
+          <option value="thick_diapers" ${saved.protection === 'thick_diapers' ? 'selected' : ''}>Thick Diapers</option>
+        </select>
+      </div>
+
+      <div style="background:#1b2030; padding:12px 14px; border-radius:12px; border:1px solid #81ecec44; margin-bottom:8px;">
+        <div style="color:#81ecec; font-weight:bold; margin-bottom:6px; font-size:0.92em;">📋 Bedtime Rule Check</div>
+        <label style="display:flex; align-items:flex-start; gap:10px; cursor:pointer;">
+          <input type="checkbox" id="bedwettingHydrationDone" ${saved.ruleFollowed ? 'checked' : ''}
+            style="width:18px; height:18px; accent-color:#81ecec; flex-shrink:0; margin-top:2px; cursor:pointer;">
+          <span style="color:#cdd7e6; font-size:0.85em; line-height:1.45;">I followed tonight's bedtime rule and hydration instruction.</span>
+        </label>
+        <div id="bedwettingRuleText" style="margin-top:8px; color:#888; font-size:0.8em;"></div>
+      </div>
+
+      <div style="background:#1b2030; padding:12px 14px; border-radius:12px; border:1px solid #fdcb6e44; margin-bottom:8px;">
+        <div style="color:#fdcb6e; font-weight:bold; margin-bottom:8px; font-size:0.92em;">⚙️ Customize Night Behavior</div>
+
+        <label style="color:#cdd7e6; font-size:0.82em; display:block; margin-bottom:8px;">
+          How deep a sleeper are you? <b id="bedwettingWakeModLabel">Normal</b>
+          <input type="range" id="bedwettingWakeMod" min="-30" max="30" value="${saved.wakeChanceMod}"
+            oninput="setBedwettingSliderLabels(buildBedwettingProfileFromSetup()); updateBedwettingPreview()"
+            style="width:100%; margin-top:4px; accent-color:#fdcb6e;">
+          <span style="display:flex; justify-content:space-between; color:#888; font-size:0.75em;"><span>very deep sleeper</span><span>very light sleeper</span></span>
+        </label>
+
+        <label style="color:#cdd7e6; font-size:0.82em; display:block; margin-bottom:8px;">
+          Notice while an accident is happening? <b id="bedwettingWakeDuringLabel">Sometimes</b>
+          <input type="range" id="bedwettingWakeDuring" min="0" max="100" value="${saved.wakeDuringAccidentChance}"
+            oninput="setBedwettingSliderLabels(buildBedwettingProfileFromSetup()); updateBedwettingPreview()"
+            style="width:100%; margin-top:4px; accent-color:#fdcb6e;">
+        </label>
+
+        <label style="color:#cdd7e6; font-size:0.82em; display:block; margin-bottom:8px;">
+          Wake up after getting wet? <b id="bedwettingWakeAfterLabel">Sometimes</b>
+          <input type="range" id="bedwettingWakeAfter" min="0" max="100" value="${saved.wakeAfterAccidentChance}"
+            oninput="setBedwettingSliderLabels(buildBedwettingProfileFromSetup()); updateBedwettingPreview()"
+            style="width:100%; margin-top:4px; accent-color:#fdcb6e;">
+        </label>
+
+        <label style="color:#cdd7e6; font-size:0.82em; display:block; margin-bottom:8px;">
+          How much do you produce overnight? <b id="bedwettingNightOutputLabel">Normal</b>
+          <input type="range" id="bedwettingNightOutput" min="50" max="180" value="${saved.nightOutputPct}"
+            oninput="setBedwettingSliderLabels(buildBedwettingProfileFromSetup()); updateBedwettingPreview()"
+            style="width:100%; margin-top:4px; accent-color:#fdcb6e;">
+        </label>
+
+        <label style="color:#cdd7e6; font-size:0.82em; display:block; margin-bottom:0;">
+          Drink something after waking up wet? <b id="bedwettingAfterHydrationLabel">Off</b>
+          <input type="range" id="bedwettingAfterHydration" min="0" max="500" step="25" value="${saved.afterAccidentHydrationMl}"
+            oninput="setBedwettingSliderLabels(buildBedwettingProfileFromSetup()); updateBedwettingPreview()"
+            style="width:100%; margin-top:4px; accent-color:#fdcb6e;">
+          <span style="display:flex; justify-content:space-between; color:#888; font-size:0.75em;"><span>no</span><span>yes, drink first</span></span>
+        </label>
+      </div>
+
+      <div style="background:#1b2030; padding:12px 14px; border-radius:12px; border:1px solid #55efc444; margin-bottom:10px;">
+        <div style="color:#55efc4; font-weight:bold; margin-bottom:8px; font-size:0.92em;">📋 Copy / Paste Profile</div>
+        <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:8px;">
+          <button onclick="exportBedwettingProfile()" style="flex:1; min-width:130px; padding:8px; background:#55efc4; color:#000; border:none; border-radius:8px; cursor:pointer; font-size:12px;">Prepare JSON</button>
+          <button onclick="copyBedwettingProfileJson()" style="flex:1; min-width:130px; padding:8px; background:#81ecec; color:#000; border:none; border-radius:8px; cursor:pointer; font-size:12px;">Copy JSON</button>
+          <button onclick="importBedwettingProfile()" style="flex:1; min-width:130px; padding:8px; background:#7cc4ff; color:#000; border:none; border-radius:8px; cursor:pointer; font-size:12px;">Import Pasted JSON</button>
+        </div>
+        <textarea id="bedwettingProfileJson" placeholder="Use Prepare JSON to export this profile, or paste a saved profile here to import it."
+          style="width:100%; min-height:110px; padding:10px; box-sizing:border-box; background:#0f1420; border:1px solid #2b3348; color:#fff; border-radius:8px; resize:vertical; font-size:12px;"></textarea>
+      </div>
+
+      <button onclick="startBedwettingSession()" style="width:100%; padding:14px; background:#81ecec; color:#000; font-weight:bold; font-size:1.05em; border:none; border-radius:10px; cursor:pointer;">🌙 Go To Bed</button>
+    </div>`;
+
+  let container = $('bedwettingSetup');
+  if (container) {
+    container.outerHTML = html;
+  } else {
+    $('sessionSetupProfileStep').insertAdjacentHTML('afterend', html);
+  }
+
+  applyBedwettingProfileToSetup(saved);
+}
+
+function updateBedwettingPreview() {
+  const sel = $('bedwettingTierSelect');
+  const preview = $('bedwettingPreview');
+  const ruleText = $('bedwettingRuleText');
+  if (!sel || !preview) return;
+
+  const tier = BEDWETTING_TIER_MAP[sel.value] || BEDWETTING_TIER_MAP.moderate_bedwetter;
+  const meta = BEDWETTING_PROFILE_META[sel.value] || BEDWETTING_PROFILE_META.moderate_bedwetter;
+  const profile = buildBedwettingProfileFromSetup();
+  const recommendedMismatch = !(meta.recommendedProtectionOptions || []).includes(profile.protection || '');
+
+  const accidentDesc = tier.microChance >= 75 ? 'mostly small dribbles, rarely a full wetting'
+    : tier.microChance >= 55 ? 'often small, but full wettings do happen'
+    : tier.microChance >= 35 ? 'a mix of small and full wettings'
+    : tier.microChance >= 18 ? 'usually full wettings'
+    : 'full, heavy accidents most of the time';
+
+  const combinedAwareness = Math.max(profile.wakeDuringAccidentChance, profile.wakeAfterAccidentChance);
+  const awarenessDesc = combinedAwareness >= 88 ? 'Almost always notices'
+    : combinedAwareness >= 70 ? 'Usually notices'
+    : combinedAwareness >= 45 ? 'Often notices'
+    : combinedAwareness >= 25 ? 'Sometimes notices'
+    : 'Tends to sleep right through it';
+
+  const protectionDisplay = (profile.protection || 'none').replace(/_/g, ' ');
+  const wetNightsDesc = meta.expectedWetNightsWeek === '7' ? 'Every night'
+    : meta.expectedWetNightsWeek === '5-7' ? 'Almost every night'
+    : meta.expectedWetNightsWeek === '0-1' ? 'Most nights dry'
+    : `About ${meta.expectedWetNightsWeek} nights a week`;
+
+  preview.innerHTML = `
+    <div style="color:#81ecec; font-weight:bold; font-size:0.95em; margin-bottom:4px;">${meta.title}</div>
+    <div style="color:#cdd7e6; font-size:0.82em; line-height:1.5; margin-bottom:8px;">${meta.description}</div>
+    <div style="display:flex; flex-direction:column; gap:5px; font-size:0.83em;">
+      <div style="color:#aab5c8;">🌙 Wet nights: <span style="color:#e0e8f5;">${wetNightsDesc}</span></div>
+      <div style="color:#aab5c8;">💧 When wet: <span style="color:#e0e8f5;">${accidentDesc}</span></div>
+      <div style="color:#aab5c8;">🔔 Awareness: <span style="color:#e0e8f5;">${awarenessDesc}</span></div>
+      ${recommendedMismatch
+        ? `<div style="color:#fdcb6e;">⚠ Consider ${meta.recommendedProtection} for this level</div>`
+        : `<div style="color:#55efc4;">✓ ${protectionDisplay} is a good fit for this level</div>`}
+    </div>
+  `;
+
+  if (ruleText) {
+    const refillText = profile.afterAccidentHydrationMl > 0
+      ? ` If you wake after an accident, drink ${profile.afterAccidentHydrationMl}ml before going back to sleep.`
+      : '';
+    ruleText.innerHTML = `<b>Tonight's rule:</b> ${tier.bedtimeRule}${refillText}`;
+  }
+
+  setBedwettingSliderLabels(profile);
+}
+
+function getActiveBedwettingProfile() {
+  const stored = window._bedwettingProfileConfig || getStoredBedwettingProfile();
+  return { ...BEDWETTING_CUSTOM_DEFAULTS, ...(stored || {}) };
+}
+
+function getBedwettingAdjustedSatGain(baseMin, baseMax, outputPct) {
+  const base = Math.floor(Math.random() * (baseMax - baseMin + 1)) + baseMin;
+  return Math.max(1, Math.round(base * (outputPct / 100)));
+}
+
+function getBedwettingWakeNarrative() {
+  const position = randomFrom(BEDWETTING_EVENT_MODULES.positions);
+  const cue = randomFrom(BEDWETTING_EVENT_MODULES.wakeCues);
+  return `While ${position}, ${cue}.`;
+}
+
+function getBedwettingAccidentNarrative(kind, wakeState) {
+  const position = randomFrom(BEDWETTING_EVENT_MODULES.positions);
+  const start = randomFrom(kind === 'micro' ? BEDWETTING_EVENT_MODULES.microStarts : BEDWETTING_EVENT_MODULES.macroStarts);
+  const endingPool = wakeState === 'during'
+    ? BEDWETTING_EVENT_MODULES.midWake
+    : wakeState === 'after'
+      ? BEDWETTING_EVENT_MODULES.afterWake
+      : BEDWETTING_EVENT_MODULES.sleepThrough;
+  const ending = randomFrom(endingPool);
+  return `While ${position}, ${start}. ${ending}`;
+}
+
+function applyBedwettingAftercare(profile, messageColor) {
+  if (!profile.afterAccidentHydrationMl) return;
+  window._bedwettingNightLoad = (window._bedwettingNightLoad || 0) + profile.afterAccidentHydrationMl;
+  logToOutput(`<span style="color:${messageColor};">Before going back to sleep, drink ${profile.afterAccidentHydrationMl}ml of water.</span>`);
+}
+
+function startBedwettingSession() {
+  const profile = buildBedwettingProfileFromSetup();
+  const tier = BEDWETTING_TIER_MAP[profile.tier] || BEDWETTING_TIER_MAP.moderate_bedwetter;
+
+  localStorage.setItem('bedwettingTier', profile.tier);
+  localStorage.setItem('bedwettingProtection', profile.protection);
+  localStorage.setItem('bedwettingHydrationDone', String(profile.ruleFollowed));
+  localStorage.setItem('bedwettingProfileConfig', JSON.stringify(profile));
+
+  currentProtectionLevel = profile.protection;
+  if (typeof updateProtectionUI === 'function') updateProtectionUI();
+  const protChooser = $('protectionChooser');
+  if (protChooser) protChooser.value = profile.protection;
+
+  clearTimeout(mainTimer);
+  clearTimeout(preChimeTimer);
+  clearTimeout(microTimer);
+  clearTimeout(hydrationTimer);
+  clearTimeout(omorashiStressTestTimer);
+  if (babysitterCheckTimer) clearTimeout(babysitterCheckTimer);
+  babysitterMicroTimerIds.forEach(id => clearTimeout(id));
+  babysitterMicroTimerIds = [];
+  stopChime();
+  meetingActive = false;
+  omorashiSessionActive = false;
+  omorashiGuideActive = false;
+
+  profileMode = 'bedwetting';
+  localStorage.setItem('profileMode', 'bedwetting');
+  window._bedwettingTier = profile.tier;
+  window._bedwettingRuleFollowed = profile.ruleFollowed;
+  window._bedwettingProfileConfig = profile;
+  window._bedwettingAwakeRolls = 0;
+  window._bedwettingHadNightAccident = false;
+  window._bedwettingNightLoad = Math.round(tier.hydrationMl * (profile.nightOutputPct / 100));
+
+  closeSessionSetupModal();
+  const bwEl = $('bedwettingSetup');
+  if (bwEl) bwEl.remove();
+
+  $('output').textContent = '';
+  sessionRunning = true;
+  sessionStartedAt = Date.now();
+  sessionStartTime = Date.now();
+  manualPressure = 0;
+  manualSaturation = 0;
+  if (typeof updatePressureUI === 'function') updatePressureUI(0);
+  if (typeof updateSaturationUI === 'function') updateSaturationUI(0);
+
+  clearInterval(tickInterval);
+
+  const tierLabel = $('bedwettingTierSelect')?.options[$('bedwettingTierSelect').selectedIndex]?.text.split(' — ')[0] || profile.tier;
+  const protLabel = formatProtectionLevel ? formatProtectionLevel(profile.protection) : profile.protection;
+  logToOutput(`<span style="color:#81ecec; font-size:1.1em;"><b>🌙 Bedwetting Session Started</b></span>`);
+  logToOutput(`<span style="color:#cdd7e6;">Profile: <b>${profile.name}</b> | Tier: <b>${tierLabel}</b> | Night protection: <b>${protLabel}</b></span>`);
+  logToOutput(`<span style="color:#888; font-size:0.84em;">Rule: ${tier.bedtimeRule}</span>`);
+  logToOutput(`<span style="color:#888; font-size:0.84em;">Forgiveness: ${profile.wakeChanceMod > 0 ? '+' : ''}${profile.wakeChanceMod}% | Wake midway: ${profile.wakeDuringAccidentChance}% | Wake after: ${profile.wakeAfterAccidentChance}% | Output: ${profile.nightOutputPct}%</span>`);
+  logToOutput(`<div style="border:1px solid #81ecec44; padding:12px; border-radius:10px; background:#1b2030; margin:8px 0;">
+    <span style="color:#81ecec; font-size:1em;"><b>How it works:</b></span><br>
+    <span style="color:#cdd7e6; font-size:0.9em;">No timers will run tonight. If you wake up needing to pee, press <b style="color:#81ecec;">"I Woke Up To Pee"</b> and we'll roll for whether you make it.<br>
+    In the morning, press <b style="color:#81ecec;">"Morning Check"</b> to see whether you stayed dry, leaked, or slept through an accident.</span>
+  </div>`);
+
+  showBedwettingPrefsPanel(profile.name, tierLabel, tier, profile);
+
+  const btn = $('btnQuickGo');
+  if (btn) {
+    btn.style.display = 'block';
+    btn.textContent = '🌙 I Woke Up To Pee';
+    btn.onclick = bedwettingWakeRoll;
+  }
+
+  const lbl = $('countdown');
+  if (lbl) lbl.innerHTML = `<span style="color:#81ecec; font-size:1.1em;">Sleeping... roll only if you wake up.</span>`;
+
+  const wakeBtn = $('btnBedMorning');
+  if (wakeBtn) {
+    wakeBtn.style.display = 'inline-block';
+    wakeBtn.textContent = '☀️ Morning Check';
+    wakeBtn.onclick = bedwettingMorningCheck;
+  }
+
+  saveState();
+}
+
+function showBedwettingPrefsPanel(profileName, tierLabel, tier, profile) {
+  const existing = $('quickPrefsPanel');
+  if (existing) existing.remove();
+
+  const panel = document.createElement('div');
+  panel.id = 'quickPrefsPanel';
+  panel.style.cssText = 'margin-top:12px;';
+  panel.innerHTML = `
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px; cursor:pointer;" onclick="toggleSidebarSection('quickPrefsContent')">
+      <h2 style="margin:0; font-size:14px; color:#81ecec;"><span id="quickPrefsContentArrow" class="collapse-arrow collapsed">▼</span> 🌙 Bedwetting</h2>
+    </div>
+    <div id="quickPrefsContent" style="display:none; background:#1b2030; padding:10px 12px; border-radius:10px; border:1px solid #81ecec44; margin-top:4px;">
+      <div style="margin-bottom:6px;"><span style="color:#888; font-size:12px;">Profile:</span> <span style="color:#81ecec; font-weight:bold; font-size:13px;">${profileName}</span></div>
+      <div style="margin-bottom:6px;"><span style="color:#888; font-size:12px;">Tier:</span> <span style="color:#cdd7e6; font-size:13px;">${tierLabel}</span></div>
+      <div style="margin-bottom:6px;"><span style="color:#888; font-size:12px;">Wake chance:</span> <span style="color:#cdd7e6; font-size:13px;">~${Math.max(1, Math.min(99, tier.wakeChance + profile.wakeChanceMod + (profile.ruleFollowed ? 8 : -10)))}%</span></div>
+      <div style="margin-bottom:6px;"><span style="color:#888; font-size:12px;">Mid/after wake:</span> <span style="color:#cdd7e6; font-size:13px;">${profile.wakeDuringAccidentChance}% / ${profile.wakeAfterAccidentChance}%</span></div>
+      <div style="margin-bottom:8px;"><span style="color:#888; font-size:12px;">Output / refill:</span> <span style="color:#cdd7e6; font-size:13px;">${profile.nightOutputPct}% / ${profile.afterAccidentHydrationMl}ml</span></div>
+      <button onclick="showSessionSetupModal()" style="width:100%; padding:8px; background:#0f1115; border:1px solid #81ecec44; color:#81ecec; border-radius:6px; cursor:pointer; font-size:12px;">⚙️ Change Settings</button>
+    </div>
+  `;
+
+  const sessionPanel = document.querySelector('.panel.stack');
+  const firstHr = sessionPanel?.querySelector('.hr');
+  if (firstHr) {
+    firstHr.insertAdjacentElement('afterend', panel);
+  } else if (sessionPanel) {
+    sessionPanel.appendChild(panel);
+  }
+}
+
+function bedwettingWakeRoll() {
+  if (!sessionRunning || profileMode !== 'bedwetting') {
+    toast('Start a Bedwetting Session first!');
+    return;
+  }
+
+  const profile = getActiveBedwettingProfile();
+  const tier = BEDWETTING_TIER_MAP[window._bedwettingTier || profile.tier] || BEDWETTING_TIER_MAP.moderate_bedwetter;
+  const ruleFollowed = window._bedwettingRuleFollowed === true || profile.ruleFollowed === true;
+  const nightLoad = window._bedwettingNightLoad || 0;
+  const loadPenalty = Math.floor(nightLoad / 150) * 3;
+
+  let wakeChance = tier.wakeChance + profile.wakeChanceMod;
+  if (ruleFollowed) wakeChance += 8;
+  else wakeChance -= 10;
+  if ((window._bedwettingAwakeRolls || 0) > 0) wakeChance -= 8;
+  wakeChance -= loadPenalty;
+  wakeChance = Math.max(3, Math.min(95, wakeChance));
+
+  const wakeNarrative = getBedwettingWakeNarrative();
+  logToOutput(`<span style="color:#81ecec;"><b>🌙 You wake in the night...</b></span>`);
+  logToOutput(`<span style="color:#cdd7e6;">${wakeNarrative}</span>`);
+
+  const roll = Math.random() * 100;
+  window._bedwettingAwakeRolls = (window._bedwettingAwakeRolls || 0) + 1;
+
+  if (roll < wakeChance) {
+    logToOutput(`<span style="color:#55efc4;"><b>🚽 You make it to the potty in time.</b></span>`);
+    logToOutput(`<span style="color:#a8e6cf;">You are allowed to get up, use the potty, then go back to sleep.</span>`);
+    window._bedwettingNightLoad = Math.max(0, nightLoad - 180);
+    if (manualSaturation > 0) {
+      manualSaturation = Math.max(0, manualSaturation - 4);
+      updateSaturationUI(manualSaturation);
+    }
+    saveState();
+    return;
+  }
+
+  const capacity = (typeof getMainProtectionCapacity === 'function') ? getMainProtectionCapacity() : 100;
+  const accidentRoll = Math.random() * 100;
+  const isMicro = accidentRoll < tier.microChance;
+  const wokeDuring = Math.random() * 100 < profile.wakeDuringAccidentChance;
+
+  if (isMicro) {
+    let satGain = getBedwettingAdjustedSatGain(4, 11, profile.nightOutputPct);
+    if (wokeDuring) satGain = Math.max(2, Math.round(satGain * 0.75));
+    manualSaturation = Math.min(manualSaturation + satGain, capacity + 10);
+    updateSaturationUI(manualSaturation);
+    checkOverflowSaturation(manualSaturation);
+    window._bedwettingHadNightAccident = true;
+    window._bedwettingNightLoad = Math.max(0, nightLoad - Math.round(80 * (profile.nightOutputPct / 100)));
+
+    if (wokeDuring) {
+      const desc = getBedwettingAccidentNarrative('micro', 'during');
+      logToOutput(`<span style="color:#fdcb6e;"><b>💧 You wake during a small accident.</b></span>`);
+      logToOutput(`<span style="color:#ffeaa7;">${desc}</span>`);
+      logToOutput(`<span style="color:#cdd7e6;">You can stop there, use the potty if needed, then settle back down.</span>`);
+      applyBedwettingAftercare(profile, '#ffeaa7');
+    } else {
+      const wokeAfter = Math.random() * 100 < profile.wakeAfterAccidentChance;
+      const desc = getBedwettingAccidentNarrative('micro', wokeAfter ? 'after' : 'sleep');
+      logToOutput(`<span style="color:#fdcb6e;"><b>💧 Small nighttime accident.</b></span>`);
+      logToOutput(`<span style="color:#ffeaa7;">${desc}</span>`);
+      if (wokeAfter) {
+        logToOutput(`<span style="color:#cdd7e6;">You wake after the dribbles and can check yourself before going back to sleep.</span>`);
+        applyBedwettingAftercare(profile, '#cdd7e6');
+      } else {
+        logToOutput(`<span style="color:#cdd7e6;">You stay sleepy and drift back off without really dealing with it.</span>`);
+      }
+    }
+  } else {
+    let satGain = getBedwettingAdjustedSatGain(18, 34, profile.nightOutputPct);
+    if (wokeDuring) satGain = Math.max(10, Math.round(satGain * 0.7));
+    manualSaturation = Math.min(manualSaturation + satGain, capacity + 15);
+    updateSaturationUI(manualSaturation);
+    checkOverflowSaturation(manualSaturation);
+    window._bedwettingHadNightAccident = true;
+    window._bedwettingNightLoad = Math.max(0, nightLoad - Math.round(175 * (profile.nightOutputPct / 100)));
+
+    if (wokeDuring) {
+      const desc = getBedwettingAccidentNarrative('macro', 'during');
+      logToOutput(`<span style="color:#ff7675;"><b>💦 You wake halfway through a full accident.</b></span>`);
+      logToOutput(`<span style="color:#fab1a0;">${desc}</span>`);
+      logToOutput(`<span style="color:#cdd7e6;">You wake enough to change if needed, especially if you're leaking.</span>`);
+      applyBedwettingAftercare(profile, '#fab1a0');
+    } else {
+      const wokeAfter = Math.random() * 100 < profile.wakeAfterAccidentChance;
+      const desc = getBedwettingAccidentNarrative('macro', wokeAfter ? 'after' : 'sleep');
+      logToOutput(`<span style="color:#ff7675;"><b>💦 Full bedwetting accident.</b></span>`);
+      logToOutput(`<span style="color:#fab1a0;">${desc}</span>`);
+      if (wokeAfter) {
+        logToOutput(`<span style="color:#cdd7e6;">You wake after it's over and can decide whether to change or just settle back down.</span>`);
+        applyBedwettingAftercare(profile, '#fab1a0');
+      } else {
+        logToOutput(`<span style="color:#cdd7e6;">You sleep through it completely and do not really deal with it until morning.</span>`);
+      }
+    }
+  }
+
+  saveState();
+}
+
+function bedwettingMorningCheck() {
+  if (!sessionRunning || profileMode !== 'bedwetting') {
+    toast('Start a Bedwetting Session first!');
+    return;
+  }
+
+  const profile = getActiveBedwettingProfile();
+  const tier = BEDWETTING_TIER_MAP[window._bedwettingTier || profile.tier] || BEDWETTING_TIER_MAP.moderate_bedwetter;
+  const capacity = (typeof getMainProtectionCapacity === 'function') ? getMainProtectionCapacity() : 100;
+  const fillPct = capacity > 0 ? (manualSaturation / capacity) * 100 : 0;
+  const alreadyHadAccident = window._bedwettingHadNightAccident === true;
+  const nightLoad = window._bedwettingNightLoad || 0;
+
+  logToOutput(`<span style="color:#81ecec;"><b>☀️ Morning Check</b></span>`);
+
+  if (!alreadyHadAccident) {
+    const overnightRoll = Math.random() * 100;
+    const overnightAccidentChance = Math.max(
+      4,
+      100 - (tier.wakeChance + profile.wakeChanceMod) + (profile.ruleFollowed ? -5 : 10) + Math.floor(nightLoad / 120) * 4
+    );
+
+    if (overnightRoll < overnightAccidentChance * 0.45) {
+      const satGain = getBedwettingAdjustedSatGain(5, 12, profile.nightOutputPct);
+      manualSaturation = Math.min(manualSaturation + satGain, capacity + 10);
+      updateSaturationUI(manualSaturation);
+      checkOverflowSaturation(manualSaturation);
+      logToOutput(`<span style="color:#fdcb6e;">You slept through a small leak without ever really waking up.</span>`);
+    } else if (overnightRoll < overnightAccidentChance) {
+      const satGain = getBedwettingAdjustedSatGain(16, 30, profile.nightOutputPct);
+      manualSaturation = Math.min(manualSaturation + satGain, capacity + 15);
+      updateSaturationUI(manualSaturation);
+      checkOverflowSaturation(manualSaturation);
+      logToOutput(`<span style="color:#ff7675;">You never woke up enough to react. There was a full nighttime accident.</span>`);
+    } else {
+      logToOutput(`<span style="color:#55efc4;">You made it through the night dry.</span>`);
+    }
+  } else {
+    if (fillPct < 20) {
+      logToOutput(`<span style="color:#ffeaa7;">You wake up with just a light dampness from the night's accident.</span>`);
+    } else if (fillPct < 65) {
+      logToOutput(`<span style="color:#fab1a0;">You wake up noticeably wet and need to check your protection.</span>`);
+    } else {
+      logToOutput(`<span style="color:#ff7675;">You wake up heavily wet and should clean up right away.</span>`);
+    }
+  }
+
+  sessionRunning = false;
+  const btn = $('btnQuickGo');
+  if (btn) {
+    btn.textContent = '🚽 I Need to Go!';
+    btn.onclick = quickModeRoll;
+    btn.style.display = 'none';
+  }
+
+  const wakeBtn = $('btnBedMorning');
+  if (wakeBtn) {
+    wakeBtn.textContent = '☀️ Morning Check';
+    wakeBtn.onclick = bedwettingMorningCheck;
+    wakeBtn.style.display = 'none';
+  }
+
+  const lbl = $('countdown');
+  if (lbl) lbl.innerHTML = `<span style="color:#81ecec; font-size:1.1em;">Night complete.</span>`;
 
   saveState();
 }
@@ -2228,7 +3253,7 @@ function showBanner(msg, hint, priority = 'low') {
 
   // TRAFFIC CONTROL:
   // If banner is already showing...
-  if (b.style.display === 'block') {
+  if (b.style.display === 'flex') {
     // If the incoming message is just a Micro or Drink (low priority), 
     // discard it to prevent stacking/confusion.
     if (priority === 'low') {
@@ -2239,7 +3264,7 @@ function showBanner(msg, hint, priority = 'low') {
   }
 
   $('alarmText').innerHTML = msg; // Use innerHTML to allow bolding
-  b.style.display = 'block';
+  b.style.display = 'flex';
 
   // RESET: Always ensure the "Reveal" button is visible by default
   const btn = b.querySelector('.btn.ack');

@@ -63,7 +63,16 @@ const PROFILE_CONFIG = {
     hydrationSips: [4, 8],
     scheduler: 'dependent',    // queue-based micro chain
     alarmText: ['⚠️ <b>BLADDER SPASM</b>', 'Status uncertain...'],
-    microCompleteMsg: "💧 Micro-leak logged. It's just part of your condition.",
+    microCompleteMsg: [
+      "💧 Micro-leak logged. It's just part of your condition.",
+      "💧 Another small spasm confirmed. Your control is slipping.",
+      "💧 A minor leak escapes your grasp. Typical for someone in your state.",
+      "💧 Passive release noted. You don't even try to stop it anymore.",
+      "💧 Wetness spreads slightly. Acknowledge your lack of control.",
+      "💧 Your padding absorbs the small spurt. Just a prelude to the flood.",
+      "💧 Spasm complete. Just let it soak in.",
+      "💧 Leak logged. Your bladder doesn't listen to you anymore."
+    ],
     leakLimit: null,           // already "regressed"
     setupKey: 'dependent_setup',
     showHydrationPanel: false,
