@@ -253,13 +253,12 @@ function triggerBabysitterCheckIn() {
     stopChime();
     const sat = manualSaturation;
     const pressure = manualPressure;
-    const capacity = getMainProtectionCapacity();
 
     const checkThresholds = [
-      { min: capacity * 0.9, color: '#ff7675', emoji: '😟', msg: 'Oh dear, you\'re completely soaked. We need to deal with this right now.', action: () => checkBabysitterProgression('accident') },
-      { min: capacity * 0.5, color: '#fdcb6e', emoji: '🤔', msg: 'Getting pretty wet in there. I\'ll keep an eye on you.', action: null },
-      { min: 10,             color: '#81ecec', emoji: '😊', msg: 'A little damp but nothing to worry about yet.', action: null },
-      { min: -Infinity,      color: '#55efc4', emoji: '😄', msg: 'Still dry! Good job, keep it up.', action: () => { if (pressure < 30) maybeAwardPottyPass('good_check'); } }
+      { min: 90,        color: '#ff7675', emoji: '😟', msg: 'Oh dear, you\'re completely soaked. We need to deal with this right now.', action: () => checkBabysitterProgression('accident') },
+      { min: 50,        color: '#fdcb6e', emoji: '🤔', msg: 'Getting pretty wet in there. I\'ll keep an eye on you.', action: null },
+      { min: 10,        color: '#81ecec', emoji: '😊', msg: 'A little damp but nothing to worry about yet.', action: null },
+      { min: -Infinity, color: '#55efc4', emoji: '😄', msg: 'Still dry! Good job, keep it up.', action: () => { if (pressure < 30) maybeAwardPottyPass('good_check'); } }
     ];
     const check = checkThresholds.find(t => sat > t.min) || checkThresholds[checkThresholds.length - 1];
     let response = `<span style="color:${check.color};">${check.emoji} Babysitter: "${check.msg}"</span>`;
@@ -285,15 +284,14 @@ function triggerBabysitterCheckIn() {
 function applyBabysitterLeakPayload(payload) {
   if (!payload || profileMode !== 'babysitter') return;
 
-  const leakThroughThreshold = getMainProtectionCapacity();
-  const wouldLeakThrough = manualSaturation > leakThroughThreshold * 0.8;
+  const wouldLeakThrough = manualSaturation > 80; // >80% full = leak-through risk
 
   logToOutput(`<div style="background:#1b2030; padding:8px; border-radius:6px; margin:4px 0; border-left:3px solid #fdcb6e;">
     <span style="color:#fdcb6e; font-weight:bold;">💧 ${payload.label}</span>
   </div>`);
 
   if (wouldLeakThrough) {
-    logToOutput(`<span style="color:#ff7675;"><b>⚠️ Leak-through risk:</b> ${formatProtectionLevel(currentProtectionLevel)} capacity is ${leakThroughThreshold}%. If you feel you've leaked through, use <b>Emergency</b> to report it before the next check.</span>`);
+    logToOutput(`<span style="color:#ff7675;"><b>⚠️ Leak-through risk:</b> Your ${formatProtectionLevel(currentProtectionLevel)} is over 80% full. If you feel you've leaked through, use <b>Emergency</b> to report it before the next check.</span>`);
   }
 }
 
@@ -571,9 +569,8 @@ function getBabysitterPottyChance() {
   if (manualPressure > 80) chance -= 20;
   else if (manualPressure > 60) chance -= 10;
   
-  // Saturation penalty: if already wet past 50% capacity, babysitter is less likely to send you
-  const _cap = getMainProtectionCapacity();
-  if (manualSaturation > _cap * 0.5) chance -= 10;
+  // Saturation penalty: if already wet past 50%, babysitter is less likely to send you
+  if (manualSaturation > 50) chance -= 10;
 
   if (hasSymptom('urge_incontinence')) chance -= (manualPressure > 70 ? 20 : 10);
   if (hasCurse('strict_sitter')) chance -= 10;

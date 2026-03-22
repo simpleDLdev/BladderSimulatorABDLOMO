@@ -773,6 +773,145 @@ const MACRO_DEPENDENT_D20 = [
   { label: "Diaper Squeeze", flow: "Use your thighs to squeeze the diaper. Wet into the squeeze.", guide: [{ text: "SQUEEZE THIGHS", time: 5, type: "stop" }, { text: "WET MIDDLE", time: 10, type: "push" }] }
 ];
 
+/* --- BEDWETTING TABLES --- */
+
+const BEDWETTING_EVENT_MODULES = {
+  positions: [
+    'on your back',
+    'curled on your side',
+    'half on your stomach',
+    'flat on your tummy',
+    'twisted in the sheets',
+    'with your knees tucked up',
+    'spread out under the blankets',
+    'with one leg hooked around the blanket',
+    'hugging a pillow',
+    'on the edge of the mattress',
+    'bundled up tight',
+    'mushed down into the bed',
+  ],
+  wakeCues: [
+    'you feel a heavy warmth low in your tummy',
+    'your bladder nags hard enough to drag you half-awake',
+    'you wake with your thighs pressing together instinctively',
+    'the need to pee finally cuts through the sleepiness',
+    'your body squirms before your brain catches up',
+    'you blink awake, tense and needy',
+    'the pressure gets sharp enough to notice',
+    'you become aware of a sleepy, urgent ache',
+    'your lower belly feels tight and demanding',
+    'you wake with a helpless little squirm',
+  ],
+  microStarts: [
+    'a few warm dribbles slip out',
+    'a weak sleepy squeeze leaks into your protection',
+    'a tiny spurt escapes before you can react',
+    'your body lets out a brief dribble',
+    'a quick little leak wets you',
+    'you lose a small spurt into the padding',
+    'a short dribble sneaks out',
+    'a warm trickle slips free',
+  ],
+  macroStarts: [
+    'your bladder gives up in a heavy rush',
+    'a full wetting surges out before you can stop it',
+    'you start soaking hard into your protection',
+    'a strong, helpless flood pours out',
+    'your body commits to a full accident',
+    'a thick, steady wetting takes over',
+    'a heavy nighttime accident spreads through the padding',
+    'you void heavily, deep in the mattress and blankets',
+  ],
+  midWake: [
+    'You wake halfway through it and tense up hard.',
+    'That finally jars you awake enough to notice what is happening.',
+    'You come to in the middle of the accident and can react a little.',
+    'You wake with a start and catch part of it in progress.',
+    'That warmth snaps you awake halfway through.',
+    'You notice in time to stop some of it, but not all.',
+  ],
+  afterWake: [
+    'You only really wake once the warmth settles.',
+    'You wake after the accident is already done.',
+    'By the time you understand it, the wetting is over.',
+    'You come to slowly, already damp and aware of what happened.',
+    'You wake once the pressure is gone and the wetness remains.',
+    'It is only afterward that you realize how wet you are.',
+  ],
+  sleepThrough: [
+    'You stay deeply asleep and do not really deal with it until morning.',
+    'You drift right through it without reacting.',
+    'You never fully wake and just settle deeper into sleep.',
+    'Your body handles it without waking you properly at all.',
+    'You remain half-lost in sleep and do nothing about it.',
+    'You do not wake enough to respond before sleep takes over again.',
+  ],
+};
+
+const BEDWETTING_MICRO_DURING_MERCY_D6 = [
+  { label: 'Sleepy Clench', flow: 'A sleepy dribble starts, but you catch it quickly and cut it short.', guide: [{ text: 'HOLD TIGHT', time: 5, type: 'stop' }, { text: 'SPASM LEAK', time: 2, type: 'push' }] },
+  { label: 'Warm Catch', flow: 'Warmth spreads just enough to wake you. You squeeze hard and only a little escapes.', guide: [{ text: 'SQUEEZE HARD', time: 5, type: 'stop' }, { text: 'SMALL LEAK', time: 3, type: 'push' }] },
+  { label: 'Sleepy Spurt', flow: 'A weak spurt slips out before you wake enough to stop the rest.', guide: [{ text: 'CLENCH', time: 4, type: 'stop' }, { text: 'SHORT SPURT', time: 3, type: 'push' }] },
+  { label: 'Half Awake Dribble', flow: 'You wake just enough to tighten up, but a dribble still gets through first.', guide: [{ text: 'TRY TO HOLD', time: 4, type: 'stop' }, { text: 'DRIBBLE', time: 3, type: 'relax' }] },
+  { label: 'Tummy Relax', flow: 'Your tummy softens in your sleep and a small leak sneaks out before you catch it.', guide: [{ text: 'HOLD BACK', time: 4, type: 'stop' }, { text: 'WARM DRIBBLE', time: 3, type: 'relax' }] },
+  { label: 'Leaking Dream', flow: 'You feel a little leak starting in your sleep and manage to stop most of it.', guide: [{ text: 'STOP IT', time: 4, type: 'stop' }, { text: 'JUST A LITTLE', time: 3, type: 'push' }] },
+];
+
+const BEDWETTING_MICRO_DURING_D6 = [
+  { label: 'Sleepy Dribble', flow: 'A sleepy dribble trickles quietly into your protection.', guide: [{ text: 'SOFTEN', time: 2, type: 'relax' }, { text: 'DRIBBLE', time: 5, type: 'relax' }] },
+  { label: 'Warm Reminder', flow: 'Warmth spreads in a few little spurts before it settles.', guide: [{ text: 'SPURT', time: 1, type: 'push' }, { text: 'SPURT', time: 1, type: 'push' }, { text: 'SETTLE', time: 3, type: 'relax' }] },
+  { label: 'Gravity Leak', flow: 'Your body relaxes in bed and gravity pulls a small leak out of you.', guide: [{ text: 'RELAX', time: 2, type: 'relax' }, { text: 'GRAVITY LEAK', time: 4, type: 'relax' }] },
+  { label: 'Blanket Warmth', flow: 'The warmth under the blankets coaxes out a short little leak.', guide: [{ text: 'SETTLE IN', time: 2, type: 'relax' }, { text: 'SMALL LEAK', time: 4, type: 'relax' }] },
+  { label: 'Fading Hold', flow: 'Your hold fades in your sleep and a tiny trickle slips free.', guide: [{ text: 'LET GO A LITTLE', time: 2, type: 'relax' }, { text: 'TRICKLE', time: 4, type: 'relax' }] },
+  { label: 'Sleepy Twitch', flow: 'A sleepy twitch pushes out a quick spurt before it stops.', guide: [{ text: 'TWITCH', time: 1, type: 'push' }, { text: 'QUICK SPURT', time: 3, type: 'push' }] },
+];
+
+const BEDWETTING_MICRO_AFTER_D4 = [
+  { label: 'Damp Check', flow: 'You wake to a little dampness and confirm it with a quick touch.', guide: [{ text: 'PAT CHECK', time: 2, type: 'stop' }, { text: 'A LITTLE WET', time: 3, type: 'relax' }] },
+  { label: 'Cool Dampness', flow: 'The wetness has already cooled a bit by the time you notice it.', guide: [{ text: 'REACH DOWN', time: 2, type: 'stop' }, { text: 'JUST A SMALL LEAK', time: 3, type: 'relax' }] },
+  { label: 'Sleepy Realization', flow: 'You only notice after the dribble is over and the dampness has settled in.', guide: [{ text: 'WAKE UP', time: 2, type: 'relax' }, { text: 'DAMP PATCH', time: 4, type: 'relax' }] },
+  { label: 'Quiet Leak', flow: 'The leak is already done. All that is left is the warm dampness.', guide: [{ text: 'FEEL THE DAMP', time: 5, type: 'relax' }] },
+];
+
+const BEDWETTING_MICRO_SLEEP_D4 = [
+  { label: 'Sleep Through Dribble', flow: 'A small dribble came and went while you slept.', guide: [{ text: 'LIGHT DAMPNESS', time: 5, type: 'relax' }] },
+  { label: 'Little Leak', flow: 'A little leak spread under you before sleep pulled you back under.', guide: [{ text: 'SMALL LEAK', time: 5, type: 'relax' }] },
+  { label: 'Tiny Wet Patch', flow: 'You slept through a tiny wet patch forming beneath you.', guide: [{ text: 'TINY WET PATCH', time: 5, type: 'relax' }] },
+  { label: 'Brief Dribble', flow: 'A brief dribble escaped, then your body settled again.', guide: [{ text: 'BRIEF DRIBBLE', time: 5, type: 'relax' }] },
+];
+
+const BEDWETTING_MACRO_DURING_MERCY_D6 = [
+  { label: 'Fight The Flood', flow: 'You wake in the middle of a full wetting and try to fight it, but most of it still pours out.', guide: [{ text: 'MAX CLENCH', time: 4, type: 'stop' }, { text: 'HEAVY FLOOD', time: 14, type: 'relax' }] },
+  { label: 'Half Awake Loss', flow: 'The accident starts in a hard rush. You tense up for a moment, then lose the rest.', guide: [{ text: 'FIGHT IT', time: 4, type: 'stop' }, { text: 'FLOOD OUT', time: 14, type: 'relax' }] },
+  { label: 'Sleepy Failure', flow: 'You try to stop it as you wake, but the wetting is already too strong and too far gone.', guide: [{ text: 'SQUEEZE', time: 4, type: 'stop' }, { text: 'TOTAL RELEASE', time: 14, type: 'relax' }] },
+  { label: 'Broken Hold', flow: 'You catch it starting, clamp down hard, and still end up flooding heavily into your protection.', guide: [{ text: 'CLAMP DOWN', time: 4, type: 'stop' }, { text: 'FLOODING', time: 14, type: 'relax' }] },
+  { label: 'Wake And Lose', flow: 'You wake just in time to feel the loss of control, but not in time to save anything important.', guide: [{ text: 'TOO LATE', time: 3, type: 'stop' }, { text: 'FULL FLOOD', time: 15, type: 'relax' }] },
+  { label: 'Clench Through It', flow: 'You tense every muscle you can, but the flood keeps emptying out anyway.', guide: [{ text: 'HOLD BACK', time: 4, type: 'stop' }, { text: 'KEEPS EMPTYING', time: 14, type: 'relax' }] },
+];
+
+const BEDWETTING_MACRO_DURING_D6 = [
+  { label: 'The Floodgate', flow: 'A heavy sleepy flood takes over before you are fully awake.', guide: [{ text: 'TOTAL RELAX', time: 4, type: 'relax' }, { text: 'HEAVY FLOOD', time: 15, type: 'relax' }] },
+  { label: 'Lazy River', flow: 'Warmth spreads fast and the wetting turns into one long emptying.', guide: [{ text: 'SLOW STREAM', time: 18, type: 'relax' }] },
+  { label: 'Bed Mush', flow: 'You sink into the bed and just keep wetting until the pressure is gone.', guide: [{ text: 'MUSH DOWN', time: 3, type: 'relax' }, { text: 'LONG FLOOD', time: 14, type: 'relax' }] },
+  { label: 'Heavy Rush', flow: 'The accident comes in a deep, steady rush that does not stop until you are empty.', guide: [{ text: 'FULL RELEASE', time: 16, type: 'relax' }] },
+  { label: 'Warm Spread', flow: 'A heavy flood spreads through your protection and bedding in one long soaking release.', guide: [{ text: 'HEAVY SOAK', time: 16, type: 'relax' }] },
+  { label: 'Sleep Flood', flow: 'Your bladder gives up in one long flood while you are still foggy with sleep.', guide: [{ text: 'LONG FLOOD', time: 16, type: 'relax' }] },
+];
+
+const BEDWETTING_MACRO_AFTER_D4 = [
+  { label: 'Tail End', flow: 'You wake already very wet, with the last of the accident still draining out.', guide: [{ text: 'TAIL END', time: 9, type: 'relax' }] },
+  { label: 'Heavy Aftermath', flow: 'The full accident is mostly over by the time you wake, but a few heavy spurts are still finishing.', guide: [{ text: 'LAST HEAVY SPURTS', time: 8, type: 'relax' }] },
+  { label: 'Wake Soaked', flow: 'You come to already soaked, with only the final emptying left to finish.', guide: [{ text: 'FINISH EMPTYING', time: 9, type: 'relax' }] },
+  { label: 'Settling Flood', flow: 'Most of the wetting already happened. What remains is the long, heavy tail end.', guide: [{ text: 'HEAVY TAIL END', time: 9, type: 'relax' }] },
+];
+
+const BEDWETTING_MACRO_SLEEP_D4 = [
+  { label: 'Slept Through It', flow: 'You slept through a long heavy flood and only realize it when you wake soaked.', guide: [{ text: 'LONG HEAVY FLOOD', time: 16, type: 'relax' }] },
+  { label: 'Completely Wet', flow: 'The full accident finished while you slept, leaving you completely wet by morning.', guide: [{ text: 'FULL ACCIDENT', time: 15, type: 'relax' }] },
+  { label: 'Deep Sleep Flood', flow: 'You never woke enough to react. It all came out in one long flood while you slept.', guide: [{ text: 'ONE LONG FLOOD', time: 16, type: 'relax' }] },
+  { label: 'Night Flood', flow: 'Heavy warmth spread and settled while you slept right through the whole thing.', guide: [{ text: 'HEAVY NIGHT FLOOD', time: 16, type: 'relax' }] },
+];
+
 
 
 /* ---------- MICRO TABLES (Restored) ---------- */

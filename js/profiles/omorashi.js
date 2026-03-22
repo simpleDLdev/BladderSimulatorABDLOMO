@@ -357,9 +357,8 @@ function reportEmergencyOmorashiLeak() {
     return;
   }
 
-  const omoOverflow = (typeof getMainProtectionCapacity === 'function') ? getMainProtectionCapacity() : 100;
-  manualSaturation = omoOverflow;
-  updateSaturationUI(omoOverflow);
+  manualSaturation = 100;
+  updateSaturationUI(100);
   logToOutput(`<span style="color:#ff6b6b"><b>💦 ACCIDENT!</b><br>You could not hold any longer. Full release into ${formatProtectionLevel(currentProtectionLevel)}.</span>`);
   
   // Stop the session

@@ -62,7 +62,7 @@ function updateSaturationUI(val) {
   manualSaturation = parseInt(val, 10);
   $('saturationVal').textContent = manualSaturation + "%";
 
-  // Trigger overflow when saturation reaches or exceeds capacity
+  // Trigger overflow when saturation reaches or exceeds 100%
   checkOverflowSaturation(manualSaturation);
 }
 
