@@ -219,7 +219,7 @@ const BABYSITTER_CHECKIN_EVENTS = [
 ];
 
 function scheduleBabysitterCheckIn() {
-  if (babysitterCheckTimer) clearTimeout(babysitterCheckTimer);
+  babysitterCheckTimer = cancelBabysitterManagedTimeout(babysitterCheckTimer, babysitterAuxTimerIds);
   if (!sessionRunning || profileMode !== 'babysitter') return;
 
   const intervals = BABYSITTER_CHECK_INTERVALS[currentProtectionLevel] || { min: 30, max: 60 };
@@ -230,10 +230,10 @@ function scheduleBabysitterCheckIn() {
   const max = Math.max(min + 5, Math.round(intervals.max * mod));
   const minutes = randInt(min, max);
 
-  babysitterCheckTimer = setTimeout(() => {
+  babysitterCheckTimer = scheduleBabysitterManagedTimeout('checkin', minutes * 60000, () => {
     if (!sessionRunning || profileMode !== 'babysitter') return;
     triggerBabysitterCheckIn();
-  }, minutes * 60000);
+  });
 }
 
 function triggerBabysitterCheckIn() {
@@ -370,7 +370,7 @@ function trackDayEvent(eventType, details) {
       tracker.protectionChanges.push({
         from: details.from,
         to: details.to,
-        time: new Date().toLocaleTimeString()
+        time: formatClockHHMM(new Date())
       });
       break;
     case 'session_start':
@@ -425,7 +425,7 @@ function renderDayTracker() {
       <div><span style="color:#ff7675;">💦 Accidents:</span> <b style="color:#fff;">${tracker.accidents}</b></div>
       <div><span style="color:#fdcb6e;">💧 Partials:</span> <b style="color:#fff;">${tracker.partialAccidents}</b></div>
       <div><span style="color:#a29bfe;">🧷 Changes:</span> <b style="color:#fff;">${tracker.changes}</b></div>
-      <div><span style="color:#7cc4ff;">⏱️ Time:</span> <b style="color:#fff;">${activeMinutes}m</b></div>
+      <div><span style="color:#7cc4ff;">⏱️ Time:</span> <b style="color:#fff;">${formatMinutesHHMM(activeMinutes)}</b></div>
       <div><span style="color:#2ecc71;">⭐ Best Streak:</span> <b style="color:#fff;">${tracker.dryStreakBest}</b></div>
     </div>
     ${tracker.protectionChanges.length > 0 ? `<div style="margin-top:6px; padding-top:6px; border-top:1px solid #2b3348;">
@@ -488,6 +488,7 @@ function triggerBabysitterMicro(forceType = 'micro') {
   }
 
   const payload = createBabysitterLeakPayload(leakType, micro.label || micro.desc);
+  trackDayEvent('partial_accident');
 
   logToOutput(`<span style="color:#fdcb6e">⚠️ <b>Babysitter Spasm:</b> ${micro.desc}</span>`);
   startVoidGuide(micro.guide, `👩‍🍼 <b>Spasm:</b> ${micro.desc}`, 'micro');
@@ -690,11 +691,11 @@ function triggerBabysitterMacro() {
       
       // Schedule babysitter check 2-3 min after potty trip
       const checkDelay = randInt(2, 3) * 60000;
-      setTimeout(() => {
+      scheduleBabysitterManagedTimeout('potty_check', checkDelay, () => {
         if (sessionRunning && profileMode === 'babysitter') {
           triggerBabysitterPottyCheck();
         }
-      }, checkDelay);
+      });
     }, 2000);
     
   } else {
@@ -730,11 +731,11 @@ function triggerBabysitterMacro() {
       
       // Schedule babysitter accident check 2-3 min after
       const checkDelay = randInt(2, 3) * 60000;
-      setTimeout(() => {
+      scheduleBabysitterManagedTimeout('accident_check', checkDelay, () => {
         if (sessionRunning && profileMode === 'babysitter') {
           triggerBabysitterAccidentCheck(event.partial);
         }
-      }, checkDelay);
+      });
     }, 2000);
   }
 
@@ -853,14 +854,14 @@ function triggerBabysitterAccidentCheck(wasPartial) {
     protectionFailures++;
     protectionSuccesses = 0;
     
-    if (wasPartial && sat < 40) {
-      // Partial accident, not too bad
+    if (wasPartial) {
+      // Partial accidents stay partial in the tracker even if saturation climbed afterward.
       logToOutput(`<div style="background:#1b2030; padding:10px; border-radius:8px; margin:10px 0; border-left:3px solid #fab1a0;">
-        <b style="color:#fab1a0;">😕 Babysitter:</b> "Just a little accident—not too bad. Let's keep going, but try harder next time okay?"<br>
+        <b style="color:#fab1a0;">😕 Babysitter:</b> "Just a little accident, not too bad. Let's keep going, but try harder next time okay?"<br>
         <span style="color:#cdd7e6; font-size:0.9em;">Failures: <b>${babysitterFailureCount}</b> | Watching closely...</span>
       </div>`);
       
-      // Partial + low sat: count failure but don't force transition yet
+      // Keep partials counted separately from full accidents.
       trackDayEvent('partial_accident');
       checkBabysitterProgression('partial_accident');
       

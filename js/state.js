@@ -32,6 +32,7 @@ let sessionRunning = false;
 let meetingActive = false; // New: Blocks changes
 let meetingTimer = null;
 let lastChangeTime = Date.now();
+let sessionElapsedStartedAt = null;
 
 let profileMode = localStorage.getItem('profileMode') || 'early';
 
@@ -194,6 +195,10 @@ let babysitterTotalCycles = 0; // Total potty check cycles completed
 let babysitterFailureCount = 0; // Cumulative failures (for escalation)
 let lastBabysitterAccidentMeta = null;
 let babysitterCheckTimer = null; // Timer for periodic babysitter check-in events
+let lastBabysitterEventAt = 0;
+let babysitterScheduledEvents = [];
+let babysitterAuxTimerIds = [];
+let babysitterMinGapMs = 5 * 60000;
 
 /* --- BABYSITTER DIAPERING SYSTEM STATE --- */
 let protectionTypes = ['pad']; // User-selected protection types

@@ -396,9 +396,7 @@ function applySelectedProfile() {
 
   // Clear all profile-specific timers to prevent cross-contamination
   clearTimeout(microTimer); microTimer = null;
-  if (babysitterCheckTimer) { clearTimeout(babysitterCheckTimer); babysitterCheckTimer = null; }
-  babysitterMicroTimerIds.forEach(id => clearTimeout(id));
-  babysitterMicroTimerIds = [];
+  clearAllBabysitterTimers();
 
   // FIX: Clear custom profile runtime so stale events don't leak across profiles
   customProfileRuntime = null;
@@ -589,6 +587,8 @@ function startSession(isResume = false) {
   if (sessionRunning && !isResume) return;
 
   sessionRunning = true;
+  if (!sessionElapsedStartedAt) sessionElapsedStartedAt = Date.now();
+  updateSessionTimerDisplay();
   if (window.hydrationEnabled === undefined) window.hydrationEnabled = true;
   $('output').textContent = isResume ? "Session Resumed." : "Session Started. Bio-Logger Active.";
 
@@ -598,6 +598,7 @@ function startSession(isResume = false) {
   if (!isResume) {
     // FRESH START: CLEAR ALL GHOSTS
     sessionStartTime = Date.now(); 
+    sessionElapsedStartedAt = Date.now();
     depMicroCount = 0;
     hydrationEndAt = null;
     microEndAt = null;
@@ -607,9 +608,7 @@ function startSession(isResume = false) {
     pendingAmbientEvent = null;
 
     // Clear all babysitter-specific timers so they don't leak into other profiles
-    if (babysitterCheckTimer) { clearTimeout(babysitterCheckTimer); babysitterCheckTimer = null; }
-    babysitterMicroTimerIds.forEach(id => clearTimeout(id));
-    babysitterMicroTimerIds = [];
+    clearAllBabysitterTimers();
   }
 
   if (isResume && mainEndAt) {
@@ -898,14 +897,12 @@ function stopAll() {
   if (!sessionRunning) return;
   if (profileMode === 'babysitter') trackDayEvent('session_end');
   sessionRunning = false;
-  clearTimeout(mainTimer);
+  mainTimer = cancelBabysitterManagedTimeout(mainTimer, babysitterAuxTimerIds);
   clearTimeout(preChimeTimer);
   clearTimeout(microTimer);
   clearTimeout(hydrationTimer);
   clearTimeout(omorashiStressTestTimer);
-  if (babysitterCheckTimer) clearTimeout(babysitterCheckTimer);
-  babysitterMicroTimerIds.forEach(id => clearTimeout(id));
-  babysitterMicroTimerIds = [];
+  clearAllBabysitterTimers();
 
   clearInterval(tickInterval);
   stopChime();
@@ -928,7 +925,8 @@ function stopAll() {
   if (qpp) qpp.remove();
 
   // --- Session Summary ---
-  const elapsed = Date.now() - sessionStartTime;
+  const elapsedBase = sessionElapsedStartedAt || sessionStartTime || Date.now();
+  const elapsed = Date.now() - elapsedBase;
   const mins = Math.floor(elapsed / 60000);
   const hrs = Math.floor(mins / 60);
   const remMins = mins % 60;
@@ -955,6 +953,8 @@ function stopAll() {
 
   summary += `</div>`;
   $('output').innerHTML = summary;
+  sessionElapsedStartedAt = null;
+  updateSessionTimerDisplay();
 
   // Restore the getting started guide
   if ($('instructionsPanel')) $('instructionsPanel').style.display = '';
@@ -2274,19 +2274,82 @@ function logDrink(ml) {
   logToOutput(`<span style="color:#7cc4ff">💧 Drink Logged: ${ml}ml. Update pressure slider if needed.</span>`);
 }
 
+function getSessionElapsedSeconds() {
+  if (!sessionElapsedStartedAt) return 0;
+  return Math.max(0, Math.floor((Date.now() - sessionElapsedStartedAt) / 1000));
+}
+
+function formatClockHHMM(date) {
+  return date.toLocaleTimeString([], {
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false
+  });
+}
+
+function formatSessionTimer(totalSeconds) {
+  const safeSeconds = Math.max(0, Math.floor(totalSeconds));
+  const hours = Math.floor(safeSeconds / 3600);
+  const minutes = Math.floor((safeSeconds % 3600) / 60);
+  const seconds = safeSeconds % 60;
+
+  const hh = String(hours).padStart(2, '0');
+  const mm = String(minutes).padStart(2, '0');
+  const ss = String(seconds).padStart(2, '0');
+  return hours > 0 ? `${hh}:${mm}:${ss}` : `${mm}:${ss}`;
+}
+
+function formatMinutesHHMM(totalMinutes) {
+  const safeMinutes = Math.max(0, Math.floor(totalMinutes));
+  const hours = Math.floor(safeMinutes / 60);
+  const minutes = safeMinutes % 60;
+  return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
+}
+
+function formatRemainingFrom(now, targetAt) {
+  const remaining = Math.max(0, Math.ceil((targetAt - now) / 1000));
+  return formatSessionTimer(remaining);
+}
+
+function updateSessionTimerDisplay() {
+  const timerEl = $('sessionTimerDisplay');
+  const stateEl = $('sessionTimerState');
+  if (!timerEl || !stateEl) return;
+
+  if (!sessionRunning || !sessionElapsedStartedAt) {
+    timerEl.textContent = '00:00';
+    stateEl.textContent = 'Stopped';
+    return;
+  }
+
+  timerEl.textContent = formatSessionTimer(getSessionElapsedSeconds());
+  stateEl.textContent = 'Current Session';
+}
+
+function buildLogTimestampHTML() {
+  const local = formatClockHHMM(new Date());
+  const session = formatSessionTimer(getSessionElapsedSeconds());
+  return `<div style="display:flex; gap:8px; align-items:center; margin-bottom:4px; color:#8ea0b6; font-size:0.72em;">
+    <span>${local}</span>
+    <span style="opacity:0.45;">|</span>
+    <span>+${session}</span>
+  </div>`;
+}
+
 function logToOutput(html) {
   const out = $('output');
   const div = document.createElement('div');
   div.style.borderTop = "1px solid #333";
   div.style.marginTop = "8px";
   div.style.paddingTop = "4px";
-  div.innerHTML = html;
+  div.innerHTML = `${buildLogTimestampHTML()}${html}`;
   out.prepend(div);
 }
 
 function setCountdownLabel() {
   const lbl = $('countdown');
   if (!lbl) return;
+  updateSessionTimerDisplay();
 
   // 1. Check if user wants to hide the timer
   // If the checkbox is missing, default to showing it (false)
@@ -2301,9 +2364,7 @@ function setCountdownLabel() {
   // 2. Quick mode — static label, just show elapsed time
   if (profileMode === 'chaos_manual' && sessionRunning) {
     const elapsed = Math.floor((Date.now() - (sessionStartedAt || Date.now())) / 1000);
-    const m = Math.floor(elapsed / 60);
-    const s = elapsed % 60;
-    lbl.innerHTML = `<span style="color:#ff7675; font-size:1.1em;">Press the button when you need to go!</span> <span style="opacity:0.5; font-size:0.85em;">${m}m ${s}s</span>`;
+    lbl.innerHTML = `<span style="color:#ff7675; font-size:1.1em;">Press the button when you need to go!</span> <span style="opacity:0.5; font-size:0.85em;">${formatSessionTimer(elapsed)}</span>`;
     return;
   }
 
@@ -2313,10 +2374,7 @@ function setCountdownLabel() {
 
   // --- A. Main Event Timer ---
   if (mainEndAt && mainEndAt > now) {
-    const r = Math.ceil((mainEndAt - now) / 1000);
-    const m = Math.floor(r / 60);
-    const s = r % 60;
-    text.push(`Event: ${m}m ${s}s`);
+    text.push(`Event: ${formatRemainingFrom(now, mainEndAt)}`);
   } else if (sessionRunning) {
     text.push(`Event: NOW`);
   } else {
@@ -2330,11 +2388,23 @@ function setCountdownLabel() {
 
   // --- C. Hydration Timer ---
   if (hydrationEndAt && hydrationEndAt > now) {
-    const r = Math.ceil((hydrationEndAt - now) / 1000);
-    const m = Math.floor(r / 60);
-    const s = r % 60;
-    // Blue text for water to make it distinct
-    text.push(`<span style="color:#7cc4ff">💧 ${m}m ${s}s</span>`);
+    text.push(`<span style="color:#7cc4ff">💧 ${formatRemainingFrom(now, hydrationEndAt)}</span>`);
+  }
+
+  if (profileMode === 'babysitter' && sessionRunning) {
+    const nextMicroAt = getNextBabysitterScheduledAt('micro');
+    const nextCheckInAt = getNextBabysitterScheduledAt('checkin');
+    const nextSitterDrinkAt = getNextBabysitterScheduledAt('hydration');
+
+    if (nextMicroAt && nextMicroAt > now) {
+      text.push(`<span style="color:#fdcb6e">Spasm: ${formatRemainingFrom(now, nextMicroAt)}</span>`);
+    }
+    if (nextCheckInAt && nextCheckInAt > now) {
+      text.push(`<span style="color:#e17055">Check-In: ${formatRemainingFrom(now, nextCheckInAt)}</span>`);
+    }
+    if (nextSitterDrinkAt && nextSitterDrinkAt > now) {
+      text.push(`<span style="color:#81ecec">Sitter Drink: ${formatRemainingFrom(now, nextSitterDrinkAt)}</span>`);
+    }
   }
 
   // Join them with a visible separator

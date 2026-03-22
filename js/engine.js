@@ -317,6 +317,127 @@ function rescheduleMainEventForUrgency() {
   scheduleMainEvent({ min: 2, max: 5 });
 }
 
+function unregisterBabysitterScheduledEvent(timerId) {
+  babysitterScheduledEvents = babysitterScheduledEvents.filter(evt => evt.id !== timerId);
+}
+
+function removeBabysitterTimerFromStore(store, timerId) {
+  if (!Array.isArray(store)) return;
+  const idx = store.indexOf(timerId);
+  if (idx >= 0) store.splice(idx, 1);
+}
+
+function pruneBabysitterScheduledEvents() {
+  const now = Date.now() - 1000;
+  babysitterScheduledEvents = babysitterScheduledEvents.filter(evt => evt.runAt > now);
+}
+
+function getNextBabysitterScheduledAt(kind) {
+  pruneBabysitterScheduledEvents();
+  const matches = kind
+    ? babysitterScheduledEvents.filter(evt => evt.kind === kind)
+    : babysitterScheduledEvents;
+  if (!matches.length) return null;
+  return Math.min(...matches.map(evt => evt.runAt));
+}
+
+function reserveBabysitterEventTime(desiredAt) {
+  pruneBabysitterScheduledEvents();
+
+  const gap = babysitterMinGapMs || (5 * 60000);
+  let runAt = desiredAt;
+  if (lastBabysitterEventAt) {
+    runAt = Math.max(runAt, lastBabysitterEventAt + gap);
+  }
+
+  const occupied = babysitterScheduledEvents
+    .map(evt => evt.runAt)
+    .sort((a, b) => a - b);
+
+  let needsAnotherPass = true;
+  while (needsAnotherPass) {
+    needsAnotherPass = false;
+    for (const occupiedAt of occupied) {
+      if (Math.abs(runAt - occupiedAt) < gap) {
+        runAt = occupiedAt + gap;
+        needsAnotherPass = true;
+      }
+    }
+  }
+
+  return runAt;
+}
+
+function cancelBabysitterManagedTimeout(timerId, store = babysitterAuxTimerIds) {
+  if (!timerId) return null;
+  clearTimeout(timerId);
+  unregisterBabysitterScheduledEvent(timerId);
+  removeBabysitterTimerFromStore(store, timerId);
+  return null;
+}
+
+function cancelBabysitterScheduledKinds(kinds) {
+  const kindSet = new Set(Array.isArray(kinds) ? kinds : [kinds]);
+  const matches = babysitterScheduledEvents.filter(evt => kindSet.has(evt.kind));
+
+  for (const evt of matches) {
+    clearTimeout(evt.id);
+    removeBabysitterTimerFromStore(babysitterMicroTimerIds, evt.id);
+    removeBabysitterTimerFromStore(babysitterAuxTimerIds, evt.id);
+  }
+
+  babysitterScheduledEvents = babysitterScheduledEvents.filter(evt => !kindSet.has(evt.kind));
+}
+
+function clearAllBabysitterTimers() {
+  mainTimer = cancelBabysitterManagedTimeout(mainTimer, babysitterAuxTimerIds);
+  babysitterCheckTimer = cancelBabysitterManagedTimeout(babysitterCheckTimer, babysitterAuxTimerIds);
+
+  const microIds = [...babysitterMicroTimerIds];
+  const auxIds = [...babysitterAuxTimerIds];
+  microIds.forEach(id => cancelBabysitterManagedTimeout(id, babysitterMicroTimerIds));
+  auxIds.forEach(id => cancelBabysitterManagedTimeout(id, babysitterAuxTimerIds));
+
+  babysitterMicroTimerIds = [];
+  babysitterAuxTimerIds = [];
+  babysitterScheduledEvents = [];
+  lastBabysitterEventAt = 0;
+}
+
+function scheduleBabysitterManagedTimeout(kind, desiredDelayMs, callback, store = babysitterAuxTimerIds) {
+  if (!sessionRunning || profileMode !== 'babysitter') return null;
+
+  const desiredAt = Date.now() + Math.max(0, desiredDelayMs);
+  const runAt = reserveBabysitterEventTime(desiredAt);
+  let timerId = null;
+
+  timerId = setTimeout(() => {
+    unregisterBabysitterScheduledEvent(timerId);
+    removeBabysitterTimerFromStore(store, timerId);
+
+    if (!sessionRunning || profileMode !== 'babysitter') return;
+
+    const gap = babysitterMinGapMs || (5 * 60000);
+    const sinceLast = Date.now() - lastBabysitterEventAt;
+    if ($('voidOverlay')?.style.display === 'flex') {
+      scheduleBabysitterManagedTimeout(kind, 60000, callback, store);
+      return;
+    }
+    if (sinceLast < gap) {
+      scheduleBabysitterManagedTimeout(kind, gap - sinceLast + 1000, callback, store);
+      return;
+    }
+
+    lastBabysitterEventAt = Date.now();
+    callback();
+    if (typeof setCountdownLabel === 'function') setCountdownLabel();
+  }, Math.max(0, runAt - Date.now()));
+
+  store.push(timerId);
+  babysitterScheduledEvents.push({ id: timerId, kind, runAt });
+  return timerId;
+}
+
 function scheduleMainEvent(windowOverride) {
 
   const schedulerType = getProfileConfig().scheduler;
@@ -372,6 +493,9 @@ function scheduleMainEvent(windowOverride) {
   const runtime = customProfileRuntime;
   // BABYSITTER — custom micro scheduling
   if (schedulerType === 'babysitter') {
+    cancelBabysitterScheduledKinds(['micro', 'hydration', 'overactive', 'macro']);
+    mainTimer = cancelBabysitterManagedTimeout(mainTimer, babysitterAuxTimerIds);
+
     let min = windowOverride?.min ?? runtime?.mainMin ?? depSpasmMin ?? 40;
     let max = windowOverride?.max ?? runtime?.mainMax ?? depSpasmMax ?? 60;
     
@@ -384,7 +508,6 @@ function scheduleMainEvent(windowOverride) {
     }
     
     const minutes = randInt(min, max);
-    mainEndAt = Date.now() + (minutes * 60000);
 
     // Base micro count comes from babysitter setup modal, then continence/symptoms modify it.
     const baseMin = Number.isFinite(depQueueMin) ? depQueueMin : 0;
@@ -418,46 +541,45 @@ function scheduleMainEvent(windowOverride) {
     const numMicros = Number.isFinite(runtime?.microsPerCycle)
       ? clamp(runtime.microsPerCycle, 0, 10)
       : randInt(microMin, microMax);
-    // Cancel any leftover micro timers from previous cycles
-    babysitterMicroTimerIds.forEach(id => clearTimeout(id));
     babysitterMicroTimerIds = [];
+
     for (let i = 0; i < numMicros; i++) {
       const microDelay = randInt(8, Math.ceil(minutes / 2)); // Early in cycle
-      // Space micros at least 6 minutes apart to avoid stacking
-      const spacedDelay = microDelay + (i * 6);
-      const id = setTimeout(() => {
+      const staggeredDelay = (microDelay + (i * 6)) * 60000;
+      scheduleBabysitterManagedTimeout('micro', staggeredDelay, () => {
         if (sessionRunning && profileMode === 'babysitter') triggerBabysitterMicro('micro');
-      }, spacedDelay * 60000);
-      babysitterMicroTimerIds.push(id);
+      }, babysitterMicroTimerIds);
     }
 
     // Overactive symptom adds a mid-cycle pressure check with spasm risk even at moderate pressure.
     if (hasSymptom('overactive_bladder')) {
-      const checkDelay = randInt(Math.ceil(minutes / 3), Math.ceil((2 * minutes) / 3));
-      setTimeout(() => {
+      const checkDelay = randInt(Math.ceil(minutes / 3), Math.ceil((2 * minutes) / 3)) * 60000;
+      scheduleBabysitterManagedTimeout('overactive', checkDelay, () => {
         if (!sessionRunning || profileMode !== 'babysitter') return;
         maybeRunOveractiveUrgencyCheck();
-      }, checkDelay * 60000);
+      });
     }
     
     // 30% chance to include hydration reminder in this cycle (no auto pressure change)
     let hydrationChance = 0.3;
     if (hasCurse('hydration_debt')) hydrationChance = 0.55;
     if (Math.random() < hydrationChance) {
-      const hydroDelay = randInt(Math.ceil(minutes / 3), Math.ceil(2 * minutes / 3));
-      setTimeout(() => {
+      const hydroDelay = randInt(Math.ceil(minutes / 3), Math.ceil(2 * minutes / 3)) * 60000;
+      scheduleBabysitterManagedTimeout('hydration', hydroDelay, () => {
         if (sessionRunning && profileMode === 'babysitter') {
           const sips = randInt(depSipMin, depSipMax);
           logToOutput(`<span style="color:#81ecec;">💧 <b>Babysitter says:</b> "Time for ${sips} sip${sips > 1 ? 's' : ''} of water!" Update your pressure slider after drinking.</span>`);
         }
-      }, hydroDelay * 60000);
+      });
     }
 
     logToOutput(`<span class="muted">⏳ <b>Babysitter Reminder:</b> Next potty check in ~${minutes}m. Stay dry!</span>`);
-    mainTimer = setTimeout(() => {
+    mainTimer = scheduleBabysitterManagedTimeout('macro', minutes * 60000, () => {
       if (!sessionRunning || profileMode !== 'babysitter') return;
       triggerBabysitterMacro();
-    }, minutes * 60000);
+    });
+    mainEndAt = getNextBabysitterScheduledAt('macro');
+    setCountdownLabel();
     return;
   }
 

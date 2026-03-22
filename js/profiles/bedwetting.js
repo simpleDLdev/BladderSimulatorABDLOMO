@@ -592,9 +592,7 @@ function startBedwettingSession() {
   clearTimeout(microTimer);
   clearTimeout(hydrationTimer);
   clearTimeout(omorashiStressTestTimer);
-  if (babysitterCheckTimer) clearTimeout(babysitterCheckTimer);
-  babysitterMicroTimerIds.forEach(id => clearTimeout(id));
-  babysitterMicroTimerIds = [];
+  clearAllBabysitterTimers();
   stopChime();
   meetingActive = false;
   omorashiSessionActive = false;
@@ -615,6 +613,7 @@ function startBedwettingSession() {
 
   $('output').textContent = '';
   sessionRunning = true;
+  sessionElapsedStartedAt = Date.now();
   sessionStartedAt = Date.now();
   sessionStartTime = Date.now();
   manualPressure = 0;

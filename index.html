@@ -59,6 +59,15 @@
         <h2 style="margin:0;">Session Control</h2>
         <button class="info-btn" onclick="showInfoModal('session')" title="What is this?">?</button>
       </div>
+      <div style="margin-top:10px; margin-bottom:10px; padding:10px 12px; border-radius:10px; border:1px solid #2b3348; background:linear-gradient(135deg, #141923 0%, #101625 100%);">
+        <div style="display:flex; justify-content:space-between; align-items:center; gap:10px;">
+          <div>
+            <div style="font-size:0.72em; letter-spacing:0.08em; text-transform:uppercase; color:#8ea0b6; margin-bottom:4px;">Session Timer</div>
+            <div id="sessionTimerDisplay" style="font-size:1.8em; font-weight:700; color:#81ecec; font-variant-numeric:tabular-nums;">00:00</div>
+          </div>
+          <div id="sessionTimerState" style="font-size:0.85em; color:#8ea0b6; text-align:right;">Stopped</div>
+        </div>
+      </div>
       <p class="section-desc">Start a session to begin receiving timed bladder events. Choose a profile, configure settings, and the sim handles the rest.</p>
       <div class="buttons">
         <button onclick="showSessionSetupModal()"
@@ -292,7 +301,7 @@
       </div>
 
       <div class="row">
-        <label><input type="checkbox" id="hideCountdown" checked> Hide Timer</label>
+        <label><input type="checkbox" id="hideCountdown"> Hide Timer</label>
         <button onclick="toggleMicroNoise()" style="font-size:11px">Toggle Micros</button>
       </div>
       </div>
