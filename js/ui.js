@@ -2186,6 +2186,67 @@ function getBedwettingAccidentNarrative(kind, wakeState) {
   return `While ${position}, ${start}. ${ending}`;
 }
 
+// Returns an array of void-guide steps for a bedwetting outcome.
+// wakeState: 'potty' | 'during' | 'after' | 'sleep'
+// Mercy tiers (dry/light/moderate) get a CLENCH step when catching mid-accident.
+function getBedwettingGuideSteps(kind, wakeState, tierKey) {
+  const posText = randomFrom(BEDWETTING_EVENT_MODULES.positions).toUpperCase();
+  const hasMercy = ['dry_nights', 'light_bedwetter', 'moderate_bedwetter'].includes(tierKey);
+
+  if (wakeState === 'potty') {
+    // Exactly like RESTROOM_DISPATCH — minimal interrupt
+    return [{ text: 'GET UP AND GO', time: 0, type: 'stop' }];
+  }
+
+  const pos = { text: posText, time: 3, type: 'relax' };
+
+  if (wakeState === 'during') {
+    if (kind === 'micro') {
+      return hasMercy
+        ? randomFrom([
+            [pos, { text: 'FEEL THE WARMTH STARTING', time: 3, type: 'relax' }, { text: 'CLENCH TIGHT', time: 4, type: 'stop' }, { text: 'SMALL SPURT ESCAPES', time: 2, type: 'push' }],
+            [pos, { text: 'FEEL THE DRIBBLE STARTING', time: 3, type: 'relax' }, { text: 'SQUEEZE AND HOLD', time: 4, type: 'stop' }, { text: 'A LITTLE LEAKS OUT', time: 2, type: 'push' }],
+            [pos, { text: 'WARMTH STIRS YOU AWAKE', time: 3, type: 'relax' }, { text: 'CLENCH — TRY TO STOP IT', time: 4, type: 'stop' }, { text: 'JUST A TRICKLE', time: 3, type: 'push' }],
+          ])
+        : randomFrom([
+            [pos, { text: 'FEEL THE DRIBBLE', time: 3, type: 'relax' }, { text: 'LET IT TRICKLE OUT', time: 4, type: 'push' }],
+            [pos, { text: 'WARMTH BETWEEN YOUR LEGS', time: 3, type: 'relax' }, { text: 'LET THE REST OUT', time: 4, type: 'push' }],
+            [pos, { text: 'FEEL THE SMALL LEAK', time: 3, type: 'relax' }, { text: 'RELEASE GENTLY', time: 4, type: 'push' }],
+          ]);
+    } else {
+      return hasMercy
+        ? randomFrom([
+            [pos, { text: 'FEEL THE FLOOD STARTING', time: 3, type: 'relax' }, { text: 'CLENCH HARD', time: 5, type: 'stop' }, { text: "CAN'T STOP IT", time: 2, type: 'push' }, { text: 'LET IT ALL GO', time: 6, type: 'push' }, { text: 'BREATHE DEEP', time: 4, type: 'relax' }],
+            [pos, { text: 'FEEL THE RUSH STARTING', time: 3, type: 'relax' }, { text: 'SQUEEZE — FIGHT IT', time: 5, type: 'stop' }, { text: 'LOSING CONTROL', time: 2, type: 'push' }, { text: 'FULL RELEASE', time: 6, type: 'push' }, { text: 'SINK INTO THE WARMTH', time: 3, type: 'relax' }],
+          ])
+        : randomFrom([
+            [pos, { text: 'FEEL THE RELEASE', time: 3, type: 'relax' }, { text: 'LET GO COMPLETELY', time: 6, type: 'push' }, { text: 'SOAK THROUGH', time: 5, type: 'push' }, { text: 'BREATHE AND SETTLE', time: 4, type: 'relax' }],
+            [pos, { text: 'FEEL THE FLOOD', time: 3, type: 'relax' }, { text: 'NOTHING TO STOP IT', time: 5, type: 'push' }, { text: 'HEAVY AND WET', time: 5, type: 'push' }, { text: 'DRIFT BACK DOWN', time: 4, type: 'relax' }],
+          ]);
+    }
+  }
+
+  if (wakeState === 'after') {
+    return kind === 'micro'
+      ? randomFrom([
+          [pos, { text: 'SOMETHING FEELS DAMP', time: 4, type: 'relax' }, { text: 'PAT TO CHECK', time: 3, type: 'stop' }, { text: 'ALREADY WET', time: 3, type: 'push' }],
+          [pos, { text: 'FEEL THE COOLNESS', time: 4, type: 'relax' }, { text: 'REACH DOWN AND CHECK', time: 3, type: 'stop' }, { text: 'DAMP', time: 2, type: 'push' }],
+        ])
+      : randomFrom([
+          [pos, { text: 'FEEL THE HEAVY WET', time: 4, type: 'relax' }, { text: 'PAT DOWN', time: 3, type: 'stop' }, { text: 'ALREADY SOAKED', time: 3, type: 'push' }],
+          [pos, { text: 'WAKE TO WARMTH EVERYWHERE', time: 4, type: 'relax' }, { text: 'REACH AND CHECK', time: 3, type: 'stop' }, { text: 'SOAKED THROUGH', time: 3, type: 'push' }],
+        ]);
+  }
+
+  // sleep — discovered on button press; happened while fully asleep
+  return kind === 'micro'
+    ? [pos, { text: 'WAKE TO A LITTLE DAMPNESS', time: 4, type: 'relax' }, { text: 'ALREADY WET', time: 2, type: 'push' }, { text: 'SETTLE BACK DOWN', time: 4, type: 'relax' }]
+    : randomFrom([
+        [pos, { text: 'WAKE TO HEAVY WETNESS', time: 4, type: 'relax' }, { text: 'ALREADY SOAKED', time: 3, type: 'push' }, { text: 'NOTHING TO DO NOW', time: 3, type: 'relax' }],
+        [pos, { text: 'WAKE COMPLETELY WET', time: 4, type: 'relax' }, { text: 'SLEPT RIGHT THROUGH IT', time: 3, type: 'push' }, { text: 'BREATHE AND DRIFT BACK', time: 4, type: 'relax' }],
+      ]);
+}
+
 function applyBedwettingAftercare(profile, messageColor) {
   if (!profile.afterAccidentHydrationMl) return;
   window._bedwettingNightLoad = (window._bedwettingNightLoad || 0) + profile.afterAccidentHydrationMl;
@@ -2248,7 +2309,6 @@ function startBedwettingSession() {
   logToOutput(`<span style="color:#81ecec; font-size:1.1em;"><b>🌙 Bedwetting Session Started</b></span>`);
   logToOutput(`<span style="color:#cdd7e6;">Profile: <b>${profile.name}</b> | Tier: <b>${tierLabel}</b> | Night protection: <b>${protLabel}</b></span>`);
   logToOutput(`<span style="color:#888; font-size:0.84em;">Rule: ${tier.bedtimeRule}</span>`);
-  logToOutput(`<span style="color:#888; font-size:0.84em;">Forgiveness: ${profile.wakeChanceMod > 0 ? '+' : ''}${profile.wakeChanceMod}% | Wake midway: ${profile.wakeDuringAccidentChance}% | Wake after: ${profile.wakeAfterAccidentChance}% | Output: ${profile.nightOutputPct}%</span>`);
   logToOutput(`<div style="border:1px solid #81ecec44; padding:12px; border-radius:10px; background:#1b2030; margin:8px 0;">
     <span style="color:#81ecec; font-size:1em;"><b>How it works:</b></span><br>
     <span style="color:#cdd7e6; font-size:0.9em;">No timers will run tonight. If you wake up needing to pee, press <b style="color:#81ecec;">"I Woke Up To Pee"</b> and we'll roll for whether you make it.<br>
@@ -2314,7 +2374,8 @@ function bedwettingWakeRoll() {
   }
 
   const profile = getActiveBedwettingProfile();
-  const tier = BEDWETTING_TIER_MAP[window._bedwettingTier || profile.tier] || BEDWETTING_TIER_MAP.moderate_bedwetter;
+  const tierKey = window._bedwettingTier || profile.tier;
+  const tier = BEDWETTING_TIER_MAP[tierKey] || BEDWETTING_TIER_MAP.moderate_bedwetter;
   const ruleFollowed = window._bedwettingRuleFollowed === true || profile.ruleFollowed === true;
   const nightLoad = window._bedwettingNightLoad || 0;
   const loadPenalty = Math.floor(nightLoad / 150) * 3;
@@ -2335,20 +2396,21 @@ function bedwettingWakeRoll() {
 
   if (roll < wakeChance) {
     logToOutput(`<span style="color:#55efc4;"><b>🚽 You make it to the potty in time.</b></span>`);
-    logToOutput(`<span style="color:#a8e6cf;">You are allowed to get up, use the potty, then go back to sleep.</span>`);
     window._bedwettingNightLoad = Math.max(0, nightLoad - 180);
     if (manualSaturation > 0) {
       manualSaturation = Math.max(0, manualSaturation - 4);
       updateSaturationUI(manualSaturation);
     }
     saveState();
+    const pottySteps = getBedwettingGuideSteps(null, 'potty', tierKey);
+    setTimeout(() => startVoidGuide(pottySteps, '🚽 You made it — get up and release fully, then head back to bed.', 'micro'), 400);
     return;
   }
 
   const capacity = (typeof getMainProtectionCapacity === 'function') ? getMainProtectionCapacity() : 100;
-  const accidentRoll = Math.random() * 100;
-  const isMicro = accidentRoll < tier.microChance;
+  const isMicro = Math.random() * 100 < tier.microChance;
   const wokeDuring = Math.random() * 100 < profile.wakeDuringAccidentChance;
+  const hasMercy = ['dry_nights', 'light_bedwetter', 'moderate_bedwetter'].includes(tierKey);
 
   if (isMicro) {
     let satGain = getBedwettingAdjustedSatGain(4, 11, profile.nightOutputPct);
@@ -2361,21 +2423,28 @@ function bedwettingWakeRoll() {
 
     if (wokeDuring) {
       const desc = getBedwettingAccidentNarrative('micro', 'during');
-      logToOutput(`<span style="color:#fdcb6e;"><b>💧 You wake during a small accident.</b></span>`);
+      logToOutput(`<span style="color:#fdcb6e;"><b>💧 Small accident — you catch it happening.</b></span>`);
       logToOutput(`<span style="color:#ffeaa7;">${desc}</span>`);
-      logToOutput(`<span style="color:#cdd7e6;">You can stop there, use the potty if needed, then settle back down.</span>`);
       applyBedwettingAftercare(profile, '#ffeaa7');
+      const steps = getBedwettingGuideSteps('micro', 'during', tierKey);
+      const guideDesc = hasMercy
+        ? '💧 You catch a small accident starting — try to clench and cut it short.'
+        : '💧 A small accident is happening — feel it and let the dribble out.';
+      setTimeout(() => startVoidGuide(steps, guideDesc, 'micro'), 400);
     } else {
       const wokeAfter = Math.random() * 100 < profile.wakeAfterAccidentChance;
-      const desc = getBedwettingAccidentNarrative('micro', wokeAfter ? 'after' : 'sleep');
+      const wakeState = wokeAfter ? 'after' : 'sleep';
+      const desc = getBedwettingAccidentNarrative('micro', wakeState);
       logToOutput(`<span style="color:#fdcb6e;"><b>💧 Small nighttime accident.</b></span>`);
       logToOutput(`<span style="color:#ffeaa7;">${desc}</span>`);
       if (wokeAfter) {
-        logToOutput(`<span style="color:#cdd7e6;">You wake after the dribbles and can check yourself before going back to sleep.</span>`);
         applyBedwettingAftercare(profile, '#cdd7e6');
-      } else {
-        logToOutput(`<span style="color:#cdd7e6;">You stay sleepy and drift back off without really dealing with it.</span>`);
       }
+      const steps = getBedwettingGuideSteps('micro', wakeState, tierKey);
+      const guideDesc = wokeAfter
+        ? '💧 You wake up after a small accident — check yourself and settle back down.'
+        : '💧 You find yourself already a little wet — breathe and settle back.';
+      setTimeout(() => startVoidGuide(steps, guideDesc, 'micro'), 400);
     }
   } else {
     let satGain = getBedwettingAdjustedSatGain(18, 34, profile.nightOutputPct);
@@ -2388,21 +2457,28 @@ function bedwettingWakeRoll() {
 
     if (wokeDuring) {
       const desc = getBedwettingAccidentNarrative('macro', 'during');
-      logToOutput(`<span style="color:#ff7675;"><b>💦 You wake halfway through a full accident.</b></span>`);
+      logToOutput(`<span style="color:#ff7675;"><b>💦 Full accident — you wake while it's happening.</b></span>`);
       logToOutput(`<span style="color:#fab1a0;">${desc}</span>`);
-      logToOutput(`<span style="color:#cdd7e6;">You wake enough to change if needed, especially if you're leaking.</span>`);
       applyBedwettingAftercare(profile, '#fab1a0');
+      const steps = getBedwettingGuideSteps('macro', 'during', tierKey);
+      const guideDesc = hasMercy
+        ? '💦 A full accident is starting — try to clench, but let it happen if you can\'t hold on.'
+        : '💦 A full accident — let it all happen, breathe through it.';
+      setTimeout(() => startVoidGuide(steps, guideDesc, 'full'), 400);
     } else {
       const wokeAfter = Math.random() * 100 < profile.wakeAfterAccidentChance;
-      const desc = getBedwettingAccidentNarrative('macro', wokeAfter ? 'after' : 'sleep');
+      const wakeState = wokeAfter ? 'after' : 'sleep';
+      const desc = getBedwettingAccidentNarrative('macro', wakeState);
       logToOutput(`<span style="color:#ff7675;"><b>💦 Full bedwetting accident.</b></span>`);
       logToOutput(`<span style="color:#fab1a0;">${desc}</span>`);
       if (wokeAfter) {
-        logToOutput(`<span style="color:#cdd7e6;">You wake after it's over and can decide whether to change or just settle back down.</span>`);
         applyBedwettingAftercare(profile, '#fab1a0');
-      } else {
-        logToOutput(`<span style="color:#cdd7e6;">You sleep through it completely and do not really deal with it until morning.</span>`);
       }
+      const steps = getBedwettingGuideSteps('macro', wakeState, tierKey);
+      const guideDesc = wokeAfter
+        ? '💦 You wake up already wet — take stock and decide whether to change.'
+        : '💦 You find yourself heavily wet — you slept right through it.';
+      setTimeout(() => startVoidGuide(steps, guideDesc, 'full'), 400);
     }
   }
 
