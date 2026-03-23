@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 
 <head>
@@ -70,7 +70,7 @@
       </div>
       <p class="section-desc">Start a session to begin receiving timed bladder events. Choose a profile, configure settings, and the sim handles the rest.</p>
       <div class="buttons">
-        <button onclick="showSessionSetupModal()"
+        <button id="btnStartSession" onclick="showSessionSetupModal()"
           style="width:100%; padding:12px; background:#a29bfe; color:#000; font-weight:bold; font-size:1.1em;">▶ Start
           Session</button>
         <button id="btnQuickGo" onclick="quickModeRoll()"
@@ -84,6 +84,9 @@
         <button id="btnCanIGo" class="pill" onclick="requestRestroomPermission()"
           style="display:none; border-color:#81ecec; color:#81ecec; width:100%; margin-top:8px;">� Can I Go
           Pee?</button>
+        <!-- Mobile-only: enable tab-switch browser notifications. JS hides this on desktop. -->
+        <button id="btnEnableNotifications" class="pill" onclick="requestNotificationPermission()"
+          style="display:none; border-color:#7cc4ff; color:#7cc4ff; width:100%; margin-top:8px;">🔔 Enable Tab Notifications</button>
       </div>
 
       <div class="hr"></div>

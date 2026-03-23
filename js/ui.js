@@ -592,6 +592,9 @@ function startSession(isResume = false) {
   if (window.hydrationEnabled === undefined) window.hydrationEnabled = true;
   $('output').textContent = isResume ? "Session Resumed." : "Session Started. Bio-Logger Active.";
 
+  // Hide Start Session button while a session is running
+  if ($('btnStartSession')) $('btnStartSession').style.display = 'none';
+
   // Hide the getting started guide once session is active
   if ($('instructionsPanel')) $('instructionsPanel').style.display = 'none';
 
@@ -909,6 +912,9 @@ function stopAll() {
   meetingActive = false;
   omorashiSessionActive = false;
   omorashiGuideActive = false;
+
+  // Restore Start Session button
+  if ($('btnStartSession')) $('btnStartSession').style.display = '';
 
   // Hide Quick Mode button
   const btnQ = $('btnQuickGo');
@@ -2430,6 +2436,9 @@ function showBanner(msg, hint, priority = 'low') {
   $('alarmText').innerHTML = msg; // Use innerHTML to allow bolding
   b.style.display = 'flex';
 
+  // Push notification for mobile users on another tab
+  sendAlarmNotification('Sim', 'The sim page is asking for your attention.');
+
   // RESET: Always ensure the "Reveal" button is visible by default
   const btn = b.querySelector('.btn.ack');
   if (btn) btn.style.display = 'inline-block';
@@ -2552,10 +2561,11 @@ function haveAccident() {
   // 5. Build Guide Selector
   initGuideSelector();
 
-  // 6. Initialize Push-to-Leak and Stash UI
+  // 6. Initialize Push-to-Leak, Stash UI, and notification button
   initPushToLeakUI();
   initMessyMode();
   renderStashUI();
+  updateNotificationBtn();
 })();
 
 

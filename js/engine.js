@@ -928,3 +928,84 @@ window.addEventListener('focus', () => {
   runMobileRecoveryChecks('focus');
 });
 
+/* ========== MOBILE WEB NOTIFICATIONS ========== */
+
+function isMobileDevice() {
+  return /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent) ||
+    ('ontouchstart' in window && navigator.maxTouchPoints > 0);
+}
+
+function canShowNotifications() {
+  return isMobileDevice() && ('Notification' in window);
+}
+
+function requestNotificationPermission() {
+  if (!canShowNotifications()) {
+    toast('Notifications are not supported on this device/browser.');
+    return;
+  }
+  if (Notification.permission === 'denied') {
+    toast('❌ Notifications are blocked. Please enable them in your browser settings, then reload.');
+    return;
+  }
+  Notification.requestPermission().then(perm => {
+    updateNotificationBtn();
+    if (perm === 'granted') {
+      toast('✅ Notifications enabled!');
+      try {
+        new Notification('Bladder Sim', {
+          body: 'You\'ll now receive alarm alerts when you switch to another tab.',
+          tag: 'bladder-init'
+        });
+      } catch (e) {}
+    } else {
+      toast('Notifications not granted. You can change this in browser settings.');
+    }
+  });
+}
+
+function updateNotificationBtn() {
+  const btn = $('btnEnableNotifications');
+  if (!btn) return;
+  // Hide entirely on desktop; show only on mobile
+  if (!canShowNotifications()) {
+    btn.style.display = 'none';
+    return;
+  }
+  btn.style.display = '';
+  if (Notification.permission === 'granted') {
+    btn.textContent = '🔔 Notifications On';
+    btn.style.borderColor = '#55efc4';
+    btn.style.color = '#55efc4';
+  } else if (Notification.permission === 'denied') {
+    btn.textContent = '🔕 Notifications Blocked';
+    btn.style.borderColor = '#ff6b6b';
+    btn.style.color = '#ff6b6b';
+  } else {
+    btn.textContent = '🔔 Enable Tab Notifications';
+    btn.style.borderColor = '#7cc4ff';
+    btn.style.color = '#7cc4ff';
+  }
+}
+
+/**
+ * Fire a browser notification only when:
+ *  - permission is granted
+ *  - the page is hidden (user is on another tab / app)
+ * Safe to call from any alarm trigger.
+ */
+function sendAlarmNotification(title, body) {
+  if (!canShowNotifications()) return;
+  if (Notification.permission !== 'granted') return;
+  if (!document.hidden) return; // Don't interrupt if user is already on the page
+  try {
+    new Notification(title, {
+      body: body,
+      tag: 'bladder-alarm',   // Replaces previous notification instead of stacking
+      renotify: true           // Still vibrates/plays sound on newer Android Chrome
+    });
+  } catch (e) {
+    // Unsupported options (e.g. some iOS versions) — silently ignore
+  }
+}
+

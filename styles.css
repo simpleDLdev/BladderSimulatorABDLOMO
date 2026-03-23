@@ -652,12 +652,39 @@ b { color: #fff; font-weight: 700; }
     padding: 10px;
   }
 
-  /* Session setup modal */
+  /* Session setup modal: switch to flow layout so tall content scrolls */
+  #sessionSetupBackdrop {
+    overflow-y: auto !important;
+    display: flex !important;
+    align-items: flex-start !important;
+    justify-content: center !important;
+    padding: 20px 0 !important;
+    box-sizing: border-box !important;
+  }
+
   #sessionSetupBackdrop > div {
-    width: 96vw !important;
-    max-width: 96vw !important;
-    max-height: 90vh;
-    padding: 10px !important;
+    position: relative !important;
+    top: auto !important;
+    left: auto !important;
+    transform: none !important;
+    width: 92vw !important;
+    max-width: 92vw !important;
+    max-height: none !important;
+    padding: 16px !important;
+    margin: 0 !important;
+  }
+
+  /* Profile setup modal (JS-generated): scrollable on mobile */
+  #profileSetupModal {
+    align-items: flex-start !important;
+    overflow-y: auto !important;
+    padding: 20px 16px !important;
+    box-sizing: border-box !important;
+  }
+
+  #profileSetupModal > div {
+    width: 92vw !important;
+    max-width: 92vw !important;
   }
 
   /* Void guide overlay text sizing */
