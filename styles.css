@@ -655,11 +655,10 @@ b { color: #fff; font-weight: 700; }
   /* Session setup modal: switch to flow layout so tall content scrolls */
   #sessionSetupBackdrop {
     overflow-y: auto !important;
-    display: flex !important;
-    align-items: flex-start !important;
-    justify-content: center !important;
+    -webkit-overflow-scrolling: touch;
     padding: 20px 0 !important;
     box-sizing: border-box !important;
+    /* Do NOT set display here — JS toggles display:block/none */
   }
 
   #sessionSetupBackdrop > div {
@@ -671,13 +670,14 @@ b { color: #fff; font-weight: 700; }
     max-width: 92vw !important;
     max-height: none !important;
     padding: 16px !important;
-    margin: 0 !important;
+    margin: 0 auto !important;
   }
 
   /* Profile setup modal (JS-generated): scrollable on mobile */
   #profileSetupModal {
     align-items: flex-start !important;
     overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch;
     padding: 20px 16px !important;
     box-sizing: border-box !important;
   }
