@@ -270,6 +270,11 @@ function applyCustomProfile(profileId) {
     applySelectedProfile();
   }
 
+  // Restore custom runtime that applySelectedProfile() just cleared
+  customProfileRuntime = p.runtime || null;
+  activeCustomProfile = p;
+  localStorage.setItem('activeCustomProfile', JSON.stringify(activeCustomProfile));
+
   progressionUpgradeThreshold = runtime.successThreshold || 3;
   progressionDowngradeThreshold = runtime.failureThreshold || 2;
 
