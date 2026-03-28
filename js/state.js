@@ -109,6 +109,7 @@ function filterByTags(arr) {
 let pushToLeakEnabled = JSON.parse(localStorage.getItem('pushToLeakEnabled') || 'false');
 let pushToLeakSkipLong = JSON.parse(localStorage.getItem('pushToLeakSkipLong') || 'false');
 let pushToLeakHeld = false; // Whether the leak button is currently being held
+let leakTimeScale = JSON.parse(localStorage.getItem('leakTimeScale') || '1.0'); // 0.5–2.0 multiplier for push/relax step duration
 
 /* --- PROTECTION STASH SYSTEM --- */
 let protectionStash = JSON.parse(localStorage.getItem('protectionStash') || 'null') || {

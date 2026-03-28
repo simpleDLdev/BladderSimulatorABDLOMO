@@ -146,7 +146,12 @@ function runGuideStep() {
 
   // --- CASE 3: RUNNING (Normal Steps) ---
 
-  const step = currentGuideSeq[currentGuideStep];
+  const rawStep = currentGuideSeq[currentGuideStep];
+  // Apply leak time scale to push/relax steps
+  const scaledTime = (rawStep.time && ['push', 'relax'].includes(rawStep.type))
+    ? Math.max(1, Math.round(rawStep.time * leakTimeScale))
+    : rawStep.time;
+  const step = { ...rawStep, time: scaledTime };
   const needsPushToLeak = isPushToLeakStep(step.type, step.time);
 
   // Check if this is a manual "Dispatch" step

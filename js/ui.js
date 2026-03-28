@@ -128,6 +128,13 @@ function togglePushToLeakSkipLong(enabled) {
   localStorage.setItem('pushToLeakSkipLong', JSON.stringify(enabled));
 }
 
+function updateLeakTimeScale(value) {
+  leakTimeScale = parseFloat(value);
+  localStorage.setItem('leakTimeScale', JSON.stringify(leakTimeScale));
+  const label = $('leakTimeScaleValue');
+  if (label) label.textContent = leakTimeScale.toFixed(1) + '×';
+}
+
 function toggleDeskMode(enabled) {
   deskModeEnabled = enabled;
   localStorage.setItem('deskModeEnabled', JSON.stringify(enabled));
@@ -146,6 +153,14 @@ function initPushToLeakUI() {
   if (toggle) toggle.checked = pushToLeakEnabled;
   const skipToggle = $('pushToLeakSkipLongToggle');
   if (skipToggle) skipToggle.checked = pushToLeakSkipLong;
+
+  // Restore leak time scale slider
+  const scaleSlider = $('leakTimeScaleSlider');
+  if (scaleSlider) {
+    scaleSlider.value = leakTimeScale;
+    const scaleLabel = $('leakTimeScaleValue');
+    if (scaleLabel) scaleLabel.textContent = leakTimeScale.toFixed(1) + '×';
+  }
 
   // Restore desk mode & involuntary filter toggles
   const deskToggle = $('deskModeToggle');
