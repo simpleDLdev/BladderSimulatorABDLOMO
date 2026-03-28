@@ -267,13 +267,8 @@ function applyCustomProfile(profileId) {
 
   if ($('profileSelect')) {
     $('profileSelect').value = profileMode;
-    applySelectedProfile();
+    applySelectedProfile(true);
   }
-
-  // Restore custom runtime that applySelectedProfile() just cleared
-  customProfileRuntime = p.runtime || null;
-  activeCustomProfile = p;
-  localStorage.setItem('activeCustomProfile', JSON.stringify(activeCustomProfile));
 
   progressionUpgradeThreshold = runtime.successThreshold || 3;
   progressionDowngradeThreshold = runtime.failureThreshold || 2;
@@ -311,7 +306,19 @@ function applyCustomProfile(profileId) {
   }
 
   renderStashUI();
-  $('customProfileBackdrop').style.display = 'none';
+  const customBackdrop = $('customProfileBackdrop');
+  if (customBackdrop) customBackdrop.style.display = 'none';
+
+  // If user applied from session setup, close selector/setup overlays and begin immediately.
+  const setupBackdrop = $('sessionSetupBackdrop');
+  if (setupBackdrop) setupBackdrop.style.display = 'none';
+  const setupModal = $('profileSetupModal');
+  if (setupModal && setupModal.parentNode) setupModal.parentNode.removeChild(setupModal);
+
+  if (!sessionRunning) {
+    startSession();
+  }
+
   toast(`Applied custom profile: ${p.name}`);
   logToOutput(`<span style="color:#e17055;"><b>🧪 Custom Profile Active:</b> ${p.name} (${runtime.baseProfile || 'babysitter'} base)</span>`);
 }

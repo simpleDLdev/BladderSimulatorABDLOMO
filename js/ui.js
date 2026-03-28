@@ -365,7 +365,7 @@ function nextReveal() {
   }
 }
 
-function applySelectedProfile() {
+function applySelectedProfile(preserveCustomRuntime = false) {
   const profileSelect = $('profileSelect');
   const v = profileSelect ? profileSelect.value : profileMode;
   profileMode = v;
@@ -413,10 +413,12 @@ function applySelectedProfile() {
   clearTimeout(microTimer); microTimer = null;
   clearAllBabysitterTimers();
 
-  // FIX: Clear custom profile runtime so stale events don't leak across profiles
-  customProfileRuntime = null;
-  activeCustomProfile = null;
-  localStorage.removeItem('activeCustomProfile');
+  // Clear custom runtime unless this call is specifically applying an active custom profile
+  if (!preserveCustomRuntime) {
+    customProfileRuntime = null;
+    activeCustomProfile = null;
+    localStorage.removeItem('activeCustomProfile');
+  }
 
   toast(`Profile set: ${v}`);
   initGuideSelector(); 
@@ -834,25 +836,43 @@ function startSession(isResume = false) {
       schedulePreSoak();
       scheduleNextHydration();
     } else if (profileMode === 'npt') {
-      // Load NPT setup data
+      // Load NPT setup data, but let active custom profile runtime override it.
+      const isCustomNpt = !!(customProfileRuntime && customProfileRuntime.baseProfile === 'npt');
       const setupStr = localStorage.getItem('npt_setup');
-      if (setupStr) {
-        const setup = JSON.parse(setupStr);
-        nptVoidMin = setup.voidMin || 45;
-        nptVoidMax = setup.voidMax || 90;
-        nptSatThreshold = setup.satThreshold || 85;
-        nptMercy = setup.mercy !== false;
-        nptSipMin = setup.sipMin || 2;
-        nptSipMax = setup.sipMax || 5;
-        logToOutput(`<span style="color:#a29bfe"><b>🌙 Not Potty Trained Mode Started</b><br>Void window: ${nptVoidMin}-${nptVoidMax} mins<br>Saturation threshold: ${nptSatThreshold}%</span>`);
+      const setup = setupStr ? JSON.parse(setupStr) : null;
+
+      nptVoidMin = isCustomNpt
+        ? (customProfileRuntime.mainMin || 45)
+        : (setup?.voidMin || 45);
+      nptVoidMax = isCustomNpt
+        ? (customProfileRuntime.mainMax || nptVoidMin)
+        : (setup?.voidMax || 90);
+      nptSatThreshold = setup?.satThreshold || 85;
+
+      if (isCustomNpt) {
+        if (customProfileRuntime.mercyMode === 'disabled') nptMercy = false;
+        else if (customProfileRuntime.mercyMode === 'forced') nptMercy = true;
+        else nptMercy = setup ? setup.mercy !== false : true;
       } else {
-        nptVoidMin = 45;
-        nptVoidMax = 90;
-        nptSatThreshold = 85;
-        nptMercy = true;
-        nptSipMin = 2;
-        nptSipMax = 5;
+        nptMercy = setup ? setup.mercy !== false : true;
       }
+
+      nptSipMin = isCustomNpt
+        ? (customProfileRuntime.sipMin || 2)
+        : (setup?.sipMin || 2);
+      nptSipMax = isCustomNpt
+        ? (customProfileRuntime.sipMax || nptSipMin)
+        : (setup?.sipMax || 5);
+
+      nptVoidMin = Math.max(1, nptVoidMin);
+      nptVoidMax = Math.max(nptVoidMin, nptVoidMax);
+      nptSipMin = Math.max(1, nptSipMin);
+      nptSipMax = Math.max(nptSipMin, nptSipMax);
+
+      const modeLabel = isCustomNpt
+        ? `🧪 ${activeCustomProfile?.name || 'Custom Profile'} Started`
+        : '🌙 Not Potty Trained Mode Started';
+      logToOutput(`<span style="color:#a29bfe"><b>${modeLabel}</b><br>Void window: ${nptVoidMin}-${nptVoidMax} mins<br>Saturation threshold: ${nptSatThreshold}%</span>`);
       
       let firstMin = 15, firstMax = 40;
       if (manualPressure > 70) { firstMin = 5; firstMax = 15; }
@@ -2550,7 +2570,7 @@ function haveAccident() {
 
   // 1. Load Profile
   const sel = $('profileSelect');
-  if (sel) { sel.value = profileMode; applySelectedProfile(); }
+  if (sel) { sel.value = profileMode; applySelectedProfile(!!activeCustomProfile?.runtime); }
 
   updateContinencePreview();
 
