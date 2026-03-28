@@ -1,3 +1,11 @@
+// Forces the next hydration prompt and resets the hydration timer
+function imThirstyNow() {
+  if (!sessionRunning || window.hydrationEnabled === false) return;
+  clearTimeout(hydrationTimer);
+  triggerHydrationEvent();
+  scheduleNextHydration();
+  toast("Hydration prompt forced and timer reset!");
+}
 /* ===========================
    ui.js — All UI/DOM functions, modals, info system
    =========================== */
@@ -420,6 +428,8 @@ function applySelectedProfile(preserveCustomRuntime = false) {
     localStorage.removeItem('activeCustomProfile');
   }
 
+  syncDayTrackerPanelVisibility();
+
   toast(`Profile set: ${v}`);
   initGuideSelector(); 
 }
@@ -673,34 +683,8 @@ function startSession(isResume = false) {
       // Omorashi mode doesn't auto-start. User clicks "Begin Hold Session" in setup panel
       logToOutput(`<span style="color:#81ecec"><b>💧 Omorashi Mode Selected</b><br>Configure your session in the setup panel above.</span>`);
       sessionRunning = false; // Don't keep it running until they click Begin
-    } else if (profileMode === 'dependent') {
-      clearTimeout(microTimer);
-      // Explicitly nullify pending again just to be safe
-      pendingAmbientEvent = null;
-      
-      // Load setup data if available
-      const setupStr = localStorage.getItem('dependent_setup');
-      if (setupStr) {
-        const setup = JSON.parse(setupStr);
-        depQueueMin = setup.queueMin || 1;
-        depQueueMax = setup.queueMax || 6;
-        depSpasmMin = setup.spasmsMin || 8;
-        depSpasmMax = setup.spasmsMax || 15;
-        depSipMin = setup.sipMin || 2;
-        depSipMax = setup.sipMax || 5;
-        depUseDiuretics = setup.useDiuretics !== false;
-        
-        depMicroCount = 0;
-        depMicroTarget = randInt(depQueueMin, depQueueMax);
-        logToOutput(`<span style="color:#fab1a0"><b>👶 Dependent Mode Started</b><br>Queue target: <b>${depMicroTarget}</b> spasms before void<br>Spasm interval: ${depSpasmMin}-${depSpasmMax} mins</span>`);
-      } else {
-        // Fallback to default
-        depMicroCount = 0;
-        depMicroTarget = randInt(depQueueMin, depQueueMax);
-      }
-      
-      scheduleDependentEvent();
-      scheduleNextHydration();
+    } else if (isQueueProfile(profileMode)) {
+      initializeQueueProfileSession();
     } else if (profileMode === 'babysitter') {
       // Babysitter-specific setup - always uses auto-progression
       babysitterDryStreak = 0;
@@ -782,101 +766,8 @@ function startSession(isResume = false) {
         </div>`);
       }
       
-      // Show day tracker and log session start
-      const dayTrackerPanel = $('dayTrackerPanel');
-      if (dayTrackerPanel) dayTrackerPanel.style.display = 'block';
-      trackDayEvent('session_start');
-      renderDayTracker();
-      
       scheduleMainEvent({ min: depSpasmMin, max: depSpasmMax });
       scheduleBabysitterCheckIn();
-      scheduleNextHydration();
-    } else if (profileMode === 'train_rookie') {
-      // Load Rookie setup data
-      const setupStr = localStorage.getItem('train_rookie_setup');
-      if (setupStr) {
-        const setup = JSON.parse(setupStr);
-        rookieVoidMin = setup.voidMin || 25;
-        rookieVoidMax = setup.voidMax || 50;
-        rookieSuccessRate = setup.successRate || 60;
-        rookieMercy = setup.mercy !== false;
-        logToOutput(`<span style="color:#74b9ff"><b>💪 Rookie Mode Started</b><br>Void window: ${rookieVoidMin}-${rookieVoidMax} mins<br>Success rate: ${rookieSuccessRate}%</span>`);
-      } else {
-        rookieVoidMin = 25;
-        rookieVoidMax = 50;
-        rookieSuccessRate = 60;
-        rookieMercy = true;
-      }
-      
-      let firstMin = 15, firstMax = 30;
-      if (manualPressure > 70) { firstMin = 5; firstMax = 15; }
-      scheduleMainEvent({ min: firstMin, max: firstMax });
-      schedulePreSoak();
-      scheduleNextHydration();
-    } else if (profileMode === 'train_pro') {
-      // Load Pro setup data
-      const setupStr = localStorage.getItem('train_pro_setup');
-      if (setupStr) {
-        const setup = JSON.parse(setupStr);
-        proVoidMin = setup.voidMin || 50;
-        proVoidMax = setup.voidMax || 90;
-        proSuccessRate = setup.successRate || 35;
-        proMercy = setup.mercy !== false;
-        logToOutput(`<span style="color:#ffeaa7"><b>💪 Pro Mode Started</b><br>Void window: ${proVoidMin}-${proVoidMax} mins<br>Success rate: ${proSuccessRate}%</span>`);
-      } else {
-        proVoidMin = 50;
-        proVoidMax = 90;
-        proSuccessRate = 35;
-        proMercy = true;
-      }
-      
-      let firstMin = 30, firstMax = 50;
-      if (manualPressure > 70) { firstMin = 15; firstMax = 30; }
-      scheduleMainEvent({ min: firstMin, max: firstMax });
-      schedulePreSoak();
-      scheduleNextHydration();
-    } else if (profileMode === 'npt') {
-      // Load NPT setup data, but let active custom profile runtime override it.
-      const isCustomNpt = !!(customProfileRuntime && customProfileRuntime.baseProfile === 'npt');
-      const setupStr = localStorage.getItem('npt_setup');
-      const setup = setupStr ? JSON.parse(setupStr) : null;
-
-      nptVoidMin = isCustomNpt
-        ? (customProfileRuntime.mainMin || 45)
-        : (setup?.voidMin || 45);
-      nptVoidMax = isCustomNpt
-        ? (customProfileRuntime.mainMax || nptVoidMin)
-        : (setup?.voidMax || 90);
-      nptSatThreshold = setup?.satThreshold || 85;
-
-      if (isCustomNpt) {
-        if (customProfileRuntime.mercyMode === 'disabled') nptMercy = false;
-        else if (customProfileRuntime.mercyMode === 'forced') nptMercy = true;
-        else nptMercy = setup ? setup.mercy !== false : true;
-      } else {
-        nptMercy = setup ? setup.mercy !== false : true;
-      }
-
-      nptSipMin = isCustomNpt
-        ? (customProfileRuntime.sipMin || 2)
-        : (setup?.sipMin || 2);
-      nptSipMax = isCustomNpt
-        ? (customProfileRuntime.sipMax || nptSipMin)
-        : (setup?.sipMax || 5);
-
-      nptVoidMin = Math.max(1, nptVoidMin);
-      nptVoidMax = Math.max(nptVoidMin, nptVoidMax);
-      nptSipMin = Math.max(1, nptSipMin);
-      nptSipMax = Math.max(nptSipMin, nptSipMax);
-
-      const modeLabel = isCustomNpt
-        ? `🧪 ${activeCustomProfile?.name || 'Custom Profile'} Started`
-        : '🌙 Not Potty Trained Mode Started';
-      logToOutput(`<span style="color:#a29bfe"><b>${modeLabel}</b><br>Void window: ${nptVoidMin}-${nptVoidMax} mins<br>Saturation threshold: ${nptSatThreshold}%</span>`);
-      
-      let firstMin = 15, firstMax = 40;
-      if (manualPressure > 70) { firstMin = 5; firstMax = 15; }
-      scheduleMainEvent({ min: firstMin, max: firstMax });
       scheduleNextHydration();
     } else if (profileMode === 'gauntlet_only') {
       // Load gauntlet setup
@@ -901,29 +792,18 @@ function startSession(isResume = false) {
       const btn = $('btnQuickGo');
       if (btn) btn.style.display = 'block';
       scheduleMainEvent(); // Sets the countdown label
-    } else if (profileMode === 'babysitter') {
-      // Babysitter-specific setup (realistic omorashi with small failure chance)
-      depQueueMin = 0;  // 0-2 micros per main
-      depQueueMax = 2;
-      depSpasmMin = 40; // Main timer 40-60 min
-      depSpasmMax = 60;
-      depSipMin = 1;    // Occasional sips
-      depSipMax = 2;
-      depUseDiuretics = false; // No heavy diuretics for realism
-      logToOutput(`<span style="color:#a29bfe">👩‍🍼 <b>Babysitter Mode:</b> Potty training time! Try to stay dry, but I'll help if you can't. Timers: 40-60min with 0-2 spasms.</span>`);
     } else {
-      let firstMin = 15, firstMax = 40;
-      if (manualPressure > 70) { firstMin = 5; firstMax = 15; }
-      else if (manualPressure > 40) { firstMin = 10; firstMax = 25; }
-
-      scheduleMainEvent({ min: firstMin, max: firstMax });
-      if (profileMode.startsWith('train_')) schedulePreSoak();
-      scheduleNextHydration();
+      initializeRegularTimedProfileSession();
     }
 
     if (profileMode !== 'omorashi_hold' && profileMode !== 'gauntlet_only') {
       scheduleForcedCheck();
     }
+  }
+
+  syncDayTrackerPanelVisibility();
+  if (!isResume && sessionRunning) {
+    trackSessionStat('session_start');
   }
 
   clearInterval(tickInterval);
@@ -933,7 +813,7 @@ function startSession(isResume = false) {
 
 function stopAll() {
   if (!sessionRunning) return;
-  if (profileMode === 'babysitter') trackDayEvent('session_end');
+  trackSessionStat('session_end');
   sessionRunning = false;
   mainTimer = cancelBabysitterManagedTimeout(mainTimer, babysitterAuxTimerIds);
   clearTimeout(preChimeTimer);
@@ -978,7 +858,7 @@ function stopAll() {
     <div style="color:#cdd7e6;">⏱️ Duration: <b>${timeStr}</b></div>
     <div style="color:#cdd7e6;">📈 Peak Urgency: <b>${getUrgencyLevel(manualPressure)}/10</b></div>`;
 
-  if (profileMode === 'babysitter') {
+  if (shouldTrackSessionStats()) {
     const tracker = getDayTracker();
     summary += `
     <div style="color:#cdd7e6;">🔄 Cycles: <b>${babysitterTotalCycles}</b></div>
@@ -996,6 +876,7 @@ function stopAll() {
   $('output').innerHTML = summary;
   sessionElapsedStartedAt = null;
   updateSessionTimerDisplay();
+  syncDayTrackerPanelVisibility();
 
   // Restore the getting started guide
   if ($('instructionsPanel')) $('instructionsPanel').style.display = '';
@@ -2263,7 +2144,7 @@ function executeChange() {
   logToOutput(`<span style="color:#7cc4ff">✨ <b>Fresh Start:</b> Changed into a fresh ${formatProtectionLevel(currentProtectionLevel)}. Change #${dailyChangeCount} today. Try to make this one last!</span>`);
 
   renderStashUI();
-  if (profileMode === 'babysitter') trackDayEvent('change');
+  trackSessionStat('change');
   checkRegression();
   scheduleMainEvent();
 }
@@ -2741,7 +2622,7 @@ function triggerMessyEvent() {
 function startMessyHolding() {
   const gauntlet = pick(filterByTags(MESSY_HOLDING_GAUNTLETS_D10));
   logToOutput(`<span style="color:#c97b3a">💩 <b>Holding Gauntlet:</b> ${gauntlet.name}</span>`);
-  startVoidGuide(gauntlet.guide, `<b>💩 ${gauntlet.name}</b><br>Hold it! Follow the steps.`, 'full');
+  startVoidGuide(gauntlet.guide, `<b>💩 ${gauntlet.name}</b><br>Hold it! Follow the steps.`, 'gauntlet');
 }
 
 function startMessyPushing() {

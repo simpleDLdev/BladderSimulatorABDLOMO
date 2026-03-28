@@ -179,7 +179,7 @@ function scheduleNextOmorashiStressTest() {
     omorashiGuideActive = true;
     
     // Show the guide
-    startVoidGuide(test.guide, `<b>${test.label}</b><br>HOLD. Do not leak.`);
+    startVoidGuide(test.guide, `<b>${test.label}</b><br>HOLD. Do not leak.`, 'gauntlet');
     
     // Wait for guide to complete before scheduling next test
     // Calculate guide duration (sum of all step times + buffers)
@@ -326,6 +326,9 @@ function requestRestroomPermission() {
 
   if (hasPermission) {
     logToOutput(`<span style="color:#55efc4"><b>✅ Permission Granted!</b><br>You may go to the restroom and empty completely.</span>`);
+    if (typeof trackSessionStat === 'function') {
+      trackSessionStat('potty_success');
+    }
     omorashiSessionActive = false;
     clearInterval(tickInterval);
     clearTimeout(omorashiStressTestTimer);
@@ -341,7 +344,7 @@ function requestRestroomPermission() {
 function startFinalGauntlet() {
   const gauntlet = pick(filterByTags(OMORASHI_GAUNTLETS));
   
-  startVoidGuide(gauntlet.guide, `<b>${gauntlet.name}</b><br>Complete this challenge. Then you may release.`);
+  startVoidGuide(gauntlet.guide, `<b>${gauntlet.name}</b><br>Complete this challenge. Then you may release.`, 'gauntlet');
   
   // After guide completes, allow release
   setTimeout(() => {

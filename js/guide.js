@@ -7,12 +7,13 @@ let currentGuideSeq = [];
 // Add global variable
 let currentGuideType = 'full';
 
-function startVoidGuide(seq, instructionText = "", type = "full") {
+function startVoidGuide(seq, instructionText = "", type = "full", trackingOutcome = null) {
   if (!seq || seq.length === 0) return;
 
   isGuideComplete = false;
   currentGuideSeq = seq;
   currentGuideType = type; // Store the type
+  pendingGuideTrackingOutcome = trackingOutcome;
   currentGuideStep = -1;
 
   const header = $('voidInstruction');
@@ -36,7 +37,7 @@ function triggerDependentMicro() {
     setTimeout(() => {
         acknowledgeAlarm(); 
         // Launch the guide with the Queue Counter (e.g., 1/3, 2/3)
-        startVoidGuide(evt.guide, `<b>QUEUE EVENT (${depMicroCount}/${depMicroTarget}):</b> ${evt.desc}`);
+        startVoidGuide(evt.guide, `<b>QUEUE EVENT (${depMicroCount}/${depMicroTarget}):</b> ${evt.desc}`, 'micro');
     }, 2000);
     
 
@@ -267,7 +268,7 @@ function runGuideStep() {
       // Interruption is only possible for "pro" trainees during a full accident.
       if (window.mercyMode !== false &&
         profileMode === 'train_pro' &&  // Only for pros, not rookies
-        currentGuideType === 'full') {  // Only for full macros
+        normalizeGuideOutcomeType(currentGuideType) === 'full') {  // Only for full macros
 
         // Pro trainees have a chance to recover.
         let baseChance = 25; // Pro base chance
@@ -458,6 +459,7 @@ function closeVoidGuide() {
   // Preview mode: keep overlay open for browsing more events
   if (isPreviewMode) {
     isPreviewMode = false;
+    pendingGuideTrackingOutcome = null;
     // Reset guide visuals to idle state but keep overlay visible
     $('voidLabel').textContent = 'BROWSE MODE';
     $('voidLabel').style.color = '#74b9ff';
@@ -488,6 +490,11 @@ function closeVoidGuide() {
     triggerHydrationEvent(); // Force Drink
   }
 
+  if (isGuideComplete) {
+    trackGuideCompletionOutcome(currentGuideType, isRestroomTrip);
+  }
+  pendingGuideTrackingOutcome = null;
+
   // ... (Rest of the function remains the same) ...
 
   if (isRestroomTrip && sessionRunning) {
@@ -510,7 +517,7 @@ function closeVoidGuide() {
     delayMins = 1;
     isRestroomTrip = false;
   } else if (isGuideComplete) {
-    switch (currentGuideType) {
+    switch (normalizeGuideOutcomeType(currentGuideType)) {
       case 'full':
         delayMins = randInt(5, 20);
         logToOutput(`<span style="color:#ff7675; font-style:italic;">⏳ Accident logged. You are being left to sit in it for a while. Status check in ~${delayMins} mins.</span>`);

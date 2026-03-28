@@ -43,8 +43,12 @@
         style="background:#1b2030; padding:12px; border-radius:8px; border:1px solid #a29bfe; margin-bottom:12px;">
         <h3 style="color:#a29bfe; margin:0 0 10px 0; font-size:14px;">📖 How to Get Started</h3>
         <div style="display:flex; gap:8px; flex-wrap:wrap; margin:0 0 10px 0;">
-          <button onclick="showInfoModal('intro')" style="padding:6px 12px; background:#81ecec; border:none; color:#000; border-radius:8px; cursor:pointer; font-size:12px; font-weight:bold;">📘 Intro Guide</button>
-          <button onclick="showInfoModal('howtoplay')" style="padding:6px 12px; background:#a29bfe; border:none; color:#000; border-radius:8px; cursor:pointer; font-size:12px; font-weight:bold;">📖 Full How to Play</button>
+          <button onclick="showInfoModal('intro')"
+            style="padding:6px 12px; background:#81ecec; border:none; color:#000; border-radius:8px; cursor:pointer; font-size:12px; font-weight:bold;">📘
+            Intro Guide</button>
+          <button onclick="showInfoModal('howtoplay')"
+            style="padding:6px 12px; background:#a29bfe; border:none; color:#000; border-radius:8px; cursor:pointer; font-size:12px; font-weight:bold;">📖
+            Full How to Play</button>
         </div>
         <ol style="margin:0; padding-left:18px; font-size:12px; color:#cdd7e6; line-height:1.6;">
           <li><b>Click "Start Session"</b> - Choose your profile and configure</li>
@@ -59,265 +63,366 @@
         <h2 style="margin:0;">Session Control</h2>
         <button class="info-btn" onclick="showInfoModal('session')" title="What is this?">?</button>
       </div>
-      <div style="margin-top:10px; margin-bottom:10px; padding:10px 12px; border-radius:10px; border:1px solid #2b3348; background:linear-gradient(135deg, #141923 0%, #101625 100%);">
+      <div
+        style="margin-top:10px; margin-bottom:10px; padding:10px 12px; border-radius:10px; border:1px solid #2b3348; background:linear-gradient(135deg, #141923 0%, #101625 100%);">
         <div style="display:flex; justify-content:space-between; align-items:center; gap:10px;">
           <div>
-            <div style="font-size:0.72em; letter-spacing:0.08em; text-transform:uppercase; color:#8ea0b6; margin-bottom:4px;">Session Timer</div>
-            <div id="sessionTimerDisplay" style="font-size:1.8em; font-weight:700; color:#81ecec; font-variant-numeric:tabular-nums;">00:00</div>
+            <div
+              style="font-size:0.72em; letter-spacing:0.08em; text-transform:uppercase; color:#8ea0b6; margin-bottom:4px;">
+              Session Timer</div>
+            <div id="sessionTimerDisplay"
+              style="font-size:1.8em; font-weight:700; color:#81ecec; font-variant-numeric:tabular-nums;">00:00</div>
           </div>
           <div id="sessionTimerState" style="font-size:0.85em; color:#8ea0b6; text-align:right;">Stopped</div>
         </div>
       </div>
-      <p class="section-desc">Start a session to begin receiving timed bladder events. Choose a profile, configure settings, and the sim handles the rest.</p>
+      <p class="section-desc">Start a session to begin receiving timed bladder events. Choose a profile, configure
+        settings, and the sim handles the rest.</p>
       <div class="buttons">
         <button id="btnStartSession" onclick="showSessionSetupModal()"
           style="width:100%; padding:12px; background:#a29bfe; color:#000; font-weight:bold; font-size:1.1em;">▶ Start
           Session</button>
         <button id="btnQuickGo" onclick="quickModeRoll()"
-          style="display:none; width:100%; padding:14px; background:#ff7675; color:#000; font-weight:bold; font-size:1.2em; border:none; border-radius:8px; cursor:pointer; margin-top:8px;">🚽 I Need to Go!</button>
+          style="display:none; width:100%; padding:14px; background:#ff7675; color:#000; font-weight:bold; font-size:1.2em; border:none; border-radius:8px; cursor:pointer; margin-top:8px;">🚽
+          I Need to Go!</button>
         <button id="btnBedMorning" onclick="bedwettingMorningCheck()"
-          style="display:none; width:100%; padding:14px; background:#81ecec; color:#000; font-weight:bold; font-size:1.05em; border:none; border-radius:8px; cursor:pointer; margin-top:8px;">☀️ Morning Check</button>
+          style="display:none; width:100%; padding:14px; background:#81ecec; color:#000; font-weight:bold; font-size:1.05em; border:none; border-radius:8px; cursor:pointer; margin-top:8px;">☀️
+          Morning Check</button>
         <button onclick="stopAll()" style="width:100%; padding:10px; margin-top:8px;">⏹ Stop</button>
-        <button onclick="openCustomProfileEditor()" style="width:100%; padding:8px; margin-top:6px; background:#1b2030; border:1px solid #e17055; color:#e17055; border-radius:8px; cursor:pointer; font-size:12px;">🧪 Custom Profiles (Create / Import / Export)</button>
+        <button onclick="openCustomProfileEditor()"
+          style="width:100%; padding:8px; margin-top:6px; background:#1b2030; border:1px solid #e17055; color:#e17055; border-radius:8px; cursor:pointer; font-size:12px;">🧪
+          Custom Profiles (Create / Import / Export)</button>
         <button id="btnMeeting" class="pill" onclick="toggleMeetingMode()"
           style="border-color:#fab1a0; color:#fab1a0; width:100%; margin-top:8px;">⏸ Pause Alarm (30m)</button>
         <button id="btnCanIGo" class="pill" onclick="requestRestroomPermission()"
           style="display:none; border-color:#81ecec; color:#81ecec; width:100%; margin-top:8px;">� Can I Go
           Pee?</button>
+        <button class="pill" onclick="imThirstyNow()"
+          style="width:100%; border-color:#81ecec; color:#81ecec; font-size:0.9em; padding:6px; margin-top:6px;">💧 I'm
+          Thirsty</button>
         <!-- Mobile-only: enable tab-switch browser notifications. JS hides this on desktop. -->
         <button id="btnEnableNotifications" class="pill" onclick="requestNotificationPermission()"
-          style="display:none; border-color:#7cc4ff; color:#7cc4ff; width:100%; margin-top:8px;">🔔 Enable Tab Notifications</button>
+          style="display:none; border-color:#7cc4ff; color:#7cc4ff; width:100%; margin-top:8px;">🔔 Enable Tab
+          Notifications</button>
       </div>
 
       <div class="hr"></div>
 
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px; cursor:pointer;" onclick="toggleSidebarSection('bioLoggerWrapper')">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px; cursor:pointer;"
+        onclick="toggleSidebarSection('bioLoggerWrapper')">
         <h2 style="margin:0;"><span id="bioLoggerWrapperArrow" class="collapse-arrow">▼</span> Bio-Logger</h2>
         <div style="display:flex; gap:6px;">
-          <button class="info-btn" onclick="event.stopPropagation(); showInfoModal('bio')" title="What is this?">?</button>
+          <button class="info-btn" onclick="event.stopPropagation(); showInfoModal('bio')"
+            title="What is this?">?</button>
           <button onclick="event.stopPropagation(); toggleBioLogger()"
             style="background:transparent; border:1px solid #2b3348; color:#999; padding:6px 10px; border-radius:6px; cursor:pointer; font-size:14px;">⚙️</button>
         </div>
       </div>
       <div id="bioLoggerWrapper">
-      <p class="section-desc">Track your real physical state. Pressure = how badly you need to go. Saturation = how wet your protection is. Update these when prompted or anytime.</p>
-      <div id="bioLoggerSection" class="stack"
-        style="background:#0f1115; padding:12px; border-radius:8px; border:1px solid #2b3348; display:none;">
-        <div style="display:flex; align-items:center; gap:8px;">
-          <label style="flex:1;">Urgency: <span id="pressureVal" style="color:#fab1a0">0/10</span></label>
-          <button onclick="showUrgencyRefTable()" style="background:transparent; border:1px solid #2b3348; color:#fab1a0; padding:3px 8px; border-radius:6px; cursor:pointer; font-size:11px;" title="View urgency scale">📊 Scale</button>
-        </div>
-        <div id="pressureDesc" style="color:#8ea0b6; font-size:0.78em; margin:2px 0 4px 0; min-height:1.2em;"></div>
-        <input id="pressureSlider" type="range" min="0" max="100" step="5" value="0"
-          oninput="updatePressureUI(this.value); updateUrgencyMeter();"
-          style="background: linear-gradient(to right, #2ecc71 0%, #f1c40f 50%, #e74c3c 100%); width:100%;">
+        <p class="section-desc">Track your real physical state. Pressure = how badly you need to go. Saturation = how
+          wet your protection is. Update these when prompted or anytime.</p>
+        <div id="bioLoggerSection" class="stack"
+          style="background:#0f1115; padding:12px; border-radius:8px; border:1px solid #2b3348; display:none;">
+          <div style="display:flex; align-items:center; gap:8px;">
+            <label style="flex:1;">Urgency: <span id="pressureVal" style="color:#fab1a0">0/10</span></label>
+            <button onclick="showUrgencyRefTable()"
+              style="background:transparent; border:1px solid #2b3348; color:#fab1a0; padding:3px 8px; border-radius:6px; cursor:pointer; font-size:11px;"
+              title="View urgency scale">📊 Scale</button>
+          </div>
+          <div id="pressureDesc" style="color:#8ea0b6; font-size:0.78em; margin:2px 0 4px 0; min-height:1.2em;"></div>
+          <input id="pressureSlider" type="range" min="0" max="100" step="5" value="0"
+            oninput="updatePressureUI(this.value); updateUrgencyMeter();"
+            style="background: linear-gradient(to right, #2ecc71 0%, #f1c40f 50%, #e74c3c 100%); width:100%;">
 
-        <div style="display:flex; align-items:center; gap:8px; margin-top:10px;">
-          <label style="flex:1;">Saturation: <span id="saturationVal" style="color:#7cc4ff">0%</span></label>
-          <button onclick="showInfoModal('saturation')" style="background:transparent; border:1px solid #2b3348; color:#7cc4ff; padding:3px 8px; border-radius:6px; cursor:pointer; font-size:11px;" title="What is saturation?">ℹ️</button>
-        </div>
-        <input id="saturationSlider" type="range" min="0" max="100" step="5" value="0"
-          oninput="updateSaturationUI(this.value)">
+          <div style="display:flex; align-items:center; gap:8px; margin-top:10px;">
+            <label style="flex:1;">Saturation: <span id="saturationVal" style="color:#7cc4ff">0%</span></label>
+            <button onclick="showInfoModal('saturation')"
+              style="background:transparent; border:1px solid #2b3348; color:#7cc4ff; padding:3px 8px; border-radius:6px; cursor:pointer; font-size:11px;"
+              title="What is saturation?">ℹ️</button>
+          </div>
+          <input id="saturationSlider" type="range" min="0" max="100" step="5" value="0"
+            oninput="updateSaturationUI(this.value)">
 
-        <div id="babysitterStreakPanel" style="display:none; background:#1b2030; padding:10px; border-radius:8px; margin-top:10px; border:1px solid #a29bfe;">
-          <div style="color:#a29bfe; font-weight:bold; margin-bottom:8px;">👩‍🍼 Babysitter Progress</div>
-          <div><span style="color:#9b59b6;">🛡️ Protection:</span> <span id="protectionLevelVal" style="color:#fff; font-weight:bold;">pad</span></div>
-          <div style="margin-top:5px;"><span style="color:#e17055;">🧠 Continence:</span> <span id="continenceLevelVal" style="color:#fff; font-weight:bold;">mostly continent</span></div>
-          <div style="margin-top:5px;"><span style="color:#7cc4ff;">🔄 Dry Streak:</span> <span id="dryStreakVal" style="color:#fff; font-weight:bold;">0</span> cycles</div>
-          <div style="margin-top:5px;"><span style="color:#7cc4ff;">📊 Total Cycles:</span> <span id="totalCyclesVal" style="color:#fff; font-weight:bold;">0</span></div>
-          <div style="margin-top:5px;"><span style="color:#ff7675;">❌ Failures:</span> <span id="failureCountVal" style="color:#fff; font-weight:bold;">0</span></div>
-          <div style="margin-top:5px;"><span style="color:#2ecc71;">✅ To Upgrade:</span> <span id="successCountVal" style="color:#fff; font-weight:bold;">0</span>/3</div>
-          <div style="margin-top:3px;"><span style="color:#ff7675;">⬇️ To Downgrade:</span> <span id="failureProgressVal" style="color:#fff; font-weight:bold;">0</span>/2</div>
-          <div style="margin-top:3px;"><span style="color:#81ecec;">🎟️ Potty Passes:</span> <span id="pottyPassesVal" style="color:#fff; font-weight:bold;">0</span></div>
-          <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-top:8px;">
-            <button onclick="editBabysitterTracking()" style="padding:6px; border-radius:6px; border:1px solid #2b3348; background:#0f1115; color:#a29bfe; cursor:pointer;">Edit Tracking</button>
-            <button onclick="triggerBabysitterTestEvent('micro')" style="padding:6px; border-radius:6px; border:1px solid #2b3348; background:#0f1115; color:#7cc4ff; cursor:pointer;">Test Micro</button>
-            <button onclick="triggerBabysitterTestEvent('accident')" style="padding:6px; border-radius:6px; border:1px solid #2b3348; background:#0f1115; color:#ff7675; cursor:pointer;">Test Accident</button>
-            <button onclick="triggerBabysitterTestEvent('potty_check')" style="padding:6px; border-radius:6px; border:1px solid #2b3348; background:#0f1115; color:#55efc4; cursor:pointer;">Test Check</button>
-            <button onclick="triggerBabysitterTestEvent('checkin')" style="padding:6px; border-radius:6px; border:1px solid #2b3348; background:#0f1115; color:#e17055; cursor:pointer;">Test Check-In</button>
-            <button onclick="triggerBabysitterTestEvent('cycle')" style="padding:6px; border-radius:6px; border:1px solid #2b3348; background:#0f1115; color:#fdcb6e; cursor:pointer;">Test Full Cycle</button>
-            <button onclick="triggerBabysitterTestEvent('hydration')" style="padding:6px; border-radius:6px; border:1px solid #2b3348; background:#0f1115; color:#81ecec; cursor:pointer;">Test Hydration</button>
-            <button onclick="triggerBabysitterTestEvent('overactive')" style="padding:6px; border-radius:6px; border:1px solid #2b3348; background:#0f1115; color:#fab1a0; cursor:pointer;">Test Overactive</button>
-            <button onclick="triggerBabysitterTestEvent('spasm')" style="padding:6px; border-radius:6px; border:1px solid #2b3348; background:#0f1115; color:#dfe6e9; cursor:pointer;">Test Spasm</button>
-            <button onclick="triggerBabysitterTestEvent('progression')" style="padding:6px; border-radius:6px; border:1px solid #2b3348; background:#0f1115; color:#74b9ff; cursor:pointer;">Test Progression</button>
+          <div id="babysitterStreakPanel"
+            style="display:none; background:#1b2030; padding:10px; border-radius:8px; margin-top:10px; border:1px solid #a29bfe;">
+            <div style="color:#a29bfe; font-weight:bold; margin-bottom:8px;">👩‍🍼 Babysitter Progress</div>
+            <div><span style="color:#9b59b6;">🛡️ Protection:</span> <span id="protectionLevelVal"
+                style="color:#fff; font-weight:bold;">pad</span></div>
+            <div style="margin-top:5px;"><span style="color:#e17055;">🧠 Continence:</span> <span
+                id="continenceLevelVal" style="color:#fff; font-weight:bold;">mostly continent</span></div>
+            <div style="margin-top:5px;"><span style="color:#7cc4ff;">🔄 Dry Streak:</span> <span id="dryStreakVal"
+                style="color:#fff; font-weight:bold;">0</span> cycles</div>
+            <div style="margin-top:5px;"><span style="color:#7cc4ff;">📊 Total Cycles:</span> <span id="totalCyclesVal"
+                style="color:#fff; font-weight:bold;">0</span></div>
+            <div style="margin-top:5px;"><span style="color:#ff7675;">❌ Failures:</span> <span id="failureCountVal"
+                style="color:#fff; font-weight:bold;">0</span></div>
+            <div style="margin-top:5px;"><span style="color:#2ecc71;">✅ To Upgrade:</span> <span id="successCountVal"
+                style="color:#fff; font-weight:bold;">0</span>/3</div>
+            <div style="margin-top:3px;"><span style="color:#ff7675;">⬇️ To Downgrade:</span> <span
+                id="failureProgressVal" style="color:#fff; font-weight:bold;">0</span>/2</div>
+            <div style="margin-top:3px;"><span style="color:#81ecec;">🎟️ Potty Passes:</span> <span id="pottyPassesVal"
+                style="color:#fff; font-weight:bold;">0</span></div>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-top:8px;">
+              <button onclick="editBabysitterTracking()"
+                style="padding:6px; border-radius:6px; border:1px solid #2b3348; background:#0f1115; color:#a29bfe; cursor:pointer;">Edit
+                Tracking</button>
+              <button onclick="triggerBabysitterTestEvent('micro')"
+                style="padding:6px; border-radius:6px; border:1px solid #2b3348; background:#0f1115; color:#7cc4ff; cursor:pointer;">Test
+                Micro</button>
+              <button onclick="triggerBabysitterTestEvent('accident')"
+                style="padding:6px; border-radius:6px; border:1px solid #2b3348; background:#0f1115; color:#ff7675; cursor:pointer;">Test
+                Accident</button>
+              <button onclick="triggerBabysitterTestEvent('potty_check')"
+                style="padding:6px; border-radius:6px; border:1px solid #2b3348; background:#0f1115; color:#55efc4; cursor:pointer;">Test
+                Check</button>
+              <button onclick="triggerBabysitterTestEvent('checkin')"
+                style="padding:6px; border-radius:6px; border:1px solid #2b3348; background:#0f1115; color:#e17055; cursor:pointer;">Test
+                Check-In</button>
+              <button onclick="triggerBabysitterTestEvent('cycle')"
+                style="padding:6px; border-radius:6px; border:1px solid #2b3348; background:#0f1115; color:#fdcb6e; cursor:pointer;">Test
+                Full Cycle</button>
+              <button onclick="triggerBabysitterTestEvent('hydration')"
+                style="padding:6px; border-radius:6px; border:1px solid #2b3348; background:#0f1115; color:#81ecec; cursor:pointer;">Test
+                Hydration</button>
+              <button onclick="triggerBabysitterTestEvent('overactive')"
+                style="padding:6px; border-radius:6px; border:1px solid #2b3348; background:#0f1115; color:#fab1a0; cursor:pointer;">Test
+                Overactive</button>
+              <button onclick="triggerBabysitterTestEvent('spasm')"
+                style="padding:6px; border-radius:6px; border:1px solid #2b3348; background:#0f1115; color:#dfe6e9; cursor:pointer;">Test
+                Spasm</button>
+              <button onclick="triggerBabysitterTestEvent('progression')"
+                style="padding:6px; border-radius:6px; border:1px solid #2b3348; background:#0f1115; color:#74b9ff; cursor:pointer;">Test
+                Progression</button>
+            </div>
+          </div>
+
+          <!-- Day Tracker Panel -->
+          <div id="dayTrackerPanel"
+            style="display:none; background:#1b2030; padding:10px; border-radius:8px; margin-top:10px; border:1px solid #81ecec;">
+          </div>
+
+          <button class="muted" onclick="confirmStatus()"
+            style="width:100%; font-size:0.8em; padding:6px; margin-top:10px;">✅ Confirm Status</button>
+          <button class="pill" onclick="reportEmergencyLeak()"
+            style="border-color:#ff7675; color:#ff7675; width:100%; margin-top:8px;">💦 Emergency</button>
+          <button id="btnMessy" class="pill" onclick="triggerMessyEvent()"
+            style="border-color:#8B4513; color:#c97b3a; width:100%; margin-top:8px; display:none;">💩 Uh Oh...</button>
+
+          <div id="hydrationTriggerSection" style="margin-top:12px; text-align:center; display:none;">
+            <div class="muted" style="font-size:11px; margin-bottom:8px;">💧 Hydration</div>
+            <div style="display:flex; gap:6px; margin-bottom:8px;">
+              <select id="hydrationSipSelect"
+                style="flex:1; padding:6px; border-radius:8px; background:#1b2030; color:#fff; border:1px solid #2b3348;">
+                <option value="1">1 Sip (50ml)</option>
+                <option value="2" selected>2 Sips (100ml)</option>
+                <option value="3">3 Sips (150ml)</option>
+                <option value="4">4 Sips (200ml)</option>
+              </select>
+            </div>
+            <button class="pill" onclick="triggerHydrationEvent()"
+              style="width:100%; border-color:#7cc4ff; color:#7cc4ff; font-size:0.9em; padding:6px;">Drink</button>
           </div>
         </div>
-
-        <!-- Day Tracker Panel -->
-        <div id="dayTrackerPanel" style="display:none; background:#1b2030; padding:10px; border-radius:8px; margin-top:10px; border:1px solid #81ecec;">
-        </div>
-
-        <button class="muted" onclick="confirmStatus()"
-          style="width:100%; font-size:0.8em; padding:6px; margin-top:10px;">✅ Confirm Status</button>
-        <button class="pill" onclick="reportEmergencyLeak()"
-          style="border-color:#ff7675; color:#ff7675; width:100%; margin-top:8px;">💦 Emergency</button>
-        <button id="btnMessy" class="pill" onclick="triggerMessyEvent()"
-          style="border-color:#8B4513; color:#c97b3a; width:100%; margin-top:8px; display:none;">💩 Uh Oh...</button>
-
-        <div id="hydrationTriggerSection" style="margin-top:12px; text-align:center; display:none;">
-          <div class="muted" style="font-size:11px; margin-bottom:8px;">💧 Hydration</div>
-          <div style="display:flex; gap:6px; margin-bottom:8px;">
-            <select id="hydrationSipSelect"
-              style="flex:1; padding:6px; border-radius:8px; background:#1b2030; color:#fff; border:1px solid #2b3348;">
-              <option value="1">1 Sip (50ml)</option>
-              <option value="2" selected>2 Sips (100ml)</option>
-              <option value="3">3 Sips (150ml)</option>
-              <option value="4">4 Sips (200ml)</option>
-            </select>
-          </div>
-          <button class="pill" onclick="triggerHydrationEvent()"
-            style="width:100%; border-color:#7cc4ff; color:#7cc4ff; font-size:0.9em; padding:6px;">Drink</button>
-        </div>
-      </div>
       </div>
 
       <div class="hr"></div>
 
       <!-- Currently Wearing + Protection Stash (moved up) -->
       <div style="background:#1b2030; padding:10px 12px; border-radius:10px; border:1px solid #2b3348;">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px; cursor:pointer;" onclick="toggleSidebarSection('protectionContent')">
-          <span style="color:#a29bfe; font-weight:bold; font-size:13px;"><span id="protectionContentArrow" class="collapse-arrow">▼</span> 🧷 Protection</span>
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px; cursor:pointer;"
+          onclick="toggleSidebarSection('protectionContent')">
+          <span style="color:#a29bfe; font-weight:bold; font-size:13px;"><span id="protectionContentArrow"
+              class="collapse-arrow">▼</span> 🧷 Protection</span>
           <div style="display:flex; align-items:center; gap:6px;">
-            <button class="info-btn" onclick="event.stopPropagation(); showInfoModal('protection')" title="What is this?" style="width:22px; height:22px; font-size:11px;">?</button>
-            <label onclick="event.stopPropagation()" style="display:flex; align-items:center; gap:4px; font-size:11px; color:#888; cursor:pointer;">
+            <button class="info-btn" onclick="event.stopPropagation(); showInfoModal('protection')"
+              title="What is this?" style="width:22px; height:22px; font-size:11px;">?</button>
+            <label onclick="event.stopPropagation()"
+              style="display:flex; align-items:center; gap:4px; font-size:11px; color:#888; cursor:pointer;">
               <input type="checkbox" id="stashTrackToggle" onchange="toggleStashTracking(this.checked)"> Track
             </label>
           </div>
         </div>
         <div id="protectionContent">
-        <p class="section-desc" style="margin-top:0;">What you're currently wearing. Enable tracking to count your real supply. The stash is shared across all modes.</p>
-        <!-- Currently Wearing Indicator + Chooser -->
-        <div style="display:flex; align-items:center; gap:8px; background:#151923; padding:8px 10px; border-radius:6px; border:1px solid #a29bfe; margin-bottom:8px;">
-          <span style="font-size:12px; color:#a29bfe;">👗 Wearing:</span>
-          <select id="protectionChooser" onchange="changeProtectionDirect(this.value)" style="flex:1; padding:4px 8px; border-radius:6px; background:#1b2030; color:#fff; border:1px solid #2b3348; font-size:12px; cursor:pointer;">
-            <option value="none">🚫 None (Underwear)</option>
-            <option value="pad">🛡️ Pad</option>
-            <option value="pullups">🩳 Pullups</option>
-            <option value="diapers">👶 Diapers</option>
-            <option value="thick_diapers">🧸 Thick Diapers</option>
-          </select>
-          <span id="currentlyWearingLabel" style="display:none;"></span>
-        </div>
-        <div id="stashGrid" style="display:grid; grid-template-columns:1fr 1fr; gap:6px;">
-          <div class="stash-item" data-prot="none" style="display:flex; align-items:center; justify-content:space-between; background:#151923; padding:6px 8px; border-radius:6px; border:1px solid #2b3348;">
-            <span style="font-size:12px; color:#cdd7e6;">🚫 None</span>
-            <div style="display:flex; align-items:center; gap:4px;">
-              <span id="stashCount_none" style="font-size:11px; color:#666;">∞</span>
+          <p class="section-desc" style="margin-top:0;">What you're currently wearing. Enable tracking to count your
+            real supply. The stash is shared across all modes.</p>
+          <!-- Currently Wearing Indicator + Chooser -->
+          <div
+            style="display:flex; align-items:center; gap:8px; background:#151923; padding:8px 10px; border-radius:6px; border:1px solid #a29bfe; margin-bottom:8px;">
+            <span style="font-size:12px; color:#a29bfe;">👗 Wearing:</span>
+            <select id="protectionChooser" onchange="changeProtectionDirect(this.value)"
+              style="flex:1; padding:4px 8px; border-radius:6px; background:#1b2030; color:#fff; border:1px solid #2b3348; font-size:12px; cursor:pointer;">
+              <option value="none">🚫 None (Underwear)</option>
+              <option value="pad">🛡️ Pad</option>
+              <option value="pullups">🩳 Pullups</option>
+              <option value="diapers">👶 Diapers</option>
+              <option value="thick_diapers">🧸 Thick Diapers</option>
+            </select>
+            <span id="currentlyWearingLabel" style="display:none;"></span>
+          </div>
+          <div id="stashGrid" style="display:grid; grid-template-columns:1fr 1fr; gap:6px;">
+            <div class="stash-item" data-prot="none"
+              style="display:flex; align-items:center; justify-content:space-between; background:#151923; padding:6px 8px; border-radius:6px; border:1px solid #2b3348;">
+              <span style="font-size:12px; color:#cdd7e6;">🚫 None</span>
+              <div style="display:flex; align-items:center; gap:4px;">
+                <span id="stashCount_none" style="font-size:11px; color:#666;">∞</span>
+              </div>
+            </div>
+            <div class="stash-item" data-prot="pad"
+              style="display:flex; align-items:center; justify-content:space-between; background:#151923; padding:6px 8px; border-radius:6px; border:1px solid #2b3348;">
+              <span style="font-size:12px; color:#cdd7e6;">🛡️ Pads</span>
+              <div style="display:flex; align-items:center; gap:4px;">
+                <button onclick="adjustStash('pad',-1)" class="stash-btn"
+                  style="display:none; padding:2px 6px; background:#333; border:none; color:#fff; border-radius:4px; cursor:pointer; font-size:11px;">−</button>
+                <span id="stashCount_pad"
+                  style="font-size:13px; color:#a29bfe; font-weight:bold; min-width:20px; text-align:center;">∞</span>
+                <button onclick="adjustStash('pad',1)" class="stash-btn"
+                  style="display:none; padding:2px 6px; background:#333; border:none; color:#fff; border-radius:4px; cursor:pointer; font-size:11px;">+</button>
+              </div>
+            </div>
+            <div class="stash-item" data-prot="pullups"
+              style="display:flex; align-items:center; justify-content:space-between; background:#151923; padding:6px 8px; border-radius:6px; border:1px solid #2b3348;">
+              <span style="font-size:12px; color:#cdd7e6;">🩳 Pullups</span>
+              <div style="display:flex; align-items:center; gap:4px;">
+                <button onclick="adjustStash('pullups',-1)" class="stash-btn"
+                  style="display:none; padding:2px 6px; background:#333; border:none; color:#fff; border-radius:4px; cursor:pointer; font-size:11px;">−</button>
+                <span id="stashCount_pullups"
+                  style="font-size:13px; color:#a29bfe; font-weight:bold; min-width:20px; text-align:center;">∞</span>
+                <button onclick="adjustStash('pullups',1)" class="stash-btn"
+                  style="display:none; padding:2px 6px; background:#333; border:none; color:#fff; border-radius:4px; cursor:pointer; font-size:11px;">+</button>
+              </div>
+            </div>
+            <div class="stash-item" data-prot="diapers"
+              style="display:flex; align-items:center; justify-content:space-between; background:#151923; padding:6px 8px; border-radius:6px; border:1px solid #2b3348;">
+              <span style="font-size:12px; color:#cdd7e6;">👶 Diapers</span>
+              <div style="display:flex; align-items:center; gap:4px;">
+                <button onclick="adjustStash('diapers',-1)" class="stash-btn"
+                  style="display:none; padding:2px 6px; background:#333; border:none; color:#fff; border-radius:4px; cursor:pointer; font-size:11px;">−</button>
+                <span id="stashCount_diapers"
+                  style="font-size:13px; color:#a29bfe; font-weight:bold; min-width:20px; text-align:center;">∞</span>
+                <button onclick="adjustStash('diapers',1)" class="stash-btn"
+                  style="display:none; padding:2px 6px; background:#333; border:none; color:#fff; border-radius:4px; cursor:pointer; font-size:11px;">+</button>
+              </div>
+            </div>
+            <div class="stash-item" data-prot="thick_diapers"
+              style="display:flex; align-items:center; justify-content:space-between; background:#151923; padding:6px 8px; border-radius:6px; border:1px solid #2b3348;">
+              <span style="font-size:12px; color:#cdd7e6;">🧸 Thick</span>
+              <div style="display:flex; align-items:center; gap:4px;">
+                <button onclick="adjustStash('thick_diapers',-1)" class="stash-btn"
+                  style="display:none; padding:2px 6px; background:#333; border:none; color:#fff; border-radius:4px; cursor:pointer; font-size:11px;">−</button>
+                <span id="stashCount_thick_diapers"
+                  style="font-size:13px; color:#a29bfe; font-weight:bold; min-width:20px; text-align:center;">∞</span>
+                <button onclick="adjustStash('thick_diapers',1)" class="stash-btn"
+                  style="display:none; padding:2px 6px; background:#333; border:none; color:#fff; border-radius:4px; cursor:pointer; font-size:11px;">+</button>
+              </div>
             </div>
           </div>
-          <div class="stash-item" data-prot="pad" style="display:flex; align-items:center; justify-content:space-between; background:#151923; padding:6px 8px; border-radius:6px; border:1px solid #2b3348;">
-            <span style="font-size:12px; color:#cdd7e6;">🛡️ Pads</span>
-            <div style="display:flex; align-items:center; gap:4px;">
-              <button onclick="adjustStash('pad',-1)" class="stash-btn" style="display:none; padding:2px 6px; background:#333; border:none; color:#fff; border-radius:4px; cursor:pointer; font-size:11px;">−</button>
-              <span id="stashCount_pad" style="font-size:13px; color:#a29bfe; font-weight:bold; min-width:20px; text-align:center;">∞</span>
-              <button onclick="adjustStash('pad',1)" class="stash-btn" style="display:none; padding:2px 6px; background:#333; border:none; color:#fff; border-radius:4px; cursor:pointer; font-size:11px;">+</button>
+          <div id="stashUsedRow"
+            style="display:flex; justify-content:space-between; align-items:center; margin-top:8px; padding-top:6px; border-top:1px solid #2b3348;">
+            <span class="muted" style="font-size:12px;">Changes Used Today:</span>
+            <div style="display:flex; align-items:center; gap:8px;">
+              <button onclick="adjustUsage(-1)"
+                style="padding:2px 8px; background:#333; border:none; color:#fff; border-radius:4px; cursor:pointer;">−</button>
+              <b id="changeCountDisplay" style="font-size:16px; color:#a29bfe;">0</b>
+              <button onclick="adjustUsage(1)"
+                style="padding:2px 8px; background:#333; border:none; color:#fff; border-radius:4px; cursor:pointer;">+</button>
             </div>
           </div>
-          <div class="stash-item" data-prot="pullups" style="display:flex; align-items:center; justify-content:space-between; background:#151923; padding:6px 8px; border-radius:6px; border:1px solid #2b3348;">
-            <span style="font-size:12px; color:#cdd7e6;">🩳 Pullups</span>
-            <div style="display:flex; align-items:center; gap:4px;">
-              <button onclick="adjustStash('pullups',-1)" class="stash-btn" style="display:none; padding:2px 6px; background:#333; border:none; color:#fff; border-radius:4px; cursor:pointer; font-size:11px;">−</button>
-              <span id="stashCount_pullups" style="font-size:13px; color:#a29bfe; font-weight:bold; min-width:20px; text-align:center;">∞</span>
-              <button onclick="adjustStash('pullups',1)" class="stash-btn" style="display:none; padding:2px 6px; background:#333; border:none; color:#fff; border-radius:4px; cursor:pointer; font-size:11px;">+</button>
-            </div>
-          </div>
-          <div class="stash-item" data-prot="diapers" style="display:flex; align-items:center; justify-content:space-between; background:#151923; padding:6px 8px; border-radius:6px; border:1px solid #2b3348;">
-            <span style="font-size:12px; color:#cdd7e6;">👶 Diapers</span>
-            <div style="display:flex; align-items:center; gap:4px;">
-              <button onclick="adjustStash('diapers',-1)" class="stash-btn" style="display:none; padding:2px 6px; background:#333; border:none; color:#fff; border-radius:4px; cursor:pointer; font-size:11px;">−</button>
-              <span id="stashCount_diapers" style="font-size:13px; color:#a29bfe; font-weight:bold; min-width:20px; text-align:center;">∞</span>
-              <button onclick="adjustStash('diapers',1)" class="stash-btn" style="display:none; padding:2px 6px; background:#333; border:none; color:#fff; border-radius:4px; cursor:pointer; font-size:11px;">+</button>
-            </div>
-          </div>
-          <div class="stash-item" data-prot="thick_diapers" style="display:flex; align-items:center; justify-content:space-between; background:#151923; padding:6px 8px; border-radius:6px; border:1px solid #2b3348;">
-            <span style="font-size:12px; color:#cdd7e6;">🧸 Thick</span>
-            <div style="display:flex; align-items:center; gap:4px;">
-              <button onclick="adjustStash('thick_diapers',-1)" class="stash-btn" style="display:none; padding:2px 6px; background:#333; border:none; color:#fff; border-radius:4px; cursor:pointer; font-size:11px;">−</button>
-              <span id="stashCount_thick_diapers" style="font-size:13px; color:#a29bfe; font-weight:bold; min-width:20px; text-align:center;">∞</span>
-              <button onclick="adjustStash('thick_diapers',1)" class="stash-btn" style="display:none; padding:2px 6px; background:#333; border:none; color:#fff; border-radius:4px; cursor:pointer; font-size:11px;">+</button>
-            </div>
-          </div>
-        </div>
-        <div id="stashUsedRow" style="display:flex; justify-content:space-between; align-items:center; margin-top:8px; padding-top:6px; border-top:1px solid #2b3348;">
-          <span class="muted" style="font-size:12px;">Changes Used Today:</span>
-          <div style="display:flex; align-items:center; gap:8px;">
-            <button onclick="adjustUsage(-1)" style="padding:2px 8px; background:#333; border:none; color:#fff; border-radius:4px; cursor:pointer;">−</button>
-            <b id="changeCountDisplay" style="font-size:16px; color:#a29bfe;">0</b>
-            <button onclick="adjustUsage(1)" style="padding:2px 8px; background:#333; border:none; color:#fff; border-radius:4px; cursor:pointer;">+</button>
-          </div>
-        </div>
         </div>
       </div>
 
       <div class="hr"></div>
 
-      <div style="display:flex; justify-content:space-between; align-items:center; cursor:pointer;" onclick="toggleSidebarSection('maintenanceContent')">
+      <div style="display:flex; justify-content:space-between; align-items:center; cursor:pointer;"
+        onclick="toggleSidebarSection('maintenanceContent')">
         <h2 style="margin:0;"><span id="maintenanceContentArrow" class="collapse-arrow">▼</span> Maintenance</h2>
-        <button class="info-btn" onclick="event.stopPropagation(); showInfoModal('maintenance')" title="What is this?">?</button>
+        <button class="info-btn" onclick="event.stopPropagation(); showInfoModal('maintenance')"
+          title="What is this?">?</button>
       </div>
       <div id="maintenanceContent">
-      <p class="section-desc">Ask for a Change, force an accident, or toggle mercy mode (some profiles can recover in the middle of accidents this allows the user to use the potty after smaller accidents). Change is locked until granted or at 100% saturation.</p>
-      <div class="buttons">
-        <button id="btnChange" class="pill" onclick="changeDiaper()">🧷 Change Diaper</button>
-        <button class="pill" onclick="haveAccident()" style="border-color:#ff6b6b; color:#ff6b6b;">⚠️ I cant hold it !</button>
-        <button id="btnMercy" onclick="toggleMercy()"
-          style="font-size:11px; border-color:#55efc4; color:#55efc4;">Mercy: ON</button>
-      </div>
-      <!-- Leak Time Scale Slider -->
-      <div style="display:flex; flex-direction:column; gap:4px; padding:8px 12px; background:#1b2030; border-radius:10px; border:1px solid #2b3348; margin-top:8px;">
-        <div style="display:flex; align-items:center; justify-content:space-between;">
-          <label style="color:#cdd7e6; font-size:13px;">⏱️ Leak/Push Duration</label>
-          <span id="leakTimeScaleValue" style="color:#a29bfe; font-size:13px; font-weight:bold;">1.0×</span>
+        <p class="section-desc">Ask for a Change, force an accident, or toggle mercy mode (some profiles can recover in
+          the middle of accidents this allows the user to use the potty after smaller accidents). Change is locked until
+          granted or at 100% saturation.</p>
+        <div class="buttons">
+          <button id="btnChange" class="pill" onclick="changeDiaper()">🧷 Change Diaper</button>
+          <button class="pill" onclick="haveAccident()" style="border-color:#ff6b6b; color:#ff6b6b;">⚠️ I cant hold it
+            !</button>
+          <button id="btnMercy" onclick="toggleMercy()"
+            style="font-size:11px; border-color:#55efc4; color:#55efc4;">Mercy: ON</button>
         </div>
-        <input type="range" id="leakTimeScaleSlider" min="0.5" max="10.0" step="0.1" value="1.0" oninput="updateLeakTimeScale(this.value)" style="width:100%; accent-color:#a29bfe;">
-        <div style="display:flex; justify-content:space-between; color:#556; font-size:10px;">
-          <span>0.5× faster</span><span>1× normal</span><span>10× slower</span>
+        <!-- Leak Time Scale Slider -->
+        <div
+          style="display:flex; flex-direction:column; gap:4px; padding:8px 12px; background:#1b2030; border-radius:10px; border:1px solid #2b3348; margin-top:8px;">
+          <div style="display:flex; align-items:center; justify-content:space-between;">
+            <label style="color:#cdd7e6; font-size:13px;">⏱️ Leak/Push Duration</label>
+            <span id="leakTimeScaleValue" style="color:#a29bfe; font-size:13px; font-weight:bold;">1.0×</span>
+          </div>
+          <input type="range" id="leakTimeScaleSlider" min="0.5" max="10.0" step="0.1" value="1.0"
+            oninput="updateLeakTimeScale(this.value)" style="width:100%; accent-color:#a29bfe;">
+          <div style="display:flex; justify-content:space-between; color:#556; font-size:10px;">
+            <span>0.5× faster</span><span>1× normal</span><span>10× slower</span>
+          </div>
         </div>
-      </div>
       </div>
 
       <div class="hr"></div>
 
-      <div style="display:flex; justify-content:space-between; align-items:center; cursor:pointer; margin-bottom:4px;" onclick="toggleSidebarSection('optionsContent')">
-        <h2 style="margin:0; font-size:14px;"><span id="optionsContentArrow" class="collapse-arrow">▼</span> Options</h2>
+      <div style="display:flex; justify-content:space-between; align-items:center; cursor:pointer; margin-bottom:4px;"
+        onclick="toggleSidebarSection('optionsContent')">
+        <h2 style="margin:0; font-size:14px;"><span id="optionsContentArrow" class="collapse-arrow">▼</span> Options
+        </h2>
       </div>
       <div id="optionsContent">
-      <!-- Push-to-Leak Toggle -->
-      <div style="display:flex; align-items:center; gap:10px; background:#1b2030; padding:8px 12px; border-radius:10px; border:1px solid #2b3348; margin-bottom:8px;">
-        <label style="flex:1; display:flex; align-items:center; gap:8px; color:#cdd7e6; font-size:13px; cursor:pointer;">
-          <input type="checkbox" id="pushToLeakToggle" onchange="togglePushToLeak(this.checked)"> 🫳 Push-to-Leak Mode
-        </label>
-        <button class="info-btn" onclick="showInfoModal('pushtoleak')" title="What is this?" style="width:22px; height:22px; font-size:11px;">?</button>
-      </div>
-      <div style="display:flex; align-items:center; gap:8px; padding:6px 12px; background:#0f1115; border-radius:8px; border:1px solid #2b3348; margin-bottom:8px;">
-        <label style="flex:1; display:flex; align-items:center; gap:8px; color:#8ea0b6; font-size:12px; cursor:pointer;">
-          <input type="checkbox" id="pushToLeakSkipLongToggle" onchange="togglePushToLeakSkipLong(this.checked)"> ⏩ Skip push-to-leak for long leaks (&gt;10s)
-        </label>
-      </div>
-      <div style="display:flex; align-items:center; gap:10px; background:#1b2030; padding:8px 12px; border-radius:10px; border:1px solid #2b3348; margin-bottom:8px;">
-        <label style="flex:1; display:flex; align-items:center; gap:8px; color:#cdd7e6; font-size:13px; cursor:pointer;">
-          <input type="checkbox" id="messyModeToggle" onchange="toggleMessyMode(this.checked)"> 💩 Uh-Oh Button
-        </label>
-        <button class="info-btn" onclick="showInfoModal('messymode')" title="What is this?" style="width:22px; height:22px; font-size:11px;">?</button>
-      </div>
-      <!-- Desk Mode Toggle -->
-      <div style="display:flex; align-items:center; gap:10px; background:#1b2030; padding:8px 12px; border-radius:10px; border:1px solid #2b3348; margin-bottom:8px;">
-        <label style="flex:1; display:flex; align-items:center; gap:8px; color:#cdd7e6; font-size:13px; cursor:pointer;">
-          <input type="checkbox" id="deskModeToggle" onchange="toggleDeskMode(this.checked)"> 🪑 Desk Mode
-        </label>
-        <button class="info-btn" onclick="showInfoModal('deskmode')" title="What is this?" style="width:22px; height:22px; font-size:11px;">?</button>
-      </div>
-      <!-- Involuntary Filter Toggle -->
-      <div style="display:flex; align-items:center; gap:8px; padding:6px 12px; background:#0f1115; border-radius:8px; border:1px solid #2b3348; margin-bottom:8px;">
-        <label style="flex:1; display:flex; align-items:center; gap:8px; color:#8ea0b6; font-size:12px; cursor:pointer;">
-          <input type="checkbox" id="involuntaryFilterToggle" onchange="toggleInvoluntaryFilter(this.checked)"> 🚫 Filter involuntary actions (laugh, sneeze, etc.)
-        </label>
-      </div>
+        <!-- Push-to-Leak Toggle -->
+        <div
+          style="display:flex; align-items:center; gap:10px; background:#1b2030; padding:8px 12px; border-radius:10px; border:1px solid #2b3348; margin-bottom:8px;">
+          <label
+            style="flex:1; display:flex; align-items:center; gap:8px; color:#cdd7e6; font-size:13px; cursor:pointer;">
+            <input type="checkbox" id="pushToLeakToggle" onchange="togglePushToLeak(this.checked)"> 🫳 Push-to-Leak Mode
+          </label>
+          <button class="info-btn" onclick="showInfoModal('pushtoleak')" title="What is this?"
+            style="width:22px; height:22px; font-size:11px;">?</button>
+        </div>
+        <div
+          style="display:flex; align-items:center; gap:8px; padding:6px 12px; background:#0f1115; border-radius:8px; border:1px solid #2b3348; margin-bottom:8px;">
+          <label
+            style="flex:1; display:flex; align-items:center; gap:8px; color:#8ea0b6; font-size:12px; cursor:pointer;">
+            <input type="checkbox" id="pushToLeakSkipLongToggle" onchange="togglePushToLeakSkipLong(this.checked)"> ⏩
+            Skip push-to-leak for long leaks (&gt;10s)
+          </label>
+        </div>
+        <div
+          style="display:flex; align-items:center; gap:10px; background:#1b2030; padding:8px 12px; border-radius:10px; border:1px solid #2b3348; margin-bottom:8px;">
+          <label
+            style="flex:1; display:flex; align-items:center; gap:8px; color:#cdd7e6; font-size:13px; cursor:pointer;">
+            <input type="checkbox" id="messyModeToggle" onchange="toggleMessyMode(this.checked)"> 💩 Uh-Oh Button
+          </label>
+          <button class="info-btn" onclick="showInfoModal('messymode')" title="What is this?"
+            style="width:22px; height:22px; font-size:11px;">?</button>
+        </div>
+        <!-- Desk Mode Toggle -->
+        <div
+          style="display:flex; align-items:center; gap:10px; background:#1b2030; padding:8px 12px; border-radius:10px; border:1px solid #2b3348; margin-bottom:8px;">
+          <label
+            style="flex:1; display:flex; align-items:center; gap:8px; color:#cdd7e6; font-size:13px; cursor:pointer;">
+            <input type="checkbox" id="deskModeToggle" onchange="toggleDeskMode(this.checked)"> 🪑 Desk Mode
+          </label>
+          <button class="info-btn" onclick="showInfoModal('deskmode')" title="What is this?"
+            style="width:22px; height:22px; font-size:11px;">?</button>
+        </div>
+        <!-- Involuntary Filter Toggle -->
+        <div
+          style="display:flex; align-items:center; gap:8px; padding:6px 12px; background:#0f1115; border-radius:8px; border:1px solid #2b3348; margin-bottom:8px;">
+          <label
+            style="flex:1; display:flex; align-items:center; gap:8px; color:#8ea0b6; font-size:12px; cursor:pointer;">
+            <input type="checkbox" id="involuntaryFilterToggle" onchange="toggleInvoluntaryFilter(this.checked)"> 🚫
+            Filter involuntary actions (laugh, sneeze, etc.)
+          </label>
+        </div>
 
-      <div class="row">
-        <label><input type="checkbox" id="hideCountdown"> Hide Timer</label>
-        <button onclick="toggleMicroNoise()" style="font-size:11px">Toggle Micros</button>
-      </div>
+        <div class="row">
+          <label><input type="checkbox" id="hideCountdown"> Hide Timer</label>
+          <button onclick="toggleMicroNoise()" style="font-size:11px">Toggle Micros</button>
+        </div>
       </div>
 
       <div id="debugSection" style="margin-top:20px; padding-top:20px; border-top:1px solid #2b3348; display:none;">
@@ -347,7 +452,8 @@
         <h2 style="margin:0;">Log</h2>
         <button class="info-btn" onclick="showInfoModal('profiles')" title="How to read the log?">?</button>
       </div>
-      <p class="section-desc">Live event feed. Every alarm, guide outcome, progression change, and status check is recorded here in order.</p>
+      <p class="section-desc">Live event feed. Every alarm, guide outcome, progression change, and status check is
+        recorded here in order.</p>
       <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px">
         <span class="tag">Event: <b id="countdown">Waiting...</b></span>
         <div style="display:flex; gap:6px;">
@@ -449,20 +555,34 @@
     style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.9); z-index:5000; backdrop-filter:blur(8px);">
     <div
       style="position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); width:min(700px, 90vw); background:#151923; border:2px solid #a29bfe; border-radius:20px; padding:40px; text-align:center; z-index:5001; max-height:90vh; overflow-y:auto;">
-      <button onclick="closeSessionSetupModal()" style="position:absolute; top:12px; right:14px; background:transparent; border:1px solid #444; color:#999; border-radius:8px; padding:6px 10px; cursor:pointer; font-size:16px; z-index:1;" aria-label="Close">&times;</button>
+      <button onclick="closeSessionSetupModal()"
+        style="position:absolute; top:12px; right:14px; background:transparent; border:1px solid #444; color:#999; border-radius:8px; padding:6px 10px; cursor:pointer; font-size:16px; z-index:1;"
+        aria-label="Close">&times;</button>
       <h1 style="color:#a29bfe; margin:0 0 20px 0; font-size:2.2em;">ABDL Bladder Sim</h1>
       <p id="sessionSetupSubtitle" style="color:#cdd7e6; margin:0 0 10px 0; font-size:1.1em;">What kind of session?</p>
-      <div id="sessionSetupInfoBtns" style="display:flex; gap:8px; flex-wrap:wrap; justify-content:center; margin-bottom:20px;">
-        <button onclick="showInfoModal('intro')" style="padding:6px 14px; background:#81ecec; border:none; color:#000; border-radius:8px; cursor:pointer; font-size:12px; font-weight:bold;">📘 Intro Guide</button>
-        <button onclick="showInfoModal('howtoplay')" style="padding:6px 14px; background:#a29bfe; border:none; color:#000; border-radius:8px; cursor:pointer; font-size:12px; font-weight:bold;">📖 How to Play</button>
-        <button onclick="showInfoModal('profiles')" style="padding:6px 14px; background:#1b2030; border:1px solid #7cc4ff; color:#7cc4ff; border-radius:8px; cursor:pointer; font-size:12px;">🤓 Nerd Stats</button>
-        <button onclick="openEventBuilder()" style="padding:6px 14px; background:#1b2030; border:1px solid #74b9ff; color:#74b9ff; border-radius:8px; cursor:pointer; font-size:12px;">🎠 Browse Events</button>
+      <div id="sessionSetupInfoBtns"
+        style="display:flex; gap:8px; flex-wrap:wrap; justify-content:center; margin-bottom:20px;">
+        <button onclick="showInfoModal('intro')"
+          style="padding:6px 14px; background:#81ecec; border:none; color:#000; border-radius:8px; cursor:pointer; font-size:12px; font-weight:bold;">📘
+          Intro Guide</button>
+        <button onclick="showInfoModal('howtoplay')"
+          style="padding:6px 14px; background:#a29bfe; border:none; color:#000; border-radius:8px; cursor:pointer; font-size:12px; font-weight:bold;">📖
+          How to Play</button>
+        <button onclick="showInfoModal('profiles')"
+          style="padding:6px 14px; background:#1b2030; border:1px solid #7cc4ff; color:#7cc4ff; border-radius:8px; cursor:pointer; font-size:12px;">🤓
+          Nerd Stats</button>
+        <button onclick="openEventBuilder()"
+          style="padding:6px 14px; background:#1b2030; border:1px solid #74b9ff; color:#74b9ff; border-radius:8px; cursor:pointer; font-size:12px;">🎠
+          Browse Events</button>
       </div>
 
       <!-- Welcome Step (shown on first visit only) -->
-      <div id="welcomeStep" style="display:none; text-align:left; margin-bottom:20px; padding:20px; background:#1b2030; border-radius:14px; border:1px solid #a29bfe;">
+      <div id="welcomeStep"
+        style="display:none; text-align:left; margin-bottom:20px; padding:20px; background:#1b2030; border-radius:14px; border:1px solid #a29bfe;">
         <h2 style="color:#a29bfe; margin:0 0 12px 0; font-size:1.4em; text-align:center;">👋 Welcome!</h2>
-        <p style="color:#cdd7e6; font-size:0.92em; line-height:1.6; margin:0 0 12px 0;">This is a timed <b style="color:#74b9ff;">ABDL / omorashi routine helper</b>. You choose a profile, follow prompts, and keep your sliders honest so the pacing matches your real urgency.</p>
+        <p style="color:#cdd7e6; font-size:0.92em; line-height:1.6; margin:0 0 12px 0;">This is a timed <b
+            style="color:#74b9ff;">ABDL / omorashi routine helper</b>. You choose a profile, follow prompts, and keep
+          your sliders honest so the pacing matches your real urgency.</p>
         <h3 style="color:#74b9ff; margin:12px 0 6px; font-size:1em;">Quick Start</h3>
         <ol style="color:#cdd7e6; font-size:0.88em; line-height:1.6; margin:0 0 14px 0; padding-left:18px;">
           <li>Pick <b>Quick</b> (on-the-go) or <b>Full</b> (timed session).</li>
@@ -470,172 +590,314 @@
           <li>When alerts fire, press <b>Reveal</b> and follow the guide steps.</li>
           <li>Update <b>Pressure</b> &amp; <b>Saturation</b> sliders to match reality.</li>
         </ol>
-        <div style="padding:10px 12px; background:#0f1420; border-radius:8px; border-left:3px solid #81ecec; margin-bottom:16px;">
+        <div
+          style="padding:10px 12px; background:#0f1420; border-radius:8px; border-left:3px solid #81ecec; margin-bottom:16px;">
           <div style="color:#81ecec; font-weight:bold; font-size:0.8em; margin-bottom:4px;">💡 FIRST TIME?</div>
-          <div style="color:#cdd7e6; font-size:0.85em;">Try <b style="color:#7cc4ff;">Rookie</b> or <b style="color:#a29bfe;">Babysitter</b> for 20-30 minutes to learn the flow.</div>
+          <div style="color:#cdd7e6; font-size:0.85em;">Try <b style="color:#7cc4ff;">Rookie</b> or <b
+              style="color:#a29bfe;">Babysitter</b> for 20-30 minutes to learn the flow.</div>
         </div>
-        <button onclick="dismissWelcome()" style="width:100%; padding:12px; background:#a29bfe; color:#000; font-weight:bold; font-size:1.1em; border:none; border-radius:10px; cursor:pointer;">Got it — Let's Go! →</button>
+        <button onclick="dismissWelcome()"
+          style="width:100%; padding:12px; background:#a29bfe; color:#000; font-weight:bold; font-size:1.1em; border:none; border-radius:10px; cursor:pointer;">Got
+          it — Let's Go! →</button>
       </div>
 
       <!-- Session Type Chooser (Quick vs Full vs Bedwetting) -->
       <div id="sessionTypeStep">
         <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; margin-bottom:16px;">
-          <div style="background:#1b2030; border:2px solid #ff7675; border-radius:14px; padding:20px 12px; cursor:pointer; transition:transform 0.15s;" onclick="chooseQuickSession()" onmouseover="this.style.transform='scale(1.03)'" onmouseout="this.style.transform='scale(1)'">
+          <div
+            style="background:#1b2030; border:2px solid #ff7675; border-radius:14px; padding:20px 12px; cursor:pointer; transition:transform 0.15s;"
+            onclick="chooseQuickSession()" onmouseover="this.style.transform='scale(1.03)'"
+            onmouseout="this.style.transform='scale(1)'">
             <div style="font-size:1.8em; margin-bottom:6px;">🚽</div>
             <h3 style="color:#ff7675; margin:0 0 6px 0; font-size:1.05em;">Quick Session</h3>
-            <p style="color:#cdd7e6; font-size:0.78em; margin:0; line-height:1.4;">Press a button when you feel the urge. Roll the dice!</p>
+            <p style="color:#cdd7e6; font-size:0.78em; margin:0; line-height:1.4;">Press a button when you feel the
+              urge. Roll the dice!</p>
           </div>
-          <div style="background:#1b2030; border:2px solid #a29bfe; border-radius:14px; padding:20px 12px; cursor:pointer; transition:transform 0.15s;" onclick="chooseFullSession()" onmouseover="this.style.transform='scale(1.03)'" onmouseout="this.style.transform='scale(1)'">
+          <div
+            style="background:#1b2030; border:2px solid #a29bfe; border-radius:14px; padding:20px 12px; cursor:pointer; transition:transform 0.15s;"
+            onclick="chooseFullSession()" onmouseover="this.style.transform='scale(1.03)'"
+            onmouseout="this.style.transform='scale(1)'">
             <div style="font-size:1.8em; margin-bottom:6px;">⏱️</div>
             <h3 style="color:#a29bfe; margin:0 0 6px 0; font-size:1.05em;">Full Session</h3>
-            <p style="color:#cdd7e6; font-size:0.78em; margin:0; line-height:1.4;">Timed events, hold challenges, training & more.</p>
+            <p style="color:#cdd7e6; font-size:0.78em; margin:0; line-height:1.4;">Timed events, hold challenges,
+              training & more.</p>
           </div>
-          <div style="background:#1b2030; border:2px solid #81ecec; border-radius:14px; padding:20px 12px; cursor:pointer; transition:transform 0.15s;" onclick="chooseBedwettingSession()" onmouseover="this.style.transform='scale(1.03)'" onmouseout="this.style.transform='scale(1)'">
+          <div
+            style="background:#1b2030; border:2px solid #81ecec; border-radius:14px; padding:20px 12px; cursor:pointer; transition:transform 0.15s;"
+            onclick="chooseBedwettingSession()" onmouseover="this.style.transform='scale(1.03)'"
+            onmouseout="this.style.transform='scale(1)'">
             <div style="font-size:1.8em; margin-bottom:6px;">🌙</div>
             <h3 style="color:#81ecec; margin:0 0 6px 0; font-size:1.05em;">Bedwetting</h3>
-            <p style="color:#cdd7e6; font-size:0.78em; margin:0; line-height:1.4;">Nighttime mode. Roll when you wake up. Train over time.</p>
+            <p style="color:#cdd7e6; font-size:0.78em; margin:0; line-height:1.4;">Nighttime mode. Roll when you wake
+              up. Train over time.</p>
           </div>
         </div>
       </div>
 
       <div id="sessionSetupProfileStep" style="display:none;">
 
-      <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:16px;">
-        <div style="background:#1b2030; border:2px solid #fab1a0; border-radius:12px; overflow:hidden;">
-          <button onclick="selectProfileFromModal('dependent')" style="width:100%; padding:20px 20px 10px 20px; background:transparent; border:none; color:#fab1a0; cursor:pointer; font-weight:bold; font-size:1em;">👶 Dependent<br><span style="font-size:0.75em; color:#cdd7e6;">Always Leaking</span></button>
-          <button onclick="toggleProfileDetails('dependent')" style="width:100%; padding:6px; background:rgba(250,177,160,0.08); border:none; border-top:1px solid rgba(250,177,160,0.2); color:#fab1a0; cursor:pointer; font-size:0.72em;">▼ More Details</button>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:16px;">
+          <div style="background:#1b2030; border:2px solid #fab1a0; border-radius:12px; overflow:hidden;">
+            <button onclick="selectProfileFromModal('dependent')"
+              style="width:100%; padding:20px 20px 10px 20px; background:transparent; border:none; color:#fab1a0; cursor:pointer; font-weight:bold; font-size:1em;">👶
+              Dependent<br><span style="font-size:0.75em; color:#cdd7e6;">Always Leaking</span></button>
+            <button onclick="toggleProfileDetails('dependent')"
+              style="width:100%; padding:6px; background:rgba(250,177,160,0.08); border:none; border-top:1px solid rgba(250,177,160,0.2); color:#fab1a0; cursor:pointer; font-size:0.72em;">▼
+              More Details</button>
+          </div>
+          <div style="background:#1b2030; border:2px solid #fdcb6e; border-radius:12px; overflow:hidden;">
+            <button onclick="selectProfileFromModal('npt')"
+              style="width:100%; padding:20px 20px 10px 20px; background:transparent; border:none; color:#fdcb6e; cursor:pointer; font-weight:bold; font-size:1em;">🌙
+              Not Potty Trained<br><span style="font-size:0.75em; color:#cdd7e6;">Background Simulator</span></button>
+            <button onclick="toggleProfileDetails('npt')"
+              style="width:100%; padding:6px; background:rgba(253,203,110,0.08); border:none; border-top:1px solid rgba(253,203,110,0.2); color:#fdcb6e; cursor:pointer; font-size:0.72em;">▼
+              More Details</button>
+          </div>
+          <div style="background:#1b2030; border:2px solid #7cc4ff; border-radius:12px; overflow:hidden;">
+            <button onclick="selectProfileFromModal('train_rookie')"
+              style="width:100%; padding:20px 20px 10px 20px; background:transparent; border:none; color:#7cc4ff; cursor:pointer; font-weight:bold; font-size:1em;">🧒
+              Rookie<br><span style="font-size:0.75em; color:#cdd7e6;">Struggle to Control</span></button>
+            <button onclick="toggleProfileDetails('train_rookie')"
+              style="width:100%; padding:6px; background:rgba(124,196,255,0.08); border:none; border-top:1px solid rgba(124,196,255,0.2); color:#7cc4ff; cursor:pointer; font-size:0.72em;">▼
+              More Details</button>
+          </div>
+          <div style="background:#1b2030; border:2px solid #55efc4; border-radius:12px; overflow:hidden;">
+            <button onclick="selectProfileFromModal('train_pro')"
+              style="width:100%; padding:20px 20px 10px 20px; background:transparent; border:none; color:#55efc4; cursor:pointer; font-weight:bold; font-size:1em;">💪
+              Pro<br><span style="font-size:0.75em; color:#cdd7e6;">Retaining Control</span></button>
+            <button onclick="toggleProfileDetails('train_pro')"
+              style="width:100%; padding:6px; background:rgba(85,239,196,0.08); border:none; border-top:1px solid rgba(85,239,196,0.2); color:#55efc4; cursor:pointer; font-size:0.72em;">▼
+              More Details</button>
+          </div>
+          <div style="background:#1b2030; border:2px solid #81ecec; border-radius:12px; overflow:hidden;">
+            <button onclick="selectProfileFromModal('omorashi_hold')"
+              style="width:100%; padding:20px 20px 10px 20px; background:transparent; border:none; color:#81ecec; cursor:pointer; font-weight:bold; font-size:1em;">💧
+              Omorashi<br><span style="font-size:0.75em; color:#cdd7e6;">Hold & Release</span></button>
+            <button onclick="toggleProfileDetails('omorashi_hold')"
+              style="width:100%; padding:6px; background:rgba(129,236,236,0.08); border:none; border-top:1px solid rgba(129,236,236,0.2); color:#81ecec; cursor:pointer; font-size:0.72em;">▼
+              More Details</button>
+          </div>
+          <div style="background:#1b2030; border:2px solid #a29bfe; border-radius:12px; overflow:hidden;">
+            <button onclick="selectProfileFromModal('babysitter')"
+              style="width:100%; padding:20px 20px 10px 20px; background:transparent; border:none; color:#a29bfe; cursor:pointer; font-weight:bold; font-size:1em;">👩‍🍼
+              Babysitter<br><span style="font-size:0.75em; color:#cdd7e6;">Realistic Holds</span></button>
+            <button onclick="toggleProfileDetails('babysitter')"
+              style="width:100%; padding:6px; background:rgba(162,155,254,0.08); border:none; border-top:1px solid rgba(162,155,254,0.2); color:#a29bfe; cursor:pointer; font-size:0.72em;">▼
+              More Details</button>
+          </div>
+          <div style="background:#1b2030; border:2px solid #00cec9; border-radius:12px; overflow:hidden;">
+            <button onclick="selectProfileFromModal('gauntlet_only')"
+              style="width:100%; padding:20px 20px 10px 20px; background:transparent; border:none; color:#00cec9; cursor:pointer; font-weight:bold; font-size:1em;">🎯
+              Gauntlet Only<br><span style="font-size:0.75em; color:#cdd7e6;">Exercise Holds</span></button>
+            <button onclick="toggleProfileDetails('gauntlet_only')"
+              style="width:100%; padding:6px; background:rgba(0,206,201,0.08); border:none; border-top:1px solid rgba(0,206,201,0.2); color:#00cec9; cursor:pointer; font-size:0.72em;">▼
+              More Details</button>
+          </div>
+          <div style="background:#1b2030; border:2px solid #e17055; border-radius:12px; overflow:hidden;">
+            <button onclick="openCustomProfileEditor()"
+              style="width:100%; padding:20px 20px 10px 20px; background:transparent; border:none; color:#e17055; cursor:pointer; font-weight:bold; font-size:1em;">🧪
+              Custom<br><span style="font-size:0.75em; color:#cdd7e6;">Create / Import / Export</span></button>
+            <button onclick="toggleProfileDetails('custom')"
+              style="width:100%; padding:6px; background:rgba(225,112,85,0.08); border:none; border-top:1px solid rgba(225,112,85,0.2); color:#e17055; cursor:pointer; font-size:0.72em;">▼
+              More Details</button>
+          </div>
         </div>
-        <div style="background:#1b2030; border:2px solid #fdcb6e; border-radius:12px; overflow:hidden;">
-          <button onclick="selectProfileFromModal('npt')" style="width:100%; padding:20px 20px 10px 20px; background:transparent; border:none; color:#fdcb6e; cursor:pointer; font-weight:bold; font-size:1em;">🌙 Not Potty Trained<br><span style="font-size:0.75em; color:#cdd7e6;">Background Simulator</span></button>
-          <button onclick="toggleProfileDetails('npt')" style="width:100%; padding:6px; background:rgba(253,203,110,0.08); border:none; border-top:1px solid rgba(253,203,110,0.2); color:#fdcb6e; cursor:pointer; font-size:0.72em;">▼ More Details</button>
+        <!-- Profile Details Panel (shown inline when More Details clicked) -->
+        <div id="profileDetailsPanel"
+          style="display:none; margin-bottom:18px; padding:16px; background:#0f1420; border-radius:12px; border:1px solid #2b3348; text-align:left;">
         </div>
-        <div style="background:#1b2030; border:2px solid #7cc4ff; border-radius:12px; overflow:hidden;">
-          <button onclick="selectProfileFromModal('train_rookie')" style="width:100%; padding:20px 20px 10px 20px; background:transparent; border:none; color:#7cc4ff; cursor:pointer; font-weight:bold; font-size:1em;">🧒 Rookie<br><span style="font-size:0.75em; color:#cdd7e6;">Struggle to Control</span></button>
-          <button onclick="toggleProfileDetails('train_rookie')" style="width:100%; padding:6px; background:rgba(124,196,255,0.08); border:none; border-top:1px solid rgba(124,196,255,0.2); color:#7cc4ff; cursor:pointer; font-size:0.72em;">▼ More Details</button>
-        </div>
-        <div style="background:#1b2030; border:2px solid #55efc4; border-radius:12px; overflow:hidden;">
-          <button onclick="selectProfileFromModal('train_pro')" style="width:100%; padding:20px 20px 10px 20px; background:transparent; border:none; color:#55efc4; cursor:pointer; font-weight:bold; font-size:1em;">💪 Pro<br><span style="font-size:0.75em; color:#cdd7e6;">Retaining Control</span></button>
-          <button onclick="toggleProfileDetails('train_pro')" style="width:100%; padding:6px; background:rgba(85,239,196,0.08); border:none; border-top:1px solid rgba(85,239,196,0.2); color:#55efc4; cursor:pointer; font-size:0.72em;">▼ More Details</button>
-        </div>
-        <div style="background:#1b2030; border:2px solid #81ecec; border-radius:12px; overflow:hidden;">
-          <button onclick="selectProfileFromModal('omorashi_hold')" style="width:100%; padding:20px 20px 10px 20px; background:transparent; border:none; color:#81ecec; cursor:pointer; font-weight:bold; font-size:1em;">💧 Omorashi<br><span style="font-size:0.75em; color:#cdd7e6;">Hold & Release</span></button>
-          <button onclick="toggleProfileDetails('omorashi_hold')" style="width:100%; padding:6px; background:rgba(129,236,236,0.08); border:none; border-top:1px solid rgba(129,236,236,0.2); color:#81ecec; cursor:pointer; font-size:0.72em;">▼ More Details</button>
-        </div>
-        <div style="background:#1b2030; border:2px solid #a29bfe; border-radius:12px; overflow:hidden;">
-          <button onclick="selectProfileFromModal('babysitter')" style="width:100%; padding:20px 20px 10px 20px; background:transparent; border:none; color:#a29bfe; cursor:pointer; font-weight:bold; font-size:1em;">👩‍🍼 Babysitter<br><span style="font-size:0.75em; color:#cdd7e6;">Realistic Holds</span></button>
-          <button onclick="toggleProfileDetails('babysitter')" style="width:100%; padding:6px; background:rgba(162,155,254,0.08); border:none; border-top:1px solid rgba(162,155,254,0.2); color:#a29bfe; cursor:pointer; font-size:0.72em;">▼ More Details</button>
-        </div>
-        <div style="background:#1b2030; border:2px solid #00cec9; border-radius:12px; overflow:hidden;">
-          <button onclick="selectProfileFromModal('gauntlet_only')" style="width:100%; padding:20px 20px 10px 20px; background:transparent; border:none; color:#00cec9; cursor:pointer; font-weight:bold; font-size:1em;">🎯 Gauntlet Only<br><span style="font-size:0.75em; color:#cdd7e6;">Exercise Holds</span></button>
-          <button onclick="toggleProfileDetails('gauntlet_only')" style="width:100%; padding:6px; background:rgba(0,206,201,0.08); border:none; border-top:1px solid rgba(0,206,201,0.2); color:#00cec9; cursor:pointer; font-size:0.72em;">▼ More Details</button>
-        </div>
-        <div style="background:#1b2030; border:2px solid #e17055; border-radius:12px; overflow:hidden;">
-          <button onclick="openCustomProfileEditor()" style="width:100%; padding:20px 20px 10px 20px; background:transparent; border:none; color:#e17055; cursor:pointer; font-weight:bold; font-size:1em;">🧪 Custom<br><span style="font-size:0.75em; color:#cdd7e6;">Create / Import / Export</span></button>
-          <button onclick="toggleProfileDetails('custom')" style="width:100%; padding:6px; background:rgba(225,112,85,0.08); border:none; border-top:1px solid rgba(225,112,85,0.2); color:#e17055; cursor:pointer; font-size:0.72em;">▼ More Details</button>
-        </div>
-      </div>
-      <!-- Profile Details Panel (shown inline when More Details clicked) -->
-      <div id="profileDetailsPanel" style="display:none; margin-bottom:18px; padding:16px; background:#0f1420; border-radius:12px; border:1px solid #2b3348; text-align:left;"></div>
 
-      <!-- Diapering Setup (shown for babysitter) -->
-      <div id="diaperingSetup" style="display:none; margin-top:20px; padding:15px; background:#1b2030; border-radius:8px; border:1px solid #a29bfe;">
-        <h3 style="color:#a29bfe; margin:0 0 15px 0;">👩‍🍼 Protection & Progression Setup</h3>
-        <p style="color:#888; font-size:0.85em; margin:0 0 12px 0;">Select which protection types are available. Babysitter will move you between levels based on your performance.</p>
-        <div class="stack" style="gap:10px;">
-          <div style="display:flex; align-items:center; gap:10px; color:#cdd7e6;">
-            <label style="flex:1; display:flex; align-items:center; gap:8px;"><input type="checkbox" id="protNone"> 🚫 None / Underwear (no protection)</label>
-          </div>
-          <div style="display:flex; align-items:center; gap:10px; color:#cdd7e6;">
-            <label style="flex:1; display:flex; align-items:center; gap:8px;"><input type="checkbox" id="protPad" checked> 🛡️ Pad (light protection)</label>
-            <input type="number" id="setupStash_pad" min="0" placeholder="∞" style="width:60px; padding:4px; border-radius:6px; border:1px solid #2b3348; background:#0f141f; color:#fff; font-size:12px;" title="How many pads do you have? Leave empty for unlimited.">
-          </div>
-          <div style="display:flex; align-items:center; gap:10px; color:#cdd7e6;">
-            <label style="flex:1; display:flex; align-items:center; gap:8px;"><input type="checkbox" id="protPullups"> 🩳 Pullups (medium protection)</label>
-            <input type="number" id="setupStash_pullups" min="0" placeholder="∞" style="width:60px; padding:4px; border-radius:6px; border:1px solid #2b3348; background:#0f141f; color:#fff; font-size:12px;" title="How many pullups?">
-          </div>
-          <div style="display:flex; align-items:center; gap:10px; color:#cdd7e6;">
-            <label style="flex:1; display:flex; align-items:center; gap:8px;"><input type="checkbox" id="protDiapers"> 👶 Diapers (heavy protection)</label>
-            <input type="number" id="setupStash_diapers" min="0" placeholder="∞" style="width:60px; padding:4px; border-radius:6px; border:1px solid #2b3348; background:#0f141f; color:#fff; font-size:12px;" title="How many diapers?">
-          </div>
-          <div style="display:flex; align-items:center; gap:10px; color:#cdd7e6;">
-            <label style="flex:1; display:flex; align-items:center; gap:8px;"><input type="checkbox" id="protThick"> 🧸 Thick Diapers (maximum protection)</label>
-            <input type="number" id="setupStash_thick_diapers" min="0" placeholder="∞" style="width:60px; padding:4px; border-radius:6px; border:1px solid #2b3348; background:#0f141f; color:#fff; font-size:12px;" title="How many thick diapers?">
-          </div>
-          <p style="color:#666; font-size:0.75em; margin:4px 0 0 0;">Enter count to track stash, or leave blank for unlimited.</p>
-        </div>
-        
-        <!-- Continence Level -->
-        <div style="margin-top:15px; padding:15px; background:#151923; border-radius:8px; border:1px solid #e17055;">
-          <div style="color:#e17055; font-weight:bold; margin-bottom:8px;">🧠 Continence Level</div>
-          <p style="color:#888; font-size:0.82em; margin:0 0 10px 0;">How much bladder control do you have? This is separate from protection—you can be incontinent in a pad on purpose.</p>
-          <select id="continenceSelect" onchange="updateContinencePreview()" style="width:100%; padding:8px; background:#1b2030; color:#fff; border:1px solid #2b3348; border-radius:6px; font-size:0.95em;">
-            <option value="fully_continent">Fully Continent (rare leaks, strong control)</option>
-            <option value="mostly_continent" selected>Mostly Continent (occasional accidents)</option>
-            <option value="somewhat_incontinent">Somewhat Incontinent (frequent small leaks)</option>
-            <option value="mostly_incontinent">Mostly Incontinent (poor control, frequent floods)</option>
-            <option value="fully_incontinent">Fully Incontinent (no real control)</option>
-          </select>
-          <div id="continencePreview" style="margin-top:10px; padding:10px; border-radius:8px; background:#101622; border:1px solid #2b3348;">
-            <div id="continencePreviewTitle" style="color:#e7edf5; font-weight:bold;">Mostly Continent</div>
-            <div id="continencePreviewDesc" style="color:#dfe6ed; font-size:0.85em; margin-top:6px; line-height:1.45; font-style:italic;"></div>
-            <div id="continencePreviewGameplay" style="color:#aeb8c9; font-size:0.82em; margin-top:8px; line-height:1.45;"></div>
-            <div id="continencePreviewRec" style="color:#81ecec; font-size:0.83em; margin-top:8px; font-weight:bold;"></div>
-            <div id="continencePreviewStats"></div>
+        <!-- Diapering Setup (shown for babysitter) -->
+        <div id="diaperingSetup"
+          style="display:none; margin-top:20px; padding:15px; background:#1b2030; border-radius:8px; border:1px solid #a29bfe;">
+          <h3 style="color:#a29bfe; margin:0 0 15px 0;">👩‍🍼 Protection & Progression Setup</h3>
+          <p style="color:#888; font-size:0.85em; margin:0 0 12px 0;">Select which protection types are available.
+            Babysitter will move you between levels based on your performance.</p>
+          <div class="stack" style="gap:10px;">
+            <div style="display:flex; align-items:center; gap:10px; color:#cdd7e6;">
+              <label style="flex:1; display:flex; align-items:center; gap:8px;"><input type="checkbox" id="protNone"> 🚫
+                None / Underwear (no protection)</label>
+            </div>
+            <div style="display:flex; align-items:center; gap:10px; color:#cdd7e6;">
+              <label style="flex:1; display:flex; align-items:center; gap:8px;"><input type="checkbox" id="protPad"
+                  checked> 🛡️ Pad (light protection)</label>
+              <input type="number" id="setupStash_pad" min="0" placeholder="∞"
+                style="width:60px; padding:4px; border-radius:6px; border:1px solid #2b3348; background:#0f141f; color:#fff; font-size:12px;"
+                title="How many pads do you have? Leave empty for unlimited.">
+            </div>
+            <div style="display:flex; align-items:center; gap:10px; color:#cdd7e6;">
+              <label style="flex:1; display:flex; align-items:center; gap:8px;"><input type="checkbox" id="protPullups">
+                🩳 Pullups (medium protection)</label>
+              <input type="number" id="setupStash_pullups" min="0" placeholder="∞"
+                style="width:60px; padding:4px; border-radius:6px; border:1px solid #2b3348; background:#0f141f; color:#fff; font-size:12px;"
+                title="How many pullups?">
+            </div>
+            <div style="display:flex; align-items:center; gap:10px; color:#cdd7e6;">
+              <label style="flex:1; display:flex; align-items:center; gap:8px;"><input type="checkbox" id="protDiapers">
+                👶 Diapers (heavy protection)</label>
+              <input type="number" id="setupStash_diapers" min="0" placeholder="∞"
+                style="width:60px; padding:4px; border-radius:6px; border:1px solid #2b3348; background:#0f141f; color:#fff; font-size:12px;"
+                title="How many diapers?">
+            </div>
+            <div style="display:flex; align-items:center; gap:10px; color:#cdd7e6;">
+              <label style="flex:1; display:flex; align-items:center; gap:8px;"><input type="checkbox" id="protThick">
+                🧸 Thick Diapers (maximum protection)</label>
+              <input type="number" id="setupStash_thick_diapers" min="0" placeholder="∞"
+                style="width:60px; padding:4px; border-radius:6px; border:1px solid #2b3348; background:#0f141f; color:#fff; font-size:12px;"
+                title="How many thick diapers?">
+            </div>
+            <p style="color:#666; font-size:0.75em; margin:4px 0 0 0;">Enter count to track stash, or leave blank for
+              unlimited.</p>
           </div>
 
-          <!-- Not Potty Trained toggle (only shown for mostly/fully incontinent) -->
-          <div id="nptModeRow" style="display:none; margin-top:12px; padding:12px 14px; background:#1b1429; border-radius:8px; border:1px solid #a29bfe; align-items:flex-start; gap:12px;">
-            <label style="display:flex; align-items:center; gap:10px; cursor:pointer; flex:1;">
-              <input type="checkbox" id="babysitterNPTToggle" style="width:18px; height:18px; cursor:pointer;">
-              <div>
-                <div style="color:#a29bfe; font-weight:bold; font-size:0.95em;">🚫 Not Potty Trained</div>
-                <div style="color:#9589bf; font-size:0.8em; margin-top:3px; line-height:1.4;">Skip potty trips entirely. Every main event is automatic wetting — babysitter just changes you. Recommended for Mostly/Fully Incontinent.</div>
+          <!-- Continence Level -->
+          <div style="margin-top:15px; padding:15px; background:#151923; border-radius:8px; border:1px solid #e17055;">
+            <div style="color:#e17055; font-weight:bold; margin-bottom:8px;">🧠 Continence Level</div>
+            <p style="color:#888; font-size:0.82em; margin:0 0 10px 0;">How much bladder control do you have? This is
+              separate from protection—you can be incontinent in a pad on purpose.</p>
+            <select id="continenceSelect" onchange="updateContinencePreview()"
+              style="width:100%; padding:8px; background:#1b2030; color:#fff; border:1px solid #2b3348; border-radius:6px; font-size:0.95em;">
+              <option value="fully_continent">Fully Continent (rare leaks, strong control)</option>
+              <option value="mostly_continent" selected>Mostly Continent (occasional accidents)</option>
+              <option value="somewhat_incontinent">Somewhat Incontinent (frequent small leaks)</option>
+              <option value="mostly_incontinent">Mostly Incontinent (poor control, frequent floods)</option>
+              <option value="fully_incontinent">Fully Incontinent (no real control)</option>
+            </select>
+            <div id="continencePreview"
+              style="margin-top:10px; padding:10px; border-radius:8px; background:#101622; border:1px solid #2b3348;">
+              <div id="continencePreviewTitle" style="color:#e7edf5; font-weight:bold;">Mostly Continent</div>
+              <div id="continencePreviewDesc"
+                style="color:#dfe6ed; font-size:0.85em; margin-top:6px; line-height:1.45; font-style:italic;"></div>
+              <div id="continencePreviewGameplay"
+                style="color:#aeb8c9; font-size:0.82em; margin-top:8px; line-height:1.45;"></div>
+              <div id="continencePreviewRec" style="color:#81ecec; font-size:0.83em; margin-top:8px; font-weight:bold;">
               </div>
-            </label>
-          </div>
-        </div>
+              <div id="continencePreviewStats"></div>
+            </div>
 
-        <div style="margin-top:15px; padding:15px; background:#151923; border-radius:8px; border:1px solid #5d7bd8;">
-          <div style="color:#7cc4ff; font-weight:bold; margin-bottom:8px;">🧪 Symptoms & Curses (Experimental and likely buggy~ sorry)</div>
-          <p style="color:#888; font-size:0.82em; margin:0 0 10px 0;">Each option changes gameplay directly. Pick a few and tune your run style.</p>
-          <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
-            <label style="display:block; color:#cdd7e6; font-size:0.85em; border:1px solid #2b3348; border-radius:8px; padding:8px;"><div style="display:flex; align-items:center; gap:8px;"><input type="checkbox" id="symOveractive"> 💢 Overactive Bladder</div><div style="color:#95a1b6; font-size:0.78em; margin-top:4px;">Extra mid-cycle spasm checks and more micro events.</div></label>
-            <label style="display:block; color:#cdd7e6; font-size:0.85em; border:1px solid #2b3348; border-radius:8px; padding:8px;"><div style="display:flex; align-items:center; gap:8px;"><input type="checkbox" id="symStress"> 🤧 Stress Incontinence</div><div style="color:#95a1b6; font-size:0.78em; margin-top:4px;">Movement/cough style leaks hit harder and happen more often.</div></label>
-            <label style="display:block; color:#cdd7e6; font-size:0.85em; border:1px solid #2b3348; border-radius:8px; padding:8px;"><div style="display:flex; align-items:center; gap:8px;"><input type="checkbox" id="symUrge"> ⚡ Urge Incontinence</div><div style="color:#95a1b6; font-size:0.78em; margin-top:4px;">Potty permission gets harder as pressure rises. Denials can trigger spasms.</div></label>
-            <label style="display:block; color:#cdd7e6; font-size:0.85em; border:1px solid #2b3348; border-radius:8px; padding:8px;"><div style="display:flex; align-items:center; gap:8px;"><input type="checkbox" id="symNocturnal"> 🌙 Relaxation Wetter</div><div style="color:#95a1b6; font-size:0.78em; margin-top:4px;">Relax-themed events show up more and leak prompts get stronger.</div></label>
-            <label style="display:block; color:#cdd7e6; font-size:0.85em; border:1px solid #2b3348; border-radius:8px; padding:8px;"><div style="display:flex; align-items:center; gap:8px;"><input type="checkbox" id="symGiggle"> 😂 Giggle Incontinence</div><div style="color:#95a1b6; font-size:0.78em; margin-top:4px;">Laugh events are favored and produce larger leaks.</div></label>
-            <label style="display:block; color:#cdd7e6; font-size:0.85em; border:1px solid #2b3348; border-radius:8px; padding:8px;"><div style="display:flex; align-items:center; gap:8px;"><input type="checkbox" id="symDribble"> 💧 Pre-Void Dribbler</div><div style="color:#95a1b6; font-size:0.78em; margin-top:4px;">When permission is granted, you may dribble before reaching the potty.</div></label>
-            <label style="display:block; color:#fdcb6e; font-size:0.85em; border:1px solid #4d4227; border-radius:8px; padding:8px;"><div style="display:flex; align-items:center; gap:8px;"><input type="checkbox" id="curseStrict"> 👿 Strict Sitter</div><div style="color:#b8a986; font-size:0.78em; margin-top:4px;">Lower potty approval and weaker emergency pass saves.</div></label>
-            <label style="display:block; color:#fdcb6e; font-size:0.85em; border:1px solid #4d4227; border-radius:8px; padding:8px;"><div style="display:flex; align-items:center; gap:8px;"><input type="checkbox" id="curseNoPass"> 🚫 No Free Passes</div><div style="color:#b8a986; font-size:0.78em; margin-top:4px;">Starts at 0 potty passes and blocks earning new ones.</div></label>
-            <label style="display:block; color:#fdcb6e; font-size:0.85em; border:1px solid #4d4227; border-radius:8px; padding:8px;"><div style="display:flex; align-items:center; gap:8px;"><input type="checkbox" id="curseSlippery"> 🧊 Slippery Focus</div><div style="color:#b8a986; font-size:0.78em; margin-top:4px;">All leak events scale up in severity.</div></label>
-            <label style="display:block; color:#fdcb6e; font-size:0.85em; border:1px solid #4d4227; border-radius:8px; padding:8px;"><div style="display:flex; align-items:center; gap:8px;"><input type="checkbox" id="curseHydration"> 🥤 Hydration Debt</div><div style="color:#b8a986; font-size:0.78em; margin-top:4px;">More hydration reminders, which raises pressure over time.</div></label>
+            <!-- Not Potty Trained toggle (only shown for mostly/fully incontinent) -->
+            <div id="nptModeRow"
+              style="display:none; margin-top:12px; padding:12px 14px; background:#1b1429; border-radius:8px; border:1px solid #a29bfe; align-items:flex-start; gap:12px;">
+              <label style="display:flex; align-items:center; gap:10px; cursor:pointer; flex:1;">
+                <input type="checkbox" id="babysitterNPTToggle" style="width:18px; height:18px; cursor:pointer;">
+                <div>
+                  <div style="color:#a29bfe; font-weight:bold; font-size:0.95em;">🚫 Not Potty Trained</div>
+                  <div style="color:#9589bf; font-size:0.8em; margin-top:3px; line-height:1.4;">Skip potty trips
+                    entirely. Every main event is automatic wetting — babysitter just changes you. Recommended for
+                    Mostly/Fully Incontinent.</div>
+                </div>
+              </label>
+            </div>
           </div>
-        </div>
 
-        <!-- Progression Settings (always active) -->
-        <div style="margin-top:15px; padding:15px; background:#151923; border-radius:8px; border:1px solid #555;">
-          <div style="color:#a29bfe; font-weight:bold; margin-bottom:12px;">🔄 Progression Settings</div>
-          
-          <div style="display:flex; gap:10px; flex-wrap:wrap;">
-            <label style="color:#cdd7e6; font-size:0.9em;">
-              Difficulty:
-              <select id="autoDifficulty" style="padding:6px; background:#1b2030; color:#fff; border:1px solid #2b3348; border-radius:4px;">
-                <option value="easy">Easy (Shorter Holds)</option>
-                <option value="medium" selected>Medium (Balanced)</option>
-                <option value="hard">Hard (Longer Holds)</option>
-              </select>
-            </label>
+          <div style="margin-top:15px; padding:15px; background:#151923; border-radius:8px; border:1px solid #5d7bd8;">
+            <div style="color:#7cc4ff; font-weight:bold; margin-bottom:8px;">🧪 Symptoms & Curses (Experimental and
+              likely buggy~ sorry)</div>
+            <p style="color:#888; font-size:0.82em; margin:0 0 10px 0;">Each option changes gameplay directly. Pick a
+              few and tune your run style.</p>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+              <label
+                style="display:block; color:#cdd7e6; font-size:0.85em; border:1px solid #2b3348; border-radius:8px; padding:8px;">
+                <div style="display:flex; align-items:center; gap:8px;"><input type="checkbox" id="symOveractive"> 💢
+                  Overactive Bladder</div>
+                <div style="color:#95a1b6; font-size:0.78em; margin-top:4px;">Extra mid-cycle spasm checks and more
+                  micro events.</div>
+              </label>
+              <label
+                style="display:block; color:#cdd7e6; font-size:0.85em; border:1px solid #2b3348; border-radius:8px; padding:8px;">
+                <div style="display:flex; align-items:center; gap:8px;"><input type="checkbox" id="symStress"> 🤧 Stress
+                  Incontinence</div>
+                <div style="color:#95a1b6; font-size:0.78em; margin-top:4px;">Movement/cough style leaks hit harder and
+                  happen more often.</div>
+              </label>
+              <label
+                style="display:block; color:#cdd7e6; font-size:0.85em; border:1px solid #2b3348; border-radius:8px; padding:8px;">
+                <div style="display:flex; align-items:center; gap:8px;"><input type="checkbox" id="symUrge"> ⚡ Urge
+                  Incontinence</div>
+                <div style="color:#95a1b6; font-size:0.78em; margin-top:4px;">Potty permission gets harder as pressure
+                  rises. Denials can trigger spasms.</div>
+              </label>
+              <label
+                style="display:block; color:#cdd7e6; font-size:0.85em; border:1px solid #2b3348; border-radius:8px; padding:8px;">
+                <div style="display:flex; align-items:center; gap:8px;"><input type="checkbox" id="symNocturnal"> 🌙
+                  Relaxation Wetter</div>
+                <div style="color:#95a1b6; font-size:0.78em; margin-top:4px;">Relax-themed events show up more and leak
+                  prompts get stronger.</div>
+              </label>
+              <label
+                style="display:block; color:#cdd7e6; font-size:0.85em; border:1px solid #2b3348; border-radius:8px; padding:8px;">
+                <div style="display:flex; align-items:center; gap:8px;"><input type="checkbox" id="symGiggle"> 😂 Giggle
+                  Incontinence</div>
+                <div style="color:#95a1b6; font-size:0.78em; margin-top:4px;">Laugh events are favored and produce
+                  larger leaks.</div>
+              </label>
+              <label
+                style="display:block; color:#cdd7e6; font-size:0.85em; border:1px solid #2b3348; border-radius:8px; padding:8px;">
+                <div style="display:flex; align-items:center; gap:8px;"><input type="checkbox" id="symDribble"> 💧
+                  Pre-Void Dribbler</div>
+                <div style="color:#95a1b6; font-size:0.78em; margin-top:4px;">When permission is granted, you may
+                  dribble before reaching the potty.</div>
+              </label>
+              <label
+                style="display:block; color:#fdcb6e; font-size:0.85em; border:1px solid #4d4227; border-radius:8px; padding:8px;">
+                <div style="display:flex; align-items:center; gap:8px;"><input type="checkbox" id="curseStrict"> 👿
+                  Strict Sitter</div>
+                <div style="color:#b8a986; font-size:0.78em; margin-top:4px;">Lower potty approval and weaker emergency
+                  pass saves.</div>
+              </label>
+              <label
+                style="display:block; color:#fdcb6e; font-size:0.85em; border:1px solid #4d4227; border-radius:8px; padding:8px;">
+                <div style="display:flex; align-items:center; gap:8px;"><input type="checkbox" id="curseNoPass"> 🚫 No
+                  Free Passes</div>
+                <div style="color:#b8a986; font-size:0.78em; margin-top:4px;">Starts at 0 potty passes and blocks
+                  earning new ones.</div>
+              </label>
+              <label
+                style="display:block; color:#fdcb6e; font-size:0.85em; border:1px solid #4d4227; border-radius:8px; padding:8px;">
+                <div style="display:flex; align-items:center; gap:8px;"><input type="checkbox" id="curseSlippery"> 🧊
+                  Slippery Focus</div>
+                <div style="color:#b8a986; font-size:0.78em; margin-top:4px;">All leak events scale up in severity.
+                </div>
+              </label>
+              <label
+                style="display:block; color:#fdcb6e; font-size:0.85em; border:1px solid #4d4227; border-radius:8px; padding:8px;">
+                <div style="display:flex; align-items:center; gap:8px;"><input type="checkbox" id="curseHydration"> 🥤
+                  Hydration Debt</div>
+                <div style="color:#b8a986; font-size:0.78em; margin-top:4px;">More hydration reminders, which raises
+                  pressure over time.</div>
+              </label>
+            </div>
           </div>
-          <p style="color:#666; font-size:0.78em; margin:8px 0 0 0;">3 dry potty trips → lighter protection | 2 accidents → heavier protection</p>
-        </div>
 
-        <button onclick="saveDiaperingSetup()" style="margin-top:15px; width:100%; padding:12px; background:#a29bfe; color:#000; font-weight:bold; border:none; border-radius:8px; cursor:pointer;">💾 Save & Continue</button>
-      </div>
+          <!-- Progression Settings (always active) -->
+          <div style="margin-top:15px; padding:15px; background:#151923; border-radius:8px; border:1px solid #555;">
+            <div style="color:#a29bfe; font-weight:bold; margin-bottom:12px;">🔄 Progression Settings</div>
+
+            <div style="display:flex; gap:10px; flex-wrap:wrap;">
+              <label style="color:#cdd7e6; font-size:0.9em;">
+                Difficulty:
+                <select id="autoDifficulty"
+                  style="padding:6px; background:#1b2030; color:#fff; border:1px solid #2b3348; border-radius:4px;">
+                  <option value="easy">Easy (Shorter Holds)</option>
+                  <option value="medium" selected>Medium (Balanced)</option>
+                  <option value="hard">Hard (Longer Holds)</option>
+                </select>
+              </label>
+            </div>
+            <p style="color:#666; font-size:0.78em; margin:8px 0 0 0;">3 dry potty trips → lighter protection | 2
+              accidents → heavier protection</p>
+          </div>
+
+          <button onclick="saveDiaperingSetup()"
+            style="margin-top:15px; width:100%; padding:12px; background:#a29bfe; color:#000; font-weight:bold; border:none; border-radius:8px; cursor:pointer;">💾
+            Save & Continue</button>
+        </div>
 
       </div>
 
       <button onclick="closeSessionSetupModal()"
-        style="padding:12px 24px; margin-top:16px; background:#1b2030; border:1px solid #ff6b6b; color:#ff6b6b; border-radius:8px; cursor:pointer; font-size:14px; width:100%;">✕ Cancel</button>
+        style="padding:12px 24px; margin-top:16px; background:#1b2030; border:1px solid #ff6b6b; color:#ff6b6b; border-radius:8px; cursor:pointer; font-size:14px; width:100%;">✕
+        Cancel</button>
     </div>
   </div>
 
@@ -672,20 +934,23 @@
     <div id="pushToLeakContainer" style="display:none; margin-top:30px; text-align:center;">
       <div style="color:#888; font-size:0.85em; margin-bottom:8px;">Hold to leak — release to stop</div>
       <button id="pushToLeakBtn"
-        style="width:160px; height:160px; border-radius:50%; border:4px solid #ff6b6b; background:rgba(255,107,107,0.15); color:#ff6b6b; font-size:1.4rem; font-weight:800; cursor:pointer; user-select:none; touch-action:none; transition: all 0.2s;"
-        >💧 LEAK</button>
+        style="width:160px; height:160px; border-radius:50%; border:4px solid #ff6b6b; background:rgba(255,107,107,0.15); color:#ff6b6b; font-size:1.4rem; font-weight:800; cursor:pointer; user-select:none; touch-action:none; transition: all 0.2s;">💧
+        LEAK</button>
       <div id="pushToLeakStatus" style="color:#666; font-size:0.8em; margin-top:6px;">PAUSED — hold button to go</div>
     </div>
 
     <!-- Inline Event Browser (visible in preview mode) -->
-    <div id="voidEventBrowser" style="display:none; margin-top:18px; width:100%; max-width:420px; margin-left:auto; margin-right:auto;">
+    <div id="voidEventBrowser"
+      style="display:none; margin-top:18px; width:100%; max-width:420px; margin-left:auto; margin-right:auto;">
       <button onclick="toggleVoidBrowser()" id="voidBrowserToggle"
         style="width:100%; padding:8px; background:#1b2030; border:1px solid #2b3348; border-radius:8px 8px 0 0; color:#74b9ff; cursor:pointer; font-size:0.85em; font-weight:bold;">
         📚 Browse Events ▼
       </button>
-      <div id="voidBrowserPanel" style="display:none; background:#0f1420; border:1px solid #2b3348; border-top:none; border-radius:0 0 8px 8px; padding:12px;">
+      <div id="voidBrowserPanel"
+        style="display:none; background:#0f1420; border:1px solid #2b3348; border-top:none; border-radius:0 0 8px 8px; padding:12px;">
         <div style="display:flex; gap:6px; margin-bottom:10px; flex-wrap:wrap;">
-          <select id="vbProfile" onchange="refreshVoidBrowser()" style="flex:1; min-width:100px; padding:6px; background:#1b2030; border:1px solid #2b3348; color:#fff; border-radius:6px; font-size:12px;">
+          <select id="vbProfile" onchange="refreshVoidBrowser()"
+            style="flex:1; min-width:100px; padding:6px; background:#1b2030; border:1px solid #2b3348; color:#fff; border-radius:6px; font-size:12px;">
             <option value="babysitter">Babysitter (beta)</option>
             <option value="dependent">Dependent</option>
             <option value="npt">Not Potty Trained</option>
@@ -694,24 +959,35 @@
             <option value="chaos_manual">Chaos</option>
             <option value="omorashi_hold">Omorashi</option>
           </select>
-          <select id="vbType" onchange="refreshVoidBrowser()" style="flex:1; min-width:80px; padding:6px; background:#1b2030; border:1px solid #2b3348; color:#fff; border-radius:6px; font-size:12px;">
+          <select id="vbType" onchange="refreshVoidBrowser()"
+            style="flex:1; min-width:80px; padding:6px; background:#1b2030; border:1px solid #2b3348; color:#fff; border-radius:6px; font-size:12px;">
             <option value="all">All</option>
             <option value="micro">Micro</option>
             <option value="full">Full</option>
             <option value="transition">Transitions</option>
             <option value="permission">Permission</option>
           </select>
-          <input id="vbSearch" type="text" placeholder="Search..." oninput="refreshVoidBrowser()" style="flex:1; min-width:80px; padding:6px; background:#1b2030; border:1px solid #2b3348; color:#fff; border-radius:6px; font-size:12px;">
+          <input id="vbSearch" type="text" placeholder="Search..." oninput="refreshVoidBrowser()"
+            style="flex:1; min-width:80px; padding:6px; background:#1b2030; border:1px solid #2b3348; color:#fff; border-radius:6px; font-size:12px;">
         </div>
         <div style="display:flex; align-items:center; gap:8px;">
-          <button onclick="voidBrowserPrev()" style="padding:6px 12px; background:#1b2030; border:1px solid #2b3348; color:#74b9ff; border-radius:6px; cursor:pointer;">◀</button>
-          <div id="vbCard" style="flex:1; background:#151923; border:1px solid #2b3348; border-radius:8px; padding:10px; min-height:60px; font-size:12px; color:#cdd7e6; overflow:hidden;"></div>
-          <button onclick="voidBrowserNext()" style="padding:6px 12px; background:#1b2030; border:1px solid #2b3348; color:#74b9ff; border-radius:6px; cursor:pointer;">▶</button>
+          <button onclick="voidBrowserPrev()"
+            style="padding:6px 12px; background:#1b2030; border:1px solid #2b3348; color:#74b9ff; border-radius:6px; cursor:pointer;">◀</button>
+          <div id="vbCard"
+            style="flex:1; background:#151923; border:1px solid #2b3348; border-radius:8px; padding:10px; min-height:60px; font-size:12px; color:#cdd7e6; overflow:hidden;">
+          </div>
+          <button onclick="voidBrowserNext()"
+            style="padding:6px 12px; background:#1b2030; border:1px solid #2b3348; color:#74b9ff; border-radius:6px; cursor:pointer;">▶</button>
         </div>
         <div style="display:flex; gap:6px; margin-top:8px; flex-wrap:wrap; justify-content:center;">
-          <button onclick="voidBrowserTry()" style="padding:6px 14px; background:#a29bfe; color:#000; border:none; border-radius:6px; cursor:pointer; font-weight:bold; font-size:12px;">▶ Try This Event</button>
-          <button onclick="voidBrowserToggleDisable()" id="vbDisableBtn" style="padding:6px 14px; background:#ff7675; color:#000; border:none; border-radius:6px; cursor:pointer; font-size:12px;">Disable</button>
-          <button onclick="openEventBuilder()" style="padding:6px 14px; background:#1b2030; border:1px solid #2b3348; color:#74b9ff; border-radius:6px; cursor:pointer; font-size:12px;">✏️ Full Builder</button>
+          <button onclick="voidBrowserTry()"
+            style="padding:6px 14px; background:#a29bfe; color:#000; border:none; border-radius:6px; cursor:pointer; font-weight:bold; font-size:12px;">▶
+            Try This Event</button>
+          <button onclick="voidBrowserToggleDisable()" id="vbDisableBtn"
+            style="padding:6px 14px; background:#ff7675; color:#000; border:none; border-radius:6px; cursor:pointer; font-size:12px;">Disable</button>
+          <button onclick="openEventBuilder()"
+            style="padding:6px 14px; background:#1b2030; border:1px solid #2b3348; color:#74b9ff; border-radius:6px; cursor:pointer; font-size:12px;">✏️
+            Full Builder</button>
         </div>
       </div>
     </div>
@@ -730,7 +1006,8 @@
       <div class="stack" style="margin:20px 0; text-align:left;">
         <div id="bioCheckWearRow" style="display:none; margin-bottom:10px;">
           <label style="color:#cdd7e6; font-size:0.85em;">What are you wearing?
-            <select id="bioCheckWearSelect" style="width:100%; margin-top:4px; padding:8px; background:#1b2030; color:#fff; border:1px solid #2b3348; border-radius:8px;">
+            <select id="bioCheckWearSelect"
+              style="width:100%; margin-top:4px; padding:8px; background:#1b2030; color:#fff; border:1px solid #2b3348; border-radius:8px;">
               <option value="none">None / Underwear</option>
               <option value="pad">Pad</option>
               <option value="pullups">Pullups</option>
@@ -741,19 +1018,30 @@
         </div>
         <div style="display:flex; align-items:center; gap:8px;">
           <label style="flex:1;">Urgency: <b id="modalPressureVal">0/10</b></label>
-          <button id="modalUrgencyToggle" onclick="var t=$('modalUrgencyRef');t.style.display=t.style.display==='none'?'block':'none';" style="background:transparent; border:1px solid #2b3348; color:#fab1a0; padding:3px 8px; border-radius:6px; cursor:pointer; font-size:11px;">📊 Scale</button>
+          <button id="modalUrgencyToggle"
+            onclick="var t=$('modalUrgencyRef');t.style.display=t.style.display==='none'?'block':'none';"
+            style="background:transparent; border:1px solid #2b3348; color:#fab1a0; padding:3px 8px; border-radius:6px; cursor:pointer; font-size:11px;">📊
+            Scale</button>
         </div>
-        <div id="modalPressureDesc" style="color:#8ea0b6; font-size:0.78em; margin:2px 0 4px 0; min-height:1.2em;"></div>
+        <div id="modalPressureDesc" style="color:#8ea0b6; font-size:0.78em; margin:2px 0 4px 0; min-height:1.2em;">
+        </div>
         <input type="range" id="modalPressureSlider" min="0" max="100" step="5"
           oninput="var lv=Math.round(this.value/10);$('modalPressureVal').textContent=lv+'/10';if($('modalPressureDesc'))$('modalPressureDesc').textContent=getUrgencyDesc(lv,profileMode);">
 
-        <div id="modalUrgencyRef" style="display:none; margin:8px 0; max-height:200px; overflow-y:auto; background:#0f1420; border:1px solid #2b3348; border-radius:8px; padding:8px;">
-          <button onclick="urgencyShowNeutral=!urgencyShowNeutral;var tb=$('modalUrgencyTableBody');if(tb)tb.innerHTML=buildUrgencyTableHTML(profileMode);this.textContent=urgencyShowNeutral?'🎭 Profile Text':'📄 Neutral Text';" style="background:none; border:1px solid #5d7bd8; color:#a6c8ff; padding:3px 8px; border-radius:5px; cursor:pointer; font-size:0.72em; margin-bottom:6px;">📄 Neutral Text</button>
+        <div id="modalUrgencyRef"
+          style="display:none; margin:8px 0; max-height:200px; overflow-y:auto; background:#0f1420; border:1px solid #2b3348; border-radius:8px; padding:8px;">
+          <button
+            onclick="urgencyShowNeutral=!urgencyShowNeutral;var tb=$('modalUrgencyTableBody');if(tb)tb.innerHTML=buildUrgencyTableHTML(profileMode);this.textContent=urgencyShowNeutral?'🎭 Profile Text':'📄 Neutral Text';"
+            style="background:none; border:1px solid #5d7bd8; color:#a6c8ff; padding:3px 8px; border-radius:5px; cursor:pointer; font-size:0.72em; margin-bottom:6px;">📄
+            Neutral Text</button>
           <table style="width:100%; border-collapse:collapse; font-size:0.8em;">
-            <thead><tr>
-              <th style="text-align:left; color:#8ea0b6; border-bottom:1px solid #2b3348; padding:4px 6px;">Level</th>
-              <th style="text-align:left; color:#8ea0b6; border-bottom:1px solid #2b3348; padding:4px 6px;">How it feels</th>
-            </tr></thead>
+            <thead>
+              <tr>
+                <th style="text-align:left; color:#8ea0b6; border-bottom:1px solid #2b3348; padding:4px 6px;">Level</th>
+                <th style="text-align:left; color:#8ea0b6; border-bottom:1px solid #2b3348; padding:4px 6px;">How it
+                  feels</th>
+              </tr>
+            </thead>
             <tbody id="modalUrgencyTableBody"></tbody>
           </table>
         </div>
@@ -779,7 +1067,8 @@
   <div id="customProfileBackdrop" onclick="if(event.target===this)this.style.display='none'">
     <div class="custom-profile-modal">
       <h2>🧪 Custom Profile Editor</h2>
-      <p style="color:#888; font-size:13px; margin:0 0 20px 0;">Create, customize, and share your own bladder sim profiles. Export as JSON to share with others, or import someone else's build.</p>
+      <p style="color:#888; font-size:13px; margin:0 0 20px 0;">Create, customize, and share your own bladder sim
+        profiles. Export as JSON to share with others, or import someone else's build.</p>
 
       <div class="cp-field">
         <span>Profile Name</span>
@@ -973,8 +1262,10 @@
         <button onclick="saveCustomProfile()" style="background:#e17055; color:#000;">💾 Save Profile</button>
         <button onclick="exportCustomProfile()" style="background:#55efc4; color:#000;">📤 Export JSON</button>
         <button onclick="importCustomProfile()" style="background:#7cc4ff; color:#000;">📥 Import JSON</button>
-        <button onclick="importCustomProfileFromClipboard()" style="background:#81ecec; color:#000;">📋 Import Clipboard</button>
-        <button onclick="$('customProfileBackdrop').style.display='none'" style="background:#2b3348; color:#cdd7e6;">Cancel</button>
+        <button onclick="importCustomProfileFromClipboard()" style="background:#81ecec; color:#000;">📋 Import
+          Clipboard</button>
+        <button onclick="$('customProfileBackdrop').style.display='none'"
+          style="background:#2b3348; color:#cdd7e6;">Cancel</button>
       </div>
 
       <div id="savedProfilesList" style="margin-top:20px;"></div>
@@ -986,20 +1277,28 @@
     <div class="event-builder-modal">
       <div style="display:flex; justify-content:space-between; align-items:center; gap:8px;">
         <h2 style="margin:0; color:#74b9ff;">🎠 Event Builder & Browser</h2>
-        <button onclick="$('eventBuilderBackdrop').style.display='none'" style="padding:7px 12px; border:1px solid #2b3348; background:#1b2030; color:#dfe6e9; border-radius:8px; cursor:pointer;">Close</button>
+        <button onclick="$('eventBuilderBackdrop').style.display='none'"
+          style="padding:7px 12px; border:1px solid #2b3348; background:#1b2030; color:#dfe6e9; border-radius:8px; cursor:pointer;">Close</button>
       </div>
 
       <!-- Tabs -->
       <div class="eb-tabs" style="display:flex; gap:6px; margin:12px 0 0 0;">
-        <button id="ebTabBrowse" onclick="switchEbTab('browse')" style="padding:8px 16px; border-radius:8px 8px 0 0; border:1px solid #2b3348; background:#0f1420; color:#74b9ff; cursor:pointer; font-weight:bold; border-bottom:2px solid #74b9ff;">📚 Browse</button>
-        <button id="ebTabBuild" onclick="switchEbTab('build')" style="padding:8px 16px; border-radius:8px 8px 0 0; border:1px solid #2b3348; background:#1b2030; color:#8ea0b6; cursor:pointer; border-bottom:1px solid #2b3348;">✏️ Build</button>
-        <button id="ebTabJson" onclick="switchEbTab('json')" style="padding:8px 16px; border-radius:8px 8px 0 0; border:1px solid #2b3348; background:#1b2030; color:#8ea0b6; cursor:pointer; border-bottom:1px solid #2b3348;">{ } JSON</button>
+        <button id="ebTabBrowse" onclick="switchEbTab('browse')"
+          style="padding:8px 16px; border-radius:8px 8px 0 0; border:1px solid #2b3348; background:#0f1420; color:#74b9ff; cursor:pointer; font-weight:bold; border-bottom:2px solid #74b9ff;">📚
+          Browse</button>
+        <button id="ebTabBuild" onclick="switchEbTab('build')"
+          style="padding:8px 16px; border-radius:8px 8px 0 0; border:1px solid #2b3348; background:#1b2030; color:#8ea0b6; cursor:pointer; border-bottom:1px solid #2b3348;">✏️
+          Build</button>
+        <button id="ebTabJson" onclick="switchEbTab('json')"
+          style="padding:8px 16px; border-radius:8px 8px 0 0; border:1px solid #2b3348; background:#1b2030; color:#8ea0b6; cursor:pointer; border-bottom:1px solid #2b3348;">{
+          } JSON</button>
       </div>
       <div style="border-top:1px solid #2b3348; margin-bottom:14px;"></div>
 
       <!-- Browse Tab -->
       <div id="ebPaneBrowse">
-        <p style="margin:0 0 12px 0; color:#8ea0b6; font-size:12px;">Scroll through events in a vertical carousel, disable any event temporarily.</p>
+        <p style="margin:0 0 12px 0; color:#8ea0b6; font-size:12px;">Scroll through events in a vertical carousel,
+          disable any event temporarily.</p>
         <div class="eb-controls">
           <div>
             <label style="font-size:11px; color:#a6c8ff;">Profile</label>
@@ -1037,16 +1336,19 @@
 
       <!-- Build Event Tab -->
       <div id="ebPaneBuild" style="display:none;">
-        <p style="margin:0 0 14px 0; color:#8ea0b6; font-size:12px;">Create a custom event visually. See exactly what it looks like while playing, then add it to a profile.</p>
+        <p style="margin:0 0 14px 0; color:#8ea0b6; font-size:12px;">Create a custom event visually. See exactly what it
+          looks like while playing, then add it to a profile.</p>
 
         <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:12px;">
           <div>
             <label style="color:#a6c8ff; font-size:11px; display:block; margin-bottom:4px;">Event Label</label>
-            <input type="text" id="ebBuildLabel" placeholder="e.g. Desk Squirm" oninput="updateEbPreview()" style="width:100%; padding:8px; background:#0f1420; border:1px solid #2b3348; color:#fff; border-radius:6px; box-sizing:border-box;">
+            <input type="text" id="ebBuildLabel" placeholder="e.g. Desk Squirm" oninput="updateEbPreview()"
+              style="width:100%; padding:8px; background:#0f1420; border:1px solid #2b3348; color:#fff; border-radius:6px; box-sizing:border-box;">
           </div>
           <div>
             <label style="color:#a6c8ff; font-size:11px; display:block; margin-bottom:4px;">Event Type</label>
-            <select id="ebBuildType" onchange="updateEbPreview()" style="width:100%; padding:8px; background:#0f1420; border:1px solid #2b3348; color:#fff; border-radius:6px;">
+            <select id="ebBuildType" onchange="updateEbPreview()"
+              style="width:100%; padding:8px; background:#0f1420; border:1px solid #2b3348; color:#fff; border-radius:6px;">
               <option value="micro">Micro (small leak)</option>
               <option value="full">Full (major void/accident)</option>
               <option value="permission">Permission</option>
@@ -1054,14 +1356,19 @@
           </div>
         </div>
         <div style="margin-bottom:12px;">
-          <label style="color:#a6c8ff; font-size:11px; display:block; margin-bottom:4px;">Flow Text (description shown in log)</label>
-          <textarea id="ebBuildFlow" placeholder="Describe what happens — e.g. You shift in your seat and feel a warm dribble escape..." oninput="updateEbPreview()" style="width:100%; height:60px; padding:8px; background:#0f1420; border:1px solid #2b3348; color:#fff; border-radius:6px; resize:vertical; box-sizing:border-box;"></textarea>
+          <label style="color:#a6c8ff; font-size:11px; display:block; margin-bottom:4px;">Flow Text (description shown
+            in log)</label>
+          <textarea id="ebBuildFlow"
+            placeholder="Describe what happens — e.g. You shift in your seat and feel a warm dribble escape..."
+            oninput="updateEbPreview()"
+            style="width:100%; height:60px; padding:8px; background:#0f1420; border:1px solid #2b3348; color:#fff; border-radius:6px; resize:vertical; box-sizing:border-box;"></textarea>
         </div>
 
         <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:14px;">
           <div>
             <label style="color:#a6c8ff; font-size:11px; display:block; margin-bottom:4px;">Banner Color</label>
-            <select id="ebBuildColor" onchange="updateEbPreview()" style="width:100%; padding:8px; background:#0f1420; border:1px solid #2b3348; color:#fff; border-radius:6px;">
+            <select id="ebBuildColor" onchange="updateEbPreview()"
+              style="width:100%; padding:8px; background:#0f1420; border:1px solid #2b3348; color:#fff; border-radius:6px;">
               <option value="micro_tiny">🔵 Tiny Trickle (blue)</option>
               <option value="micro_small" selected>🟡 Small Leak (yellow)</option>
               <option value="micro_big">🟠 Bigger Spurt (orange)</option>
@@ -1071,7 +1378,8 @@
           </div>
           <div>
             <label style="color:#a6c8ff; font-size:11px; display:block; margin-bottom:4px;">Add to Profile</label>
-            <select id="ebBuildProfile" style="width:100%; padding:8px; background:#0f1420; border:1px solid #2b3348; color:#fff; border-radius:6px;">
+            <select id="ebBuildProfile"
+              style="width:100%; padding:8px; background:#0f1420; border:1px solid #2b3348; color:#fff; border-radius:6px;">
               <option value="babysitter" selected>Babysitter</option>
               <option value="dependent">Dependent</option>
               <option value="npt">Not Potty Trained</option>
@@ -1086,20 +1394,29 @@
         <!-- Guide Step Builder -->
         <div style="color:#55efc4; font-size:0.85em; font-weight:bold; margin-bottom:8px;">📋 Guide Steps</div>
         <div id="ebStepsList" style="display:flex; flex-direction:column; gap:6px; margin-bottom:10px;"></div>
-        <button onclick="addEbStep()" style="padding:7px 16px; background:#1b2030; border:1px dashed #55efc4; color:#55efc4; border-radius:8px; cursor:pointer; font-size:13px; margin-bottom:16px;">+ Add Step</button>
+        <button onclick="addEbStep()"
+          style="padding:7px 16px; background:#1b2030; border:1px dashed #55efc4; color:#55efc4; border-radius:8px; cursor:pointer; font-size:13px; margin-bottom:16px;">+
+          Add Step</button>
 
         <!-- Live Preview -->
         <div style="color:#a29bfe; font-size:0.85em; font-weight:bold; margin-bottom:8px;">👁️ Live Preview</div>
-        <div id="ebLivePreview" style="background:#0f1115; border-radius:12px; padding:14px; min-height:80px; border:1px solid #2b3348;"></div>
+        <div id="ebLivePreview"
+          style="background:#0f1115; border-radius:12px; padding:14px; min-height:80px; border:1px solid #2b3348;">
+        </div>
         <div style="display:flex; gap:8px; margin-top:14px; flex-wrap:wrap;">
-          <button onclick="addEbEventToProfile()" style="padding:9px 18px; background:#55efc4; color:#000; border:none; border-radius:8px; cursor:pointer; font-weight:bold;">✅ Add to Profile</button>
-          <button onclick="clearEbBuilder()" style="padding:9px 18px; background:#2b3348; color:#cdd7e6; border:none; border-radius:8px; cursor:pointer;">🗑️ Clear</button>
+          <button onclick="addEbEventToProfile()"
+            style="padding:9px 18px; background:#55efc4; color:#000; border:none; border-radius:8px; cursor:pointer; font-weight:bold;">✅
+            Add to Profile</button>
+          <button onclick="clearEbBuilder()"
+            style="padding:9px 18px; background:#2b3348; color:#cdd7e6; border:none; border-radius:8px; cursor:pointer;">🗑️
+            Clear</button>
         </div>
       </div>
 
       <!-- JSON Tab -->
       <div id="ebPaneJson" style="display:none;">
-        <div style="color:#fdcb6e; font-size:12px; font-weight:bold; margin-bottom:6px;">Append Custom JSON Events to Selected Profile (temporary/persisted local)</div>
+        <div style="color:#fdcb6e; font-size:12px; font-weight:bold; margin-bottom:6px;">Append Custom JSON Events to
+          Selected Profile (temporary/persisted local)</div>
         <textarea id="ebJsonInput" placeholder='[
   {
     "type": "micro",
@@ -1112,13 +1429,19 @@
   }
 ]'></textarea>
         <div class="eb-actions">
-          <button onclick="appendEventsFromBuilderJson()" style="background:#55efc4; color:#000;">Add JSON Events</button>
-          <button onclick="exportEventBuilderState()" style="background:#74b9ff; color:#000;">Export Builder State</button>
-          <button onclick="importEventBuilderState()" style="background:#a29bfe; color:#000;">Import Builder State</button>
-          <button onclick="clearAppendedEventsForProfile()" style="background:#ff7675; color:#000;">Clear Added Events</button>
-          <button onclick="resetDisabledEventsForProfile()" style="background:#fdcb6e; color:#000;">Reset Disabled Events</button>
+          <button onclick="appendEventsFromBuilderJson()" style="background:#55efc4; color:#000;">Add JSON
+            Events</button>
+          <button onclick="exportEventBuilderState()" style="background:#74b9ff; color:#000;">Export Builder
+            State</button>
+          <button onclick="importEventBuilderState()" style="background:#a29bfe; color:#000;">Import Builder
+            State</button>
+          <button onclick="clearAppendedEventsForProfile()" style="background:#ff7675; color:#000;">Clear Added
+            Events</button>
+          <button onclick="resetDisabledEventsForProfile()" style="background:#fdcb6e; color:#000;">Reset Disabled
+            Events</button>
         </div>
-        <div style="color:#7cc4ff; font-size:11px; margin-top:6px;">Tip: Use the Browse tab → "Copy Event JSON" to grab any existing event as a starting template.</div>
+        <div style="color:#7cc4ff; font-size:11px; margin-top:6px;">Tip: Use the Browse tab → "Copy Event JSON" to grab
+          any existing event as a starting template.</div>
       </div>
     </div>
   </div>
@@ -1129,6 +1452,7 @@
   <script src="js/profile-config.js"></script>
   <script src="js/session.js"></script>
   <script src="js/engine.js"></script>
+  <script src="js/profile-logic.js"></script>
   <script src="js/guide.js"></script>
   <script src="js/profiles/babysitter.js"></script>
   <script src="js/profiles/dependent.js"></script>

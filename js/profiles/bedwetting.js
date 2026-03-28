@@ -722,7 +722,7 @@ function bedwettingWakeRoll() {
     }
     saveState();
     const pottySteps = getBedwettingGuideSteps(null, 'potty', tierKey);
-    setTimeout(() => startVoidGuide(pottySteps, '🚽 You made it — get up and release fully, then head back to bed.', 'micro'), 400);
+    setTimeout(() => startVoidGuide(pottySteps, '🚽 You made it — get up and release fully, then head back to bed.', 'micro', 'potty_success'), 400);
     return;
   }
 

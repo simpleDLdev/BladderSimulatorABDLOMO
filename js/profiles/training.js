@@ -73,7 +73,7 @@ function interruptForRestroom() {
   holdPenaltyCount = 0;
 
   logToOutput(`<span style="color:#55efc4">🏃 <b>RECOVERY:</b> You stopped the leak! Go finish in the potty.</span>`);
-  startVoidGuide(RESTROOM_DISPATCH, "🏃 <b>FINISH IN POTTY:</b> You've recovered. Go now.");
+  startVoidGuide(RESTROOM_DISPATCH, "🏃 <b>FINISH IN POTTY:</b> You've recovered. Go now.", 'full_light', 'potty_success');
 }
 
 function extendHold() {
@@ -302,7 +302,7 @@ function resolvePottyCheck() {
         <b style="color:#fff; background:#55efc4; color:#000; padding:2px 6px; border-radius:4px;">ACTION: Go to restroom & Update Bio-Logger.</b>
         
         <div style="margin-top:8px; display:flex; gap:8px;">
-            <button class="pill" onclick="startVoidGuide(${JSON.stringify(successGuide).replace(/"/g, '&quot;')}, '🚽 <b>The Try:</b> Go use the potty.', 'full')">
+            <button class="pill" onclick="startVoidGuide(${JSON.stringify(successGuide).replace(/"/g, '&quot;')}, '🚽 <b>The Try:</b> Go use the potty.', 'full_light', 'potty_success')">
                🏃 Run to Potty
             </button>
             <button class="pill" onclick="triggerPottyTrainingRule()" style="border-color:#fab1a0; color:#fab1a0;">
@@ -323,6 +323,7 @@ function resolvePottyCheck() {
   let guideSeq = [];
   let failDesc = "";
   let typeStr = "full";
+  let trackingOutcome = 'accident';
 
   if (failRoll < majorThreshold) {
     /* --- OUTCOME 2: MACRO FAILURE (Partial or Total) --- */
@@ -340,12 +341,14 @@ function resolvePottyCheck() {
         </span>`);
         // Reschedule sooner because you aren't empty
         scheduleMainEvent({ min: 15, max: 25 });
+        trackingOutcome = 'partial_accident';
     } else {
         logToOutput(`<span style="color:#ff6b6b">💦 <b>TOTAL FAILURE:</b> ${scenario.flow}</span>`);
         logToOutput(`<span style="color:#ff6b6b; border:1px solid #ff6b6b; padding:4px; display:block; margin-top:4px; text-align:center;">
           🚨 <b>TOTAL LOSS</b><br>Update Pressure & Saturation sliders to match.
         </span>`);
         scheduleMainEvent();
+        trackingOutcome = 'accident';
     }
 
     regressionLeaks += 2;
@@ -373,6 +376,8 @@ function resolvePottyCheck() {
       ⚠️ <b>ACCIDENT & RECOVERY</b><br>Update sliders manually -> Go to Restroom.
     </span>`);
 
+    trackingOutcome = 'partial_accident';
+
     isRestroomTrip = true;
     regressionLeaks++;
     checkRegression();
@@ -380,7 +385,7 @@ function resolvePottyCheck() {
 
   // Launch the Guide
   if (guideSeq) {
-      startVoidGuide(guideSeq, `⚠️ <b>Loss of Control:</b> ${failDesc}`, typeStr);
+      startVoidGuide(guideSeq, `⚠️ <b>Loss of Control:</b> ${failDesc}`, typeStr, trackingOutcome);
   }
 
   holdPenaltyCount = 0; 
