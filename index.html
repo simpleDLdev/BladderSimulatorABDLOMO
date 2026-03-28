@@ -27,6 +27,16 @@
 <body>
   <header>
     <h1>ABDL Bladder Sim v0.1</h1>
+    <button id="btnWhatsNew" onclick="showWhatsNewModal()" style="margin-left:18px; background:#81ecec; color:#000; border:none; border-radius:8px; padding:6px 14px; font-weight:bold; font-size:13px; cursor:pointer;">🆕 What's New</button>
+    <!-- What's New Modal -->
+    <div id="whatsNewModal" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(20,24,32,0.92); z-index:9999; align-items:center; justify-content:center;">
+      <div style="background:#181c28; color:#fff; max-width:420px; width:90vw; margin:auto; border-radius:14px; box-shadow:0 4px 32px #0008; padding:28px 22px 18px 22px; position:relative;">
+        <button onclick="hideWhatsNewModal()" style="position:absolute; top:10px; right:12px; background:none; border:none; color:#fff; font-size:1.3em; cursor:pointer;">✖</button>
+        <h2 style="margin-top:0; color:#81ecec; font-size:1.2em;">🆕 What's New</h2>
+        <div id="whatsNewContent" style="font-size:1em; color:#cdd7e6; margin-bottom:10px;"></div>
+        <button onclick="hideWhatsNewModal()" style="margin-top:10px; background:#81ecec; color:#000; border:none; border-radius:8px; padding:6px 18px; font-weight:bold; font-size:1em; cursor:pointer; width:100%;">Close</button>
+      </div>
+    </div>
   </header>
 
   <div id="alarmBanner">
@@ -1459,6 +1469,7 @@
   <script src="js/profiles/training.js"></script>
   <script src="js/profiles/omorashi.js"></script>
   <script src="js/profiles/bedwetting.js"></script>
+  <script src="js/whats-new-data.js"></script>
   <script src="js/ui.js"></script>
   <script src="js/event-builder.js"></script>
   <script src="js/custom-profiles.js"></script>

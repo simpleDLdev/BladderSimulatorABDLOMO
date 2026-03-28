@@ -1,3 +1,41 @@
+// --- What's New Modal Logic ---
+function showWhatsNewModal(force = false) {
+  const modal = document.getElementById('whatsNewModal');
+  const content = document.getElementById('whatsNewContent');
+  if (!modal || !content || !window.WHATS_NEW_COMMITS) return;
+
+  // Build the list with bullets
+  let html = '';
+  for (const c of window.WHATS_NEW_COMMITS) {
+    html += `<div style="margin-bottom:16px;">
+      <div style="font-weight:bold; color:#81ecec;">${c.date} — ${c.title}</div>
+      <ul style="margin:6px 0 0 18px; color:#cdd7e6;">`;
+    for (const b of c.bullets) {
+      html += `<li>${b}</li>`;
+    }
+    html += '</ul></div>';
+  }
+  content.innerHTML = html;
+  modal.style.display = 'flex';
+
+  // Mark latest commit as seen
+  if (window.WHATS_NEW_COMMITS.length > 0) {
+    localStorage.setItem('whatsNewLastSeen', window.WHATS_NEW_COMMITS[0].hash);
+  }
+}
+
+function hideWhatsNewModal() {
+  const modal = document.getElementById('whatsNewModal');
+  if (modal) modal.style.display = 'none';
+}
+
+// Show modal if new commit since last seen
+window.addEventListener('DOMContentLoaded', () => {
+  const lastSeen = localStorage.getItem('whatsNewLastSeen');
+  if (window.WHATS_NEW_COMMITS && window.WHATS_NEW_COMMITS.length > 0 && window.WHATS_NEW_COMMITS[0].hash !== lastSeen) {
+    setTimeout(() => showWhatsNewModal(), 800);
+  }
+});
 // Forces the next hydration prompt and resets the hydration timer
 function imThirstyNow() {
   if (!sessionRunning || window.hydrationEnabled === false) return;
