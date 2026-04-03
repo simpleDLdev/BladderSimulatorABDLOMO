@@ -38,9 +38,16 @@ window.addEventListener('DOMContentLoaded', () => {
 });
 // Forces the next hydration prompt and resets the hydration timer
 function imThirstyNow() {
-  if (!sessionRunning || window.hydrationEnabled === false) return;
+  if (!sessionRunning) return;
+
+  // Manual thirst requests should always be honored, including dependent sessions.
+  if (window.hydrationEnabled === false) {
+    window.hydrationEnabled = true;
+    if (typeof saveState === 'function') saveState();
+  }
+
   clearTimeout(hydrationTimer);
-  triggerHydrationEvent();
+  triggerHydrationEvent(true);
   scheduleNextHydration();
   toast("Hydration prompt forced and timer reset!");
 }
@@ -606,8 +613,8 @@ function testSelectedGuide() {
   }
 }
 
-function triggerHydrationEvent() {
-  if (window.hydrationEnabled === false) return;
+function triggerHydrationEvent(force = false) {
+  if (!force && window.hydrationEnabled === false) return;
   // 1. Define Intensity from config
   const cfg = getProfileConfig();
   const [min, max] = cfg.hydrationSips;
