@@ -3,6 +3,14 @@
 
 window.WHATS_NEW_COMMITS = [
   {
+    hash: '4ed28c0',
+    date: '2026-04-06',
+    title: 'Fixed Session Timer on short session',
+    bullets: [
+      'Session Timer should work on short sessions',
+    ]
+  },
+  {
     hash: 'f5002d0',
     date: '2026-03-28',
     title: 'Centralized/refactored profile/session logic',

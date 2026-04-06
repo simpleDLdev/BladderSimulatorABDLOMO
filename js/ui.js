@@ -893,10 +893,16 @@ function stopAll() {
   // --- Session Summary ---
   const elapsedBase = sessionElapsedStartedAt || sessionStartTime || Date.now();
   const elapsed = Date.now() - elapsedBase;
+  const totalSeconds = Math.floor(elapsed / 1000);
   const mins = Math.floor(elapsed / 60000);
   const hrs = Math.floor(mins / 60);
   const remMins = mins % 60;
-  const timeStr = hrs > 0 ? `${hrs}h ${remMins}m` : `${mins}m`;
+  let timeStr = `${mins}m`;
+  if (totalSeconds < 60) {
+    timeStr = `${Math.max(0, totalSeconds)}s`;
+  } else if (hrs > 0) {
+    timeStr = `${hrs}h ${remMins}m`;
+  }
 
   let summary = `<div style="background:#1b2030; padding:12px; border-radius:8px; border:1px solid #a29bfe; margin:8px 0;">
     <div style="color:#a29bfe; font-weight:bold; font-size:1.1em; margin-bottom:8px;">📊 Session Summary</div>
@@ -1312,6 +1318,8 @@ function quickStartSession() {
   $('output').textContent = '';
   sessionRunning = true;
   sessionStartedAt = Date.now();
+  sessionElapsedStartedAt = sessionStartedAt;
+  updateSessionTimerDisplay();
   manualPressure = 0;
   manualSaturation = 0;
   if (typeof updatePressureUI === 'function') updatePressureUI(0);
